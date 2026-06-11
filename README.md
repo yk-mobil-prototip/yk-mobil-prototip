@@ -1,8 +1,8 @@
 # Yapı Kredi Mobil — Alışveriş Asistanı Prototipi
 
 ## 🔗 Linkler
-- **Çalışan prototip:** https://KULLANICIADIN.github.io/yapikredi-mobil-prototip/
-- **Kaynak kod:** bu repo (Code → Download ZIP ile indirilebilir)
+- **Çalışan prototip:** https://bselcukimre.github.io/yk-app-prototip/
+- **Kaynak kod:** https://github.com/bselcukimre/yk-app-prototip
 
 ## Akış
 1. Ana sayfa → üstteki arama çubuğuna dokun
