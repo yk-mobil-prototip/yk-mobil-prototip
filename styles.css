@@ -3,7 +3,7 @@
    Koyu tema varsayılan, Ayarlar'dan açık temaya geçilebilir.
    =================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -22,26 +22,28 @@
   --sb-h: 44px;                /* status bar yüksekliği */
 }
 
-/* ---- Koyu tema (varsayılan) ---- */
+/* ---- Koyu tema (varsayılan) — gerçek YK Mobil koyu tonları ---- */
 body[data-theme="dark"] {
   --bg: #000000;
-  --bg-2: #0c0f12;
-  --card: #16191e;
-  --card-2: #1f242b;
-  --card-3: #262c34;
-  --text: #f1f3f5;
-  --text-dim: #9aa3ad;
-  --text-faint: #6b7480;
-  --border: #262c34;
+  --bg-2: #141417;
+  --bg-lower: #232327;        /* ana ekran alt bölümü (hızlı işlemler vd.) */
+  --card: #1c1c1f;
+  --card-2: #29292d;
+  --card-3: #39393f;
+  --text: #f4f5f7;
+  --text-dim: #9b9ba3;
+  --text-faint: #6e6e76;
+  --border: #2c2c31;
   --bar: #1c83c4;
-  --topbar: #0c0f12;
-  --field: #1c2127;
+  --topbar: #000000;
+  --field: #1c1c1f;
 }
 
 /* ---- Açık tema ---- */
 body[data-theme="light"] {
   --bg: #eef1f5;
   --bg-2: #f6f8fa;
+  --bg-lower: #e7ebf1;
   --card: #ffffff;
   --card-2: #f4f6f9;
   --card-3: #eef1f5;
@@ -56,7 +58,7 @@ body[data-theme="light"] {
 
 html, body { height: 100%; }
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #111;
   color: var(--text);
   overflow: hidden;
@@ -163,11 +165,15 @@ main#app {
    ÜST BAR (top app bar)
    ========================================================= */
 .topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: calc(8px + env(safe-area-inset-top)) 14px 12px;
+  padding: calc(8px + env(safe-area-inset-top)) 12px 4px;
   background: var(--topbar);
+}
+/* Tüm üst bar tek bir yuvarlak kart (gerçek uygulamadaki gibi) */
+.topbar-card {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 7px 9px;
 }
 .icon-btn {
   width: 38px; height: 38px;
@@ -178,16 +184,16 @@ main#app {
   border-radius: 10px;
 }
 .icon-btn:active { background: var(--card-2); }
+.topbar-card .menu-ico, .topbar-card .bell-ico { color: var(--primary); }
 .search-pill {
   flex: 1 1 auto;
   display: flex; align-items: center; gap: 8px;
   height: 38px;
-  padding: 0 14px;
-  background: var(--field);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  color: var(--text-dim);
-  font-size: 14px;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: 15px;
   cursor: pointer;
 }
 .badge-dot {
@@ -197,35 +203,45 @@ main#app {
 }
 .icon-wrap { position: relative; }
 .avatar-btn {
-  width: 38px; height: 38px; border-radius: 50%; flex: 0 0 auto;
+  width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto;
   border: none; background: var(--card-3); color: var(--text-dim);
   display: grid; place-items: center; cursor: pointer;
 }
 
-/* Banka sekmeleri (Yapı Kredi / Diğer Bankalarım) */
+/* Banka sekmeleri (Yapı Kredi / Diğer Bankalarım) — tek pill içinde segment */
 .bank-tabs {
-  display: flex; gap: 8px; padding: 4px 14px 10px; background: var(--topbar);
+  display: flex; margin: 10px 12px 4px; padding: 4px;
+  background: var(--card); border-radius: 26px;
 }
 .bank-tab {
   flex: 1; position: relative;
-  border: none; background: var(--card-2); color: var(--text-dim);
-  padding: 11px; border-radius: 22px; font-size: 14px; font-weight: 600;
+  border: none; background: transparent; color: var(--text-dim);
+  padding: 12px; border-radius: 22px; font-size: 15px; font-weight: 500;
   cursor: pointer; font-family: inherit;
 }
-.bank-tab.active { background: var(--card-3); color: var(--text); }
+.bank-tab.active { background: var(--card-3); color: var(--text); font-weight: 500; }
 .tab-new {
-  background: #ff5a1f; color: #fff; font-size: 9px; font-weight: 800;
-  padding: 2px 6px; border-radius: 6px; vertical-align: middle;
+  background: #f4402e; color: #fff; font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 5px; vertical-align: middle;
 }
-.bank-tab .tab-new { position: absolute; top: -6px; right: 14px; }
+.bank-tab .tab-new { position: absolute; top: -7px; right: 10px; }
 
-/* Hesap ikonu: mavi ₺ cüzdan */
+/* Hesap ikonu: mavi ₺ cüzdan + sağda klips (gerçekteki gibi) */
 .acard-logo.wallet-tl {
-  background: linear-gradient(135deg, #1a9fe0, #0a84ff);
+  background: #0a84d9;
+  border-radius: 12px;
   position: relative; color: #fff;
+  overflow: visible;
 }
-.acard-logo.wallet-tl .tl-glyph { font-size: 24px; font-weight: 800; }
-.wallet-dot { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+.acard-logo.wallet-tl::after {
+  content: '';
+  position: absolute; right: -7px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 22px;
+  background: #0a6cb4;
+  border-radius: 0 8px 8px 0;
+}
+.acard-logo.wallet-tl .tl-glyph { font-size: 24px; font-weight: 700; }
+.wallet-dot { position: absolute; right: -3px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; background: #fff; z-index: 1; }
 
 /* =========================================================
    BÖLÜM BAŞLIKLARI
@@ -242,26 +258,27 @@ main#app {
 .acard {
   margin: 0 16px 10px;
   background: var(--card);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px;
+  border-left: 4px solid var(--primary);   /* gerçekteki sol mavi şerit */
+  padding: 16px 14px;
 }
-.acard-top { display: flex; align-items: center; gap: 12px; }
+.acard-top { display: flex; align-items: center; gap: 14px; }
 .acard-logo {
   width: 46px; height: 46px; border-radius: 10px;
   display: grid; place-items: center; flex: 0 0 auto;
   background: var(--primary-grad);
   color: #fff;
 }
-.acard-name { font-size: 15px; font-weight: 700; }
-.acard-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-.acard-more { margin-left: auto; color: var(--text-dim); font-size: 22px; cursor: pointer; }
+.acard-name { font-size: 16px; font-weight: 500; }
+.acard-sub { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+.acard-more { margin-left: auto; color: var(--text-dim); font-size: 22px; cursor: pointer; padding: 0 4px; }
 .acard-divider { height: 1px; background: var(--border); margin: 14px 0; }
-.acard-figs { display: flex; }
-.acard-fig { flex: 1; }
-.acard-fig .val { font-size: 19px; font-weight: 800; color: var(--primary); }
-.acard-fig .val .kurus { font-size: 12px; font-weight: 700; }
-.acard-fig .lbl { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.acard-figs { display: flex; margin-top: 16px; }
+.acard-fig { flex: 1; text-align: center; }
+.acard-fig + .acard-fig { border-left: 1px solid var(--border); }
+.acard-fig .val { font-size: 20px; font-weight: 700; color: var(--text); }
+.acard-fig .val .kurus { font-size: 13px; font-weight: 700; }
+.acard-fig .lbl { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
 
 /* Worldcard görünümü: gerçek kart görseli */
 .acard-cardimg {
@@ -271,14 +288,23 @@ main#app {
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
 }
 .wc-photo { width: 100%; height: 100%; object-fit: cover; }
-.worldcard .acard-fig .val { color: var(--world); }
+/* Kart tutarları da gerçekteki gibi beyaz (kırmızı değil) */
+.worldcard .acard-fig .val { color: var(--text); }
 
 /* =========================================================
-   HIZLI İŞLEMLER (4 koyu kutu — orijinal gibi)
+   ANA EKRAN ALT BÖLÜMÜ — açık gri zemin, üstü yuvarlak (orijinal gibi)
    ========================================================= */
+.home-lower {
+  margin-top: 16px;
+  background: var(--bg-lower);
+  border-radius: 28px 28px 0 0;
+  padding: 16px 0 10px;
+}
+
+/* HIZLI İŞLEMLER (4 koyu kutu) */
 .quick-row4 {
   display: flex; gap: 10px;
-  padding: 10px 16px 14px;
+  padding: 0 16px 14px;
 }
 .quick4 {
   flex: 1;
@@ -287,23 +313,47 @@ main#app {
 }
 .q4-ico {
   width: 100%; aspect-ratio: 1 / 1; max-width: 70px;
-  border-radius: 16px; background: var(--card-2);
+  border-radius: 18px; background: var(--card);
   display: grid; place-items: center; color: var(--primary);
 }
-.quick4:active .q4-ico { background: var(--card-3); }
-.quick4 span { font-size: 11px; color: var(--text); text-align: center; line-height: 1.2; }
+.quick4:active .q4-ico { background: var(--card-2); }
+.quick4 span { font-size: 12px; color: var(--text); text-align: center; line-height: 1.25; }
 
 /* Hazır Limitim şeridi */
 .limit-banner {
   display: flex; align-items: center; gap: 10px;
-  margin: 2px 16px 12px; padding: 14px 16px;
-  background: var(--card); border: 1px solid var(--border);
+  margin: 2px 16px 12px; padding: 15px 16px;
+  background: var(--card);
   border-radius: 14px; cursor: pointer;
 }
-.limit-banner .lb-title { font-size: 15px; font-weight: 600; }
+.limit-banner .lb-ico { font-size: 22px; }
+.limit-banner .lb-title { font-size: 15px; font-weight: 500; }
 .limit-banner .lb-link {
-  margin-left: auto; color: var(--primary); font-size: 13px; font-weight: 700;
+  margin-left: auto; color: var(--primary); font-size: 14px; font-weight: 500;
   display: inline-flex; align-items: center; gap: 2px;
+}
+
+/* Yapı Kredi Step / kampanya kartları — yatay kaydırma */
+.promo-scroll {
+  display: flex; gap: 12px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 2px 16px 14px;
+  scrollbar-width: none;
+}
+.promo-scroll::-webkit-scrollbar { height: 0; }
+.step-card {
+  flex: 0 0 80%;
+  position: relative;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card);
+  border-radius: 16px; padding: 18px 16px;
+}
+.step-card .step-txt { font-size: 14px; line-height: 1.45; color: var(--text); padding-right: 14px; }
+.step-card .step-art { font-size: 38px; flex: 0 0 auto; }
+.step-card .step-x {
+  position: absolute; top: 10px; right: 12px;
+  border: none; background: transparent; color: var(--text-dim);
+  font-size: 15px; cursor: pointer; padding: 4px;
 }
 
 /* =========================================================
@@ -444,6 +494,9 @@ main#app {
 }
 .nav-title { font-size: 17px; font-weight: 700; }
 .nav-sub { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+/* AI asistan alt başlığı: "çevrimiçi" yerine nötr model bilgisi (gerçek LLM arayüzleri gibi) */
+.nav-sub.ai { color: var(--text-dim); }
+.nav-sub.ai .typing-mini i { background: var(--primary); }
 .nav-head .ai-avatar {
   width: 34px; height: 34px; border-radius: 50%;
   background: linear-gradient(135deg, #00a9e0, #6a1b9a);
@@ -520,13 +573,34 @@ main#app {
 .typing-bubble i:nth-child(3) { animation-delay: .3s; }
 @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-5px); opacity: 1; } }
 
-/* Tarama göstergesi */
-.scan { display: flex !important; align-items: center; gap: 10px; color: var(--text-dim); font-size: 13px; }
-.scan .radar {
-  width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto;
-  border: 2px solid rgba(0,152,203,.25); border-top-color: var(--primary);
-  animation: spin .8s linear infinite;
+/* Düşünme göstergesi — ChatGPT/Claude tarzı tek satır shimmer metin.
+   Balon yok; metnin üzerinden ışık süpürmesi geçer, bitince kaybolur. */
+.think-line {
+  align-self: flex-start;
+  display: flex; align-items: center;
+  min-height: 30px;
+  padding: 2px 2px;
 }
+.think-line .shimmer {
+  font-size: 13.5px; font-weight: 500;
+  background: linear-gradient(90deg,
+    var(--text-faint) 0%, var(--text-faint) 35%,
+    var(--text) 50%,
+    var(--text-faint) 65%, var(--text-faint) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: shimmerSweep 1.6s linear infinite;
+}
+@keyframes shimmerSweep {
+  from { background-position: 110% 0; }
+  to { background-position: -110% 0; }
+}
+/* Adım değişiminde yumuşak giriş */
+.think-line .shimmer.step-in { animation: shimmerSweep 1.6s linear infinite, stepIn .3s ease; }
+@keyframes stepIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+/* Düşünme bitince iz bırakmadan kaybol */
+.msg-row.fade-out { opacity: 0; transition: opacity .22s ease; }
 
 /* Daktilo imleci */
 .typing-caret::after {
@@ -535,11 +609,20 @@ main#app {
 }
 @keyframes caret { 50% { opacity: 0; } }
 
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; align-self: flex-start; max-width: 100%; }
+/* Öneri çipleri — yatay kaydırma, kenardan kenara */
+.chip-row {
+  display: flex; flex-wrap: nowrap; gap: 8px;
+  align-self: stretch; max-width: none;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 2px 14px 6px; margin: 0 -14px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { height: 0; }
 .chip {
-  font-size: 12px; padding: 8px 12px; border-radius: 16px;
+  flex: 0 0 auto;
+  font-size: 12.5px; padding: 9px 13px; border-radius: 16px;
   background: var(--card-2); border: 1px solid var(--border);
-  color: var(--text); cursor: pointer;
+  color: var(--text); cursor: pointer; white-space: nowrap;
 }
 .chip:active { background: var(--card-3); }
 
@@ -618,12 +701,30 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
 .pcard-buy svg { width: 18px; height: 18px; }
 .pcard-buy:active { background: var(--primary-dark); }
 
+/* Gün ayracı (Bugün) */
+.day-divider {
+  align-self: center;
+  font-size: 11px; font-weight: 500; color: var(--text-faint);
+  padding: 2px 0 4px;
+}
+.day-divider span {
+  background: var(--card); border-radius: 10px; padding: 4px 12px;
+}
+
 /* Chat girişi */
-.chat-input {
-  display: flex; align-items: flex-end; gap: 8px;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+.chat-foot {
   border-top: 1px solid var(--border);
   background: var(--topbar);
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+}
+.chat-input {
+  display: flex; align-items: flex-end; gap: 8px;
+  padding: 10px 12px 6px;
+}
+/* LLM arayüzlerindeki "yapay zeka hata yapabilir" uyarısı */
+.ai-disclaimer {
+  text-align: center; font-size: 10.5px; line-height: 1.35;
+  color: var(--text-faint); padding: 0 18px 2px;
 }
 .chat-input textarea {
   flex: 1; resize: none; border: 1px solid var(--border);
@@ -638,6 +739,22 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
   display: grid; place-items: center; cursor: pointer;
 }
 .send-btn:disabled { opacity: .4; }
+/* Üretim sürerken durdur butonu (gerçek LLM arayüzleri gibi) */
+.send-btn.stop { background: var(--card-3); color: var(--text); animation: stopPulse 1.4s ease-in-out infinite; }
+@keyframes stopPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,152,203,.35); }
+  50% { box-shadow: 0 0 0 6px rgba(0,152,203,0); }
+}
+
+/* Bot mesajı aksiyonları: kopyala + beğen/beğenme */
+.msg-actions { display: flex; gap: 2px; margin-top: 2px; padding: 0 2px; }
+.ma-btn {
+  width: 26px; height: 24px; border: none; background: transparent;
+  color: var(--text-faint); display: grid; place-items: center;
+  border-radius: 6px; cursor: pointer;
+}
+.ma-btn:active { background: var(--card-2); }
+.ma-btn.active { color: var(--primary); }
 
 /* =========================================================
    ÖDEME EKRANI (World Pay)
@@ -688,6 +805,9 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
 .m-cardimg { width: 100%; height: 100%; object-fit: cover; }
 /* TL (₺) ikonu — ince logo, mavi zeminde beyaz */
 .m-ico.tl-ico { background: var(--primary); color: #fff; }
+/* Seçim, özel ikonların zeminini bozmasın (bug düzeltmesi) */
+.method.selected .m-ico.tl-ico { background: var(--primary); color: #fff; }
+.method.selected .m-ico.card-ico { background: #fff; }
 .tl-glyph { font-size: 24px; font-weight: 600; line-height: 1; }
 .tl-img { height: 28px; width: auto; display: block; }
 /* Worldpuan yöntem ikonu — WORLD logosu beyaz zeminde */
@@ -710,15 +830,59 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
   display: none;
 }
 .inst-box.show { display: block; animation: fade .2s; }
-.inst-box .ib-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.inst-box .ib-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.inst-box .ib-note {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--success);
+  background: rgba(46,204,113,.10);
+  padding: 5px 9px; border-radius: 8px; margin-bottom: 8px;
+}
 .inst-opt {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 0; font-size: 14px; border-bottom: 1px solid var(--border);
+  padding: 11px 0; font-size: 14px; border-bottom: 1px solid var(--border);
+  cursor: pointer;
 }
 .inst-opt:last-child { border-bottom: none; }
+.inst-opt .io-l { display: flex; align-items: center; gap: 8px; }
+.inst-opt .io-radio {
+  width: 18px; height: 18px; border-radius: 50%; flex: 0 0 auto;
+  border: 2px solid var(--border); display: grid; place-items: center;
+}
+.inst-opt.active .io-radio { border-color: var(--primary); }
+.inst-opt.active .io-radio::after {
+  content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--primary);
+}
+.inst-opt .io-badge {
+  font-size: 10px; font-weight: 700; color: #fff;
+  background: var(--navy); padding: 2px 7px; border-radius: 6px;
+}
 .inst-opt .io-r { color: var(--text-dim); }
 .inst-opt.active { color: var(--primary); font-weight: 700; }
 .inst-opt.active .io-r { color: var(--primary); }
+
+/* Hesabımdan öde — hesap bilgisi kutusu */
+.bank-box {
+  margin: 4px 16px 10px; padding: 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  display: none;
+}
+.bank-box.show { display: block; animation: fade .2s; }
+.bank-box .ib-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.bb-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; font-size: 14px; border-bottom: 1px solid var(--border);
+}
+.bb-row:last-of-type { border-bottom: none; }
+.bb-row .bb-l { color: var(--text-dim); }
+.bb-row .bb-r { font-weight: 500; }
+.bb-row.total .bb-l { color: var(--text); font-weight: 500; }
+.bb-row.total .bb-r { color: var(--primary); font-weight: 700; }
+.bb-note {
+  display: flex; align-items: center; gap: 7px;
+  margin-top: 10px; padding: 9px 11px;
+  background: rgba(0,152,203,.10); border-radius: 10px;
+  font-size: 12px; color: var(--text-dim);
+}
 
 /* Alt sabit ödeme butonu */
 .pay-foot {
@@ -758,11 +922,50 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
   width: 76px; height: 76px; border-radius: 22px; margin: 0 auto 16px;
   background: var(--primary-grad); display: grid; place-items: center; color: #fff;
 }
-.sheet h3 { text-align: center; font-size: 19px; font-weight: 800; }
-.sheet p { text-align: center; font-size: 13px; color: var(--text-dim); margin: 8px 0 22px; line-height: 1.5; }
-.sheet-amount {
-  text-align: center; font-size: 30px; font-weight: 800; margin: 4px 0 20px;
+/* iOS tarzı Face ID kutusu: koyu yuvarlatılmış kare, beyaz sembol.
+   Tarama sırasında yüz hafifçe sağa-sola döner; başarıda daire+tik kendini çizer. */
+.faceid-box {
+  width: 116px; height: 116px; border-radius: 28px;
+  margin: 10px auto 10px;
+  background: rgba(28,28,30,.94);
+  display: grid; place-items: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
 }
+body[data-theme="light"] .faceid-box { background: rgba(28,28,30,.9); }
+.fid-glyph { perspective: 320px; display: grid; place-items: center; }
+.fid-glyph svg { animation: faceTurn 1.6s ease-in-out infinite; }
+@keyframes faceTurn {
+  0%, 100% { transform: rotateY(0); }
+  30% { transform: rotateY(-26deg); }
+  70% { transform: rotateY(26deg); }
+}
+.faceid-box.ok { animation: pop .3s cubic-bezier(.2,.8,.3,1.4); }
+.faceid-box.ok .fc-circle {
+  stroke-dasharray: 164; stroke-dashoffset: 164;
+  animation: drawStroke .5s ease-out forwards;
+}
+.faceid-box.ok .fc-check {
+  stroke-dasharray: 40; stroke-dashoffset: 40;
+  animation: drawStroke .35s .4s ease-out forwards;
+}
+@keyframes drawStroke { to { stroke-dashoffset: 0; } }
+.faceid-caption {
+  text-align: center; font-size: 15px; font-weight: 500;
+  margin-bottom: 16px;
+}
+.sheet h3 { text-align: center; font-size: 19px; font-weight: 800; }
+.sheet p { text-align: center; font-size: 13px; color: var(--text-dim); margin: 8px 0 16px; line-height: 1.5; }
+.sheet-pay-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0 0 12px; padding: 11px 13px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  font-size: 12.5px; color: var(--text-dim);
+}
+.sheet-pay-row .spr-r { color: var(--text); font-weight: 500; }
+.sheet-amount {
+  text-align: center; font-size: 30px; font-weight: 800; margin: 4px 0 18px;
+}
+.sheet-btn:disabled { opacity: .45; cursor: not-allowed; }
 .sheet-btn {
   width: 100%; border: none; border-radius: 14px; padding: 16px;
   font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
@@ -789,37 +992,66 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
    BAŞARI EKRANI
    ========================================================= */
 .success {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: calc(30px + env(safe-area-inset-top)) 30px 30px; text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: calc(34px + env(safe-area-inset-top)) 24px 30px; text-align: center;
 }
 .success-check {
-  width: 110px; height: 110px; border-radius: 50%;
+  width: 104px; height: 104px; border-radius: 50%;
   background: rgba(46,204,113,.14); display: grid; place-items: center;
-  margin-bottom: 24px; animation: pop .4s cubic-bezier(.2,.8,.3,1.4);
+  margin-bottom: 22px; animation: pop .4s cubic-bezier(.2,.8,.3,1.4);
 }
 .success-check .ring {
-  width: 86px; height: 86px; border-radius: 50%;
+  width: 82px; height: 82px; border-radius: 50%;
   background: var(--success); display: grid; place-items: center; color: #fff;
 }
 @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.success h2 { font-size: 22px; font-weight: 800; }
-.success .amt { font-size: 34px; font-weight: 800; margin: 14px 0 6px; }
+.success h2 { font-size: 20px; font-weight: 700; }
+.success .succ-date { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+.success .amt { font-size: 34px; font-weight: 700; margin: 14px 0 4px; }
 .success .prod { font-size: 13px; color: var(--text-dim); }
 .puan-card {
-  margin-top: 26px; width: 100%;
+  margin-top: 22px; width: 100%;
   background: linear-gradient(135deg, rgba(0,152,203,.16), rgba(10,61,122,.14));
   border: 1px solid rgba(0,152,203,.3);
-  border-radius: 16px; padding: 16px;
-  display: flex; align-items: center; gap: 14px;
+  border-radius: 16px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px; text-align: left;
 }
 .puan-card .pc-ico { font-size: 30px; }
-.puan-card .pc-val { font-size: 18px; font-weight: 800; color: var(--primary); }
-.puan-card .pc-lbl { font-size: 12px; color: var(--text-dim); }
-.success-actions { width: 100%; margin-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+.puan-card .pc-logo {
+  flex: 0 0 auto; background: #fff; border-radius: 10px;
+  padding: 7px 9px; display: grid; place-items: center;
+}
+.puan-card .pc-logo img { height: 16px; width: auto; display: block; }
+.puan-card .pc-val { font-size: 17px; font-weight: 700; color: var(--primary); }
+.puan-card .pc-lbl { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+/* Dekont / işlem detayı kartı */
+.receipt {
+  width: 100%; margin-top: 14px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 6px 16px;
+  text-align: left;
+}
+.r-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 0; font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.r-row:last-child { border-bottom: none; }
+.r-row .r-l { color: var(--text-dim); flex: 0 0 auto; }
+.r-row .r-r { font-weight: 500; text-align: right; }
+
+.success-actions { width: 100%; margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
 .btn-primary {
   width: 100%; background: var(--primary); color: #fff; border: none;
   border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.btn-outline {
+  width: 100%; background: transparent; color: var(--primary);
+  border: 1.5px solid var(--primary); border-radius: 14px;
+  padding: 14px; font-size: 15px; font-weight: 500;
   cursor: pointer; font-family: inherit;
 }
 .btn-ghost {

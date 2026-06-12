@@ -19,6 +19,10 @@ const I = {
   chevDown: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
   chevR: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>',
   send: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg>',
+  stop: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="3"/></svg>',
+  copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  thumbUp: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3zm0 0 4.2-7.4a2 2 0 0 1 2.3-.9 2.3 2.3 0 0 1 1.5 2.6L14.3 8H19a2 2 0 0 1 2 2.4l-1.5 7.6a2 2 0 0 1-2 1.6H7"/></svg>',
+  thumbDown: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3zm0 0 4.2-7.4a2 2 0 0 1 2.3-.9 2.3 2.3 0 0 1 1.5 2.6L14.3 8H19a2 2 0 0 1 2 2.4l-1.5 7.6a2 2 0 0 1-2 1.6H7"/></svg>',
   check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
   checkBig: '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
   lock: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
@@ -94,6 +98,28 @@ function imgOrFallback(src, emoji, cls) {
 
 const ASSISTANT_PROMPT = 'Evim için güçlü ama sessiz çalışan, paspaslama özelliği de olan bir robot süpürge arıyorum. Bütçem 2.500 TL. World kampanyası ve taksit avantajı olan Koçtaş seçeneklerini gösterir misin?';
 
+/* Öneri çipleri — Koç Grubu markaları. Yalnızca robot süpürge akışı uçtan uca hazır. */
+const CHIPS = [
+  { key: 'robot', label: '🤖 Robot süpürge önerisi' },
+  { key: 'setur', label: '🏖️ Setur ile tatil planla' },
+  { key: 'boyner', label: '👕 Boyner kombin önerisi' },
+  { key: 'opet', label: '⛽ Opet yakıt kampanyaları' },
+];
+const CHIP_FLOWS = {
+  setur: {
+    user: 'Setur ile yaz tatili planlamak istiyorum.',
+    reply: 'Harika fikir! 🏖️ Setur ile tatil planlama deneyimi üzerinde çalışıyoruz, çok yakında burada olacak. Bu prototipte World kampanyalı robot süpürge alışverişini uçtan uca deneyimleyebilirsin — istersen hemen önerileri getireyim.',
+  },
+  boyner: {
+    user: 'Boyner\'den kombin önerisi alabilir miyim?',
+    reply: 'Stil önerileri yakında! 👕 Boyner kombin asistanı bu prototipte henüz aktif değil. Şimdilik sana Koçtaş\'tan World kampanyalı robot süpürge önerilerinde yardımcı olabilirim.',
+  },
+  opet: {
+    user: 'Opet yakıt kampanyalarını gösterir misin?',
+    reply: 'Opet kampanyaları çok yakında burada olacak! ⛽ Bu prototipte robot süpürge alışveriş akışını deneyimleyebilirsin — World\'e özel taksit ve Worldpuan avantajlarıyla.',
+  },
+};
+
 const MENU = [
   { id: 'home', label: 'Ana Sayfa', icon: 'home' },
   { id: 'accounts', label: 'Hesaplarım', icon: 'wallet' },
@@ -113,6 +139,7 @@ const state = {
   chatStarted: false,
   selectedProduct: null,
   payMethod: null,      // 'worldcard' | 'worldpuan' | 'bank'
+  installment: 'single', // 'single' | 't3' | 't6' — varsayılan tek çekim
   theme: localStorage.getItem('ykm-theme') || 'dark',
 };
 
@@ -132,10 +159,12 @@ function HomeScreen() {
   return `
   <div class="screen anim-fade">
     <div class="topbar">
-      <button class="icon-btn" data-action="open-drawer" aria-label="Menü">${I.menu}</button>
-      <div class="search-pill" data-action="open-search">${I.search}<span>Yapı Kredi Mobil'de Ara</span></div>
-      <div class="icon-wrap"><button class="icon-btn" data-action="toast" data-msg="Bildirimler prototipte aktif değil">${I.bell}<span class="badge-dot"></span></button></div>
-      <button class="avatar-btn" data-action="toast" data-msg="Profil prototipte aktif değil">${I.user}</button>
+      <div class="topbar-card">
+        <button class="icon-btn menu-ico" data-action="open-drawer" aria-label="Menü">${I.menu}</button>
+        <div class="search-pill" data-action="open-search"><span>Yapı Kredi Mobil'de Ara</span></div>
+        <div class="icon-wrap"><button class="icon-btn bell-ico" data-action="toast" data-msg="Bildirimler prototipte aktif değil">${I.bell}</button></div>
+        <button class="avatar-btn" data-action="toast" data-msg="Profil prototipte aktif değil">${I.user}</button>
+      </div>
     </div>
 
     <div class="bank-tabs">
@@ -150,11 +179,10 @@ function HomeScreen() {
           <div class="acard-logo wallet-tl"><img src="assets/tl-white.png" class="tl-img" alt="₺" onerror="this.outerHTML='<span class=\\'tl-glyph\\'>₺</span>'"><span class="wallet-dot"></span></div>
           <div>
             <div class="acard-name">Vadesiz TL Hesabım</div>
-            <div class="acard-sub">•••• •••• 0096</div>
+            <div class="acard-sub">59870396</div>
           </div>
           <div class="acard-more" data-action="toast" data-msg="Hesap detayı prototipte aktif değil">⋮</div>
         </div>
-        <div class="acard-divider"></div>
         <div class="acard-figs">
           <div class="acard-fig"><div class="val">${money('10.000')}</div><div class="lbl">Kullanılabilir Bakiye</div></div>
           <div class="acard-fig"><div class="val">${money('10.000')}</div><div class="lbl">Güncel Bakiye</div></div>
@@ -167,33 +195,47 @@ function HomeScreen() {
           <div class="acard-cardimg">${imgOrFallback(WORLDCARD_IMG, '💳', 'wc-photo')}</div>
           <div>
             <div class="acard-name">Worldcard</div>
-            <div class="acard-sub">**** **** **** 3333</div>
+            <div class="acard-sub">1234 56** **** 3333</div>
           </div>
           <div class="acard-more" data-action="toast" data-msg="Kart detayı prototipte aktif değil">⋮</div>
         </div>
-        <div class="acard-divider"></div>
         <div class="acard-figs">
           <div class="acard-fig"><div class="val">${money('1.000')}</div><div class="lbl">Güncel Borç</div></div>
           <div class="acard-fig"><div class="val">${money('5.000')}</div><div class="lbl">Kullanılabilir Limit</div></div>
         </div>
       </div>
 
-      <div class="quick-row4">
-        <div class="quick4" data-action="toast" data-msg="Varlıklarım prototipte aktif değil"><div class="q4-ico">${I.pie}</div><span>Varlıklarım</span></div>
-        <div class="quick4" data-action="toast" data-msg="Para Çek/Yatır prototipte aktif değil"><div class="q4-ico">${I.qr}</div><span>Para Çek/<br>Yatır</span></div>
-        <div class="quick4" data-action="toast" data-msg="Son Hareketler prototipte aktif değil"><div class="q4-ico">${I.transfer}</div><span>Son<br>Hareketler</span></div>
-        <div class="quick4" data-action="toast" data-msg="Aylık Ödeme Planım prototipte aktif değil"><div class="q4-ico">${I.calendar}</div><span>Aylık Ödeme<br>Planım</span></div>
-      </div>
+      <div class="home-lower">
+        <div class="quick-row4">
+          <div class="quick4" data-action="toast" data-msg="Varlıklarım prototipte aktif değil"><div class="q4-ico">${I.pie}</div><span>Varlıklarım</span></div>
+          <div class="quick4" data-action="toast" data-msg="Para Çek/Yatır prototipte aktif değil"><div class="q4-ico">${I.qr}</div><span>Para Çek/<br>Yatır</span></div>
+          <div class="quick4" data-action="toast" data-msg="Son Hareketler prototipte aktif değil"><div class="q4-ico">${I.transfer}</div><span>Son<br>Hareketler</span></div>
+          <div class="quick4" data-action="toast" data-msg="Aylık Ödeme Planım prototipte aktif değil"><div class="q4-ico">${I.calendar}</div><span>Aylık Ödeme<br>Planım</span></div>
+        </div>
 
-      <div class="limit-banner" data-action="toast" data-msg="Hazır Limit prototipte aktif değil">
-        <span class="tab-new">Yeni</span>
-        <span class="lb-title">Hazır Limitim</span>
-        <span class="lb-link">Limitini İncele ${I.chevR}</span>
-      </div>
+        <div class="limit-banner" data-action="toast" data-msg="Hazır Limit prototipte aktif değil">
+          <span class="lb-ico">💵</span>
+          <span class="lb-title">Hazır Limitim</span>
+          <span class="lb-link">Limitini İncele ${I.chevR}</span>
+        </div>
 
-      <div class="login-foot">
-        <div class="lf-row">${I.lock}<span class="lf-lbl">Son Giriş</span><span class="lf-date">11/06/2026 09:41</span></div>
-        <div class="lf-row">${I.lock}<span class="lf-lbl">Son Başarısız Giriş</span><span class="lf-date">—</span></div>
+        <div class="section-title">Yapı Kredi Step</div>
+        <div class="promo-scroll">
+          <div class="step-card">
+            <button class="step-x" data-action="step-close" aria-label="Kapat">✕</button>
+            <div class="step-txt">Yeni sürdürülebilirlik programımız Step ile daha güzel bir geleceğe adım atalım.</div>
+            <div class="step-art">🌱</div>
+          </div>
+          <div class="step-card" data-action="toast" data-msg="Otomatik talimat prototipte aktif değil">
+            <div class="step-txt">Otomatik fatura talimatı verin, faturalarınız yerinize ödensin.</div>
+            <div class="step-art">🧾</div>
+          </div>
+        </div>
+
+        <div class="login-foot">
+          <div class="lf-row">${I.lock}<span class="lf-lbl">Son Giriş</span><span class="lf-date">11/06/2026 09:41</span></div>
+          <div class="lf-row">${I.lock}<span class="lf-lbl">Son Başarısız Giriş</span><span class="lf-date">—</span></div>
+        </div>
       </div>
     </div>
   </div>`;
@@ -261,16 +303,19 @@ function ChatScreen() {
       <button class="icon-btn" data-action="go-home">${I.back}</button>
       <div class="ai-avatar">${I.spark}</div>
       <div>
-        <div class="nav-title">Yapı Kredi Asistanı</div>
-        <div class="nav-sub" id="chat-status"><span class="online-dot"></span> Çevrimiçi</div>
+        <div class="nav-title">Alışveriş Asistanı</div>
+        <div class="nav-sub ai" id="chat-status">Yapay zeka destekli</div>
       </div>
     </div>
 
     <div class="chat-scroll" id="chat-scroll"></div>
 
-    <div class="chat-input">
-      <textarea id="chat-text" rows="1" placeholder="Mesaj yaz..."></textarea>
-      <button class="send-btn" id="send-btn" data-action="chat-send">${I.send}</button>
+    <div class="chat-foot">
+      <div class="chat-input">
+        <textarea id="chat-text" rows="1" placeholder="Mesaj yaz..."></textarea>
+        <button class="send-btn" id="send-btn" data-action="chat-send">${I.send}</button>
+      </div>
+      <div class="ai-disclaimer">Alışveriş Asistanı yapay zekadır, hata yapabilir. Fiyat ve stok bilgisini satıcıdan doğrula.</div>
     </div>
   </div>`;
 }
@@ -298,8 +343,33 @@ function ProductCardHTML(p) {
     </div>`;
 }
 
+/* Taksit seçenekleri — varsayılan: Tek Çekim */
+function instOptions(p) {
+  const total = parseInt(p.priceNum.replace('.', ''));
+  return [
+    { id: 'single', label: 'Tek Çekim', badge: '', right: p.price },
+    { id: 't3', label: '3 Taksit', badge: '', right: `3 x ${Math.round(total / 3).toLocaleString('tr-TR')},00 TL` },
+    { id: 't6', label: p.inst, badge: `World'e Özel`, right: p.instSub },
+  ];
+}
+function instLabel() {
+  const p = state.selectedProduct;
+  if (state.payMethod === 'bank' || state.installment === 'single') return 'Tek Çekim';
+  if (state.installment === 't3') return '3 Taksit';
+  return p.inst;
+}
+function InstBoxHTML(p) {
+  return instOptions(p).map(o => `
+    <div class="inst-opt ${state.installment === o.id ? 'active' : ''}" data-action="select-inst" data-inst="${o.id}">
+      <span class="io-l"><span class="io-radio"></span><span>${o.label}</span>${o.badge ? `<span class="io-badge">${o.badge}</span>` : ''}</span>
+      <span class="io-r">${o.right}</span>
+    </div>`).join('');
+}
+
 function PaymentScreen() {
   const p = state.selectedProduct;
+  const total = parseInt(p.priceNum.replace('.', ''));
+  const remaining = (10000 - total).toLocaleString('tr-TR');
   return `
   <div class="screen anim-right">
     <div class="nav-head">
@@ -327,15 +397,22 @@ function PaymentScreen() {
 
       <div class="method" data-action="select-method" data-method="bank">
         <div class="m-ico tl-ico"><img src="assets/tl-white.png" class="tl-img" alt="₺" onerror="this.outerHTML='<span class=\\'tl-glyph\\'>₺</span>'"></div>
-        <div><div class="m-name">Vadesiz TL Hesabım'dan öde</div><div class="m-sub">Banka kartı · •••• 0096 · Tek çekim</div></div>
+        <div><div class="m-name">Vadesiz TL Hesabım'dan öde</div><div class="m-sub">Banka kartı · 59870396 · Tek çekim</div></div>
         <div class="m-check">${I.check}</div>
       </div>
 
       <div class="inst-box" id="inst-box">
         <div class="ib-title">Taksit Seçeneği</div>
-        <div class="inst-opt active"><span>${p.inst} (World'e Özel)</span><span class="io-r">${p.instSub}</span></div>
-        <div class="inst-opt"><span>3 Taksit</span><span class="io-r">3 x ${(parseInt(p.priceNum.replace('.','')) / 3 / 1).toLocaleString('tr-TR')},00 TL</span></div>
-        <div class="inst-opt"><span>Tek Çekim</span><span class="io-r">${p.price}</span></div>
+        <div class="ib-note">${I.check} Peşin fiyatına taksit — vade farkı yok</div>
+        ${InstBoxHTML(p)}
+      </div>
+
+      <div class="bank-box" id="bank-box">
+        <div class="ib-title">Hesap Bilgisi</div>
+        <div class="bb-row"><span class="bb-l">Kullanılabilir Bakiye</span><span class="bb-r">10.000,00 TL</span></div>
+        <div class="bb-row"><span class="bb-l">Ödeme Tutarı</span><span class="bb-r">- ${p.price}</span></div>
+        <div class="bb-row total"><span class="bb-l">İşlem Sonrası Bakiye</span><span class="bb-r">${remaining},00 TL</span></div>
+        <div class="bb-note">${I.lock} Tutar hesabından tek çekimde, masrafsız tahsil edilir.</div>
       </div>
     </div>
 
@@ -350,25 +427,40 @@ function PaymentScreen() {
 
 function SuccessScreen() {
   const p = state.selectedProduct;
+  const bank = state.payMethod === 'bank';
+  const d = new Date();
+  const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} · ${nowTime()}`;
+  const txnNo = 'YKM' + String(Math.floor(100000000 + Math.random() * 900000000));
   return `
   <div class="screen anim-fade">
-    <div class="success">
-      <div class="success-check"><div class="ring">${I.checkBig}</div></div>
-      <h2>Ödemen Başarıyla Tamamlandı</h2>
-      <div class="amt">${p.price}</div>
-      <div class="prod">${p.name} · ${p.store}</div>
+    <div class="screen-scroll">
+      <div class="success">
+        <div class="success-check"><div class="ring">${I.checkBig}</div></div>
+        <h2>Ödemeniz Başarıyla Gerçekleşti</h2>
+        <div class="succ-date">${dateStr}</div>
+        <div class="amt">${p.price}</div>
+        <div class="prod">${p.name}</div>
 
-      <div class="puan-card">
-        <div class="pc-ico">🎉</div>
-        <div>
-          <div class="pc-val">${p.puan.replace('+','')}</div>
-          <div class="pc-lbl">hesabına eklendi · Toplam: 1.470 Worldpuan</div>
+        <div class="puan-card">
+          <div class="pc-logo"><img src="assets/world.webp" alt="World" onerror="this.outerHTML='🎉'"></div>
+          <div>
+            <div class="pc-val">${p.puan.replace('+','')}</div>
+            <div class="pc-lbl">hesabına eklendi · Toplam: 1.470 Worldpuan</div>
+          </div>
         </div>
-      </div>
 
-      <div class="success-actions">
-        <button class="btn-primary" data-action="go-home">Ana Sayfaya Dön</button>
-        <button class="btn-ghost" data-action="toast" data-msg="İşlem dekontu prototipte aktif değil">İşlem dekontunu görüntüle</button>
+        <div class="receipt">
+          <div class="r-row"><span class="r-l">İşlem No</span><span class="r-r">${txnNo}</span></div>
+          <div class="r-row"><span class="r-l">İş Yeri</span><span class="r-r">${p.store} · World Pay</span></div>
+          <div class="r-row"><span class="r-l">Ödeme Yöntemi</span><span class="r-r">${bank ? 'Vadesiz TL Hesabım · 59870396' : 'Worldcard **** 3333'}</span></div>
+          <div class="r-row"><span class="r-l">Taksit</span><span class="r-r">${instLabel()}</span></div>
+          <div class="r-row"><span class="r-l">Tutar</span><span class="r-r">${p.price}</span></div>
+        </div>
+
+        <div class="success-actions">
+          <button class="btn-outline" data-action="toast" data-msg="Dekont paylaşımı prototipte aktif değil">Dekont Paylaş</button>
+          <button class="btn-primary" data-action="go-home">Ana Sayfaya Dön</button>
+        </div>
       </div>
     </div>
   </div>`;
@@ -510,23 +602,39 @@ function setupChat() {
   });
   setTimeout(autosize, 0);
 
-  // Açılış mesajı + öneri çipi (yazma efektiyle)
+  // Gün ayracı + açılış mesajı + öneri çipleri (yazma efektiyle)
   const scroll = document.getElementById('chat-scroll');
+  const divider = document.createElement('div');
+  divider.className = 'day-divider';
+  divider.innerHTML = '<span>Bugün</span>';
+  scroll.appendChild(divider);
   const greet = 'Merhaba! 👋 Ben Yapı Kredi Alışveriş Asistanı. World üye iş yerlerindeki kampanya ve taksit avantajlarıyla sana en uygun ürünleri buluyorum. Ne aramıştın?';
-  setStatus('yazıyor…');
+  const gen = startGen();
+  setStatus('typing');
   const typing = addTyping(scroll);
+  gen.cleanup.push(() => typing.remove());
   setTimeout(() => {
+    if (gen.aborted) return;
     typing.remove();
     const bubble = addBotBubble(scroll);
     typeText(bubble, greet, 14, () => {
-      setStatus('online');
-      const chips = document.createElement('div');
-      chips.className = 'chip-row anim-in';
-      chips.innerHTML = `<div class="chip" data-action="use-prompt">🤖 Robot süpürge önerisi</div>`;
-      scroll.appendChild(chips);
-      scrollChatBottom();
-    });
+      addChips(scroll);
+      endGen(gen);
+    }, gen);
   }, 650);
+}
+
+/* Öneri çiplerini ekle (yatay kaydırılabilir) */
+function addChips(scroll) {
+  const chips = document.createElement('div');
+  chips.className = 'chip-row anim-in';
+  chips.innerHTML = CHIPS.map(c =>
+    c.key === 'robot'
+      ? `<div class="chip" data-action="use-prompt">${c.label}</div>`
+      : `<div class="chip" data-action="chip-other" data-key="${c.key}">${c.label}</div>`
+  ).join('');
+  scroll.appendChild(chips);
+  scrollChatBottom();
 }
 
 function scrollChatBottom() {
@@ -534,17 +642,70 @@ function scrollChatBottom() {
   if (s) s.scrollTop = s.scrollHeight;
 }
 
+/* ---------- Üretim (generation) yaşam döngüsü ----------
+   Gerçek LLM arayüzleri gibi: üretim sürerken gönder butonu
+   "durdur"a dönüşür; durdurunca yazılan kısım yarım kalır. */
+let activeGen = null;
+
+function setSendMode(mode) {
+  const btn = document.getElementById('send-btn');
+  if (!btn) return;
+  if (mode === 'stop') {
+    btn.dataset.action = 'chat-stop';
+    btn.classList.add('stop');
+    btn.innerHTML = I.stop;
+    btn.disabled = false;
+  } else {
+    btn.dataset.action = 'chat-send';
+    btn.classList.remove('stop');
+    btn.innerHTML = I.send;
+    btn.disabled = false;
+  }
+}
+
+function startGen() {
+  const gen = { aborted: false, cleanup: [] };
+  activeGen = gen;
+  const ta = document.getElementById('chat-text');
+  if (ta) ta.disabled = true;
+  setSendMode('stop');
+  return gen;
+}
+
+function endGen(gen) {
+  if (activeGen === gen) activeGen = null;
+  const ta = document.getElementById('chat-text');
+  if (ta) ta.disabled = false;
+  setSendMode('send');
+  setStatus('idle');
+}
+
+function abortGen() {
+  const gen = activeGen;
+  if (!gen) return;
+  gen.aborted = true;
+  gen.cleanup.forEach(fn => { try { fn(); } catch (e) { /* yoksay */ } });
+  endGen(gen);
+  scrollChatBottom();
+}
+
 function nowTime() {
   const d = new Date();
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
+/* Başlık durumu: gerçek LLM arayüzleri gibi — "çevrimiçi" yok,
+   boştayken nötr açıklama, çalışırken "düşünüyor / yanıt yazıyor" */
 function setStatus(mode) {
   const el = document.getElementById('chat-status');
   if (!el) return;
-  el.innerHTML = mode === 'yazıyor…'
-    ? `<span class="typing-mini"><i></i><i></i><i></i></span> yazıyor…`
-    : `<span class="online-dot"></span> Çevrimiçi`;
+  if (mode === 'typing') {
+    el.innerHTML = `<span class="typing-mini"><i></i><i></i><i></i></span> yanıt yazıyor…`;
+  } else if (mode === 'thinking') {
+    el.innerHTML = `<span class="typing-mini"><i></i><i></i><i></i></span> düşünüyor…`;
+  } else {
+    el.innerHTML = `Yapay zeka destekli`;
+  }
 }
 
 /* Kullanıcı mesaj satırı */
@@ -577,21 +738,53 @@ function addTyping(scroll) {
   return row;
 }
 
-/* Tarama göstergesi (spinner + metin) */
-function addScan(scroll) {
+/* Düşünme göstergesi — ChatGPT/Claude tarzı: tek satır shimmer metin,
+   adımlar arasında yumuşak geçiş yapar, cevap gelince sohbetten kaybolur.
+   Süreler kasıtlı olarak eşit değil: analiz ve katalog taraması daha uzun. */
+const THINK_STEPS = [
+  { t: 'Düşünüyor…', d: 600 },
+  { t: 'İhtiyacın analiz ediliyor…', d: 1700 },
+  { t: 'Koçtaş kataloğu taranıyor…', d: 1900 },
+  { t: 'World kampanyaları kontrol ediliyor…', d: 950 },
+  { t: 'Worldpuan kazanımı hesaplanıyor…', d: 700 },
+];
+function addThinking(scroll) {
   const row = document.createElement('div');
   row.className = 'msg-row bot anim-in';
-  row.innerHTML = `<div class="bot-avatar">${I.spark}</div><div class="msg bot scan"><span class="radar"></span><span>World üye iş yerleri, kampanyalar ve taksit avantajları taranıyor…</span></div>`;
+  row.innerHTML = `<div class="bot-avatar">${I.spark}</div><div class="think-line"><span class="shimmer"></span></div>`;
   scroll.appendChild(row);
   scrollChatBottom();
   return row;
 }
+function runThinking(row, done, gen) {
+  const el = row.querySelector('.shimmer');
+  let i = 0;
+  const next = () => {
+    if (gen && gen.aborted) return;
+    if (i >= THINK_STEPS.length) {
+      // iz bırakmadan kaybol
+      row.classList.add('fade-out');
+      setTimeout(() => { row.remove(); if (done) done(); }, 240);
+      return;
+    }
+    el.classList.remove('step-in');
+    void el.offsetWidth; // animasyonu yeniden tetikle
+    el.textContent = THINK_STEPS[i].t;
+    el.classList.add('step-in');
+    scrollChatBottom();
+    const wait = THINK_STEPS[i].d + Math.random() * 300;
+    i++;
+    setTimeout(next, wait);
+  };
+  next();
+}
 
-/* Daktilo efekti */
-function typeText(el, text, speed, done) {
+/* Daktilo efekti — gen verilirse durdurulunca yarım bırakır (gerçek LLM gibi) */
+function typeText(el, text, speed, done, gen) {
   el.classList.add('typing-caret');
   let i = 0;
   const tick = () => {
+    if (gen && gen.aborted) { el.classList.remove('typing-caret'); return; }
     el.textContent = text.slice(0, i);
     scrollChatBottom();
     if (i++ < text.length) {
@@ -604,54 +797,98 @@ function typeText(el, text, speed, done) {
   tick();
 }
 
+/* Bot mesajı altına aksiyon ikonları: kopyala + 👍/👎 (gerçek LLM arayüzleri gibi) */
+function addMsgActions(bubble) {
+  const col = bubble.closest('.msg-col');
+  if (!col) return;
+  const div = document.createElement('div');
+  div.className = 'msg-actions anim-in';
+  div.innerHTML = `
+    <button class="ma-btn" data-action="msg-copy" aria-label="Kopyala">${I.copy}</button>
+    <button class="ma-btn" data-action="msg-like" aria-label="Beğen">${I.thumbUp}</button>
+    <button class="ma-btn" data-action="msg-dislike" aria-label="Beğenme">${I.thumbDown}</button>`;
+  col.appendChild(div);
+  scrollChatBottom();
+}
+
 /* ---------- Chat akışı ---------- */
 function chatSend() {
   const ta = document.getElementById('chat-text');
   const scroll = document.getElementById('chat-scroll');
-  const sendBtn = document.getElementById('send-btn');
   const text = (ta.value || '').trim();
   if (!text || ta.disabled) return;
 
   addUserMessage(scroll, text);
   ta.value = '';
   ta.style.height = 'auto';
-  ta.disabled = true;
-  sendBtn.disabled = true;
   scroll.querySelectorAll('.chip-row').forEach(c => c.remove());
 
-  // 1) yazıyor göstergesi
-  setStatus('yazıyor…');
+  const gen = startGen();
+
+  // 1) shimmer'lı düşünme satırı (adım adım metin değiştirir, sonra kaybolur)
+  setStatus('thinking');
+  const think = addThinking(scroll);
+  gen.cleanup.push(() => { if (think.isConnected) think.remove(); });
+
+  // 2) düşünme bitince cevap (daktilo) + ürün kartları + takip mesajı
+  runThinking(think, () => {
+    if (gen.aborted) return;
+    setStatus('typing');
+    const bubble = addBotBubble(scroll);
+    const reply = 'Elbette! Bütçene uygun, World kampanyalı ve taksit avantajlı 3 seçenek buldum. Kartları sağa kaydırarak inceleyebilirsin 👇';
+    typeText(bubble, reply, 14, () => {
+      if (gen.aborted) return;
+      showProductCards(scroll, () => {
+        if (gen.aborted) return;
+        // 3) kartlardan sonra kısa takip mesajı — sohbeti tek atımlık olmaktan çıkarır
+        setTimeout(() => {
+          if (gen.aborted) return;
+          const b2 = addBotBubble(scroll);
+          const followup = 'Bütçene en uygunu Fakir Robert RS 700 görünüyor — hem paspaslama özelliği var hem de 6 taksit + 220 Worldpuan avantajlı. Hazır olduğunda karttaki "World Pay ile Al" ile ödemeye geçebilirsin 💳';
+          typeText(b2, followup, 14, () => {
+            addMsgActions(b2);
+            endGen(gen);
+          }, gen);
+        }, 700);
+      }, gen);
+    }, gen);
+  }, gen);
+}
+
+/* Henüz hazır olmayan akışlar için çip cevabı (Setur, Boyner, Opet) */
+function chipOtherFlow(key) {
+  const flow = CHIP_FLOWS[key];
+  if (!flow) return;
+  const scroll = document.getElementById('chat-scroll');
+  scroll.querySelectorAll('.chip-row').forEach(c => c.remove());
+  addUserMessage(scroll, flow.user);
+
+  const gen = startGen();
+  setStatus('typing');
   const typing = addTyping(scroll);
-
-  // 2) tarama göstergesi
+  gen.cleanup.push(() => typing.remove());
   setTimeout(() => {
+    if (gen.aborted) return;
     typing.remove();
-    const scan = addScan(scroll);
-
-    // 3) cevap (daktilo) + ürün kartları
-    setTimeout(() => {
-      scan.remove();
-      const bubble = addBotBubble(scroll);
-      const reply = 'Elbette! Bütçene uygun, World kampanyalı ve taksit avantajlı seçenekleri buldum. Aşağıdaki ürünleri inceleyebilirsin 👇';
-      typeText(bubble, reply, 14, () => {
-        setStatus('online');
-        showProductCards(scroll);
-        ta.disabled = false;
-        sendBtn.disabled = false;
-      });
-    }, 2100);
-  }, 950);
+    const bubble = addBotBubble(scroll);
+    typeText(bubble, flow.reply, 14, () => {
+      addMsgActions(bubble);
+      addChips(scroll);
+      endGen(gen);
+    }, gen);
+  }, 900);
 }
 
 /* Ürün kartlarını sırayla göster */
-function showProductCards(scroll) {
+function showProductCards(scroll, done, gen) {
   const wrap = document.createElement('div');
   wrap.className = 'products';
   scroll.appendChild(wrap);
   const items = PRODUCTS.map(p => ProductCardHTML(p));
   let idx = 0;
   const addOne = () => {
-    if (idx >= items.length) return;
+    if (gen && gen.aborted) return;
+    if (idx >= items.length) { if (done) done(); return; }
     const holder = document.createElement('div');
     holder.innerHTML = items[idx];
     const card = holder.firstElementChild;
@@ -670,22 +907,68 @@ function selectMethod(method, el) {
   document.querySelectorAll('.method').forEach(m => m.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('inst-box').classList.toggle('show', method === 'worldcard');
+  document.getElementById('bank-box').classList.toggle('show', method === 'bank');
   const btn = document.getElementById('pay-btn');
   btn.disabled = false;
 }
 
+function selectInst(id, el) {
+  state.installment = id;
+  document.querySelectorAll('.inst-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* iOS tarzı Face ID sembolü: köşe parantezleri + yüz (beyaz, koyu kutuda) */
+const FACEID_GLYPH = `
+  <svg width="62" height="62" viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 6h-5a9 9 0 0 0-9 9v5"/>
+    <path d="M44 6h5a9 9 0 0 1 9 9v5"/>
+    <path d="M20 58h-5a9 9 0 0 1-9-9v-5"/>
+    <path d="M44 58h5a9 9 0 0 0 9-9v-5"/>
+    <path d="M22 26v6"/>
+    <path d="M42 26v6"/>
+    <path d="M32 26v10c0 1.6-1.1 2.6-2.7 2.6"/>
+    <path d="M23 45.5c2.4 2.5 5.5 3.9 9 3.9s6.6-1.4 9-3.9"/>
+  </svg>`;
+/* Kendini çizen daire + tik (iOS onay animasyonu) */
+const FACEID_CHECK = `
+  <svg width="62" height="62" viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="26" class="fc-circle"/>
+    <path d="M21 33l8 8 14-17" class="fc-check"/>
+  </svg>`;
+
+/* Onay sheet'i: iPhone'daki gibi Face ID doğrulaması, ardından Onayla aktifleşir */
 function openConfirmSheet() {
   const p = state.selectedProduct;
+  const methodLbl = state.payMethod === 'bank'
+    ? `Vadesiz TL Hesabım · Tek Çekim`
+    : `Worldcard **** 3333 · ${instLabel()}`;
   sheetEl.innerHTML = `
     <div class="sheet-handle"></div>
-    <div class="sheet-ico">${I.faceid}</div>
-    <h3>Yapı Kredi Mobil ile Onayla</h3>
-    <p>${p.store} ödemeni tamamlamak için Face ID kullan veya Onayla'ya bas.</p>
+    <h3 id="sheet-title">Ödemeyi Onayla</h3>
+    <p id="sheet-desc">Güvenliğin için Face ID ile doğrulama yapılıyor, telefonuna bakmaya devam et.</p>
+    <div class="faceid-box" id="faceid-box"><div class="fid-glyph">${FACEID_GLYPH}</div></div>
+    <div class="faceid-caption" id="faceid-caption">Face ID</div>
+    <div class="sheet-pay-row"><span>${p.store} · World Pay</span><span class="spr-r">${methodLbl}</span></div>
     <div class="sheet-amount">${p.price}</div>
-    <button class="sheet-btn" id="approve-btn" data-action="approve">${I.shield} Onayla</button>
+    <button class="sheet-btn" id="approve-btn" data-action="approve" disabled>${I.shield} Onayla</button>
     <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
   sheetEl.classList.add('open');
   sheetScrimEl.classList.add('open');
+
+  // Face ID "başarılı" senaryosu
+  setTimeout(() => {
+    const box = document.getElementById('faceid-box');
+    const caption = document.getElementById('faceid-caption');
+    const desc = document.getElementById('sheet-desc');
+    const approve = document.getElementById('approve-btn');
+    if (!box || !sheetEl.classList.contains('open')) return;
+    box.classList.add('ok');
+    box.innerHTML = FACEID_CHECK;
+    caption.textContent = 'Doğrulandı';
+    desc.textContent = 'Kimliğin doğrulandı. Ödemeyi tamamlamak için Onayla\'ya dokun.';
+    approve.disabled = false;
+  }, 1800);
 }
 function closeSheet() {
   sheetEl.classList.remove('open');
@@ -693,7 +976,7 @@ function closeSheet() {
 }
 function approvePayment() {
   const btn = document.getElementById('approve-btn');
-  btn.innerHTML = `<span class="spinner"></span> Onaylanıyor…`;
+  btn.innerHTML = `<span class="spinner"></span> Ödeme Onaylanıyor…`;
   btn.style.pointerEvents = 'none';
   setTimeout(() => {
     closeSheet();
@@ -771,13 +1054,45 @@ document.addEventListener('click', (e) => {
       return;
     }
     case 'chat-send': return chatSend();
+    case 'chat-stop': return abortGen();
+
+    case 'msg-copy': {
+      const msg = t.closest('.msg-col')?.querySelector('.msg.bot');
+      const txt = msg ? msg.textContent : '';
+      if (txt && navigator.clipboard) {
+        navigator.clipboard.writeText(txt).then(
+          () => toast('Mesaj kopyalandı'),
+          () => toast('Kopyalama desteklenmiyor')
+        );
+      } else toast('Mesaj kopyalandı');
+      return;
+    }
+    case 'msg-like':
+    case 'msg-dislike': {
+      const wasActive = t.classList.contains('active');
+      t.parentElement.querySelectorAll('[data-action="msg-like"],[data-action="msg-dislike"]')
+        .forEach(b => b.classList.remove('active'));
+      if (!wasActive) {
+        t.classList.add('active');
+        toast('Geri bildirimin için teşekkürler 💙');
+      }
+      return;
+    }
 
     case 'buy': {
       state.selectedProduct = PRODUCTS.find(p => p.id === t.dataset.id);
       state.payMethod = null;
+      state.installment = 'single';
       return go('payment');
     }
     case 'select-method': return selectMethod(t.dataset.method, t);
+    case 'select-inst': return selectInst(t.dataset.inst, t);
+    case 'chip-other': return chipOtherFlow(t.dataset.key);
+    case 'step-close': {
+      const card = t.closest('.step-card');
+      if (card) card.remove();
+      return;
+    }
     case 'pay': return openConfirmSheet();
     case 'approve': return approvePayment();
     case 'close-sheet': return closeSheet();
