@@ -226,22 +226,66 @@ main#app {
 }
 .bank-tab .tab-new { position: absolute; top: -7px; right: 10px; }
 
-/* Hesap ikonu: mavi ₺ cüzdan + sağda klips (gerçekteki gibi) */
-.acard-logo.wallet-tl {
-  background: #0a84d9;
-  border-radius: 12px;
-  position: relative; color: #fff;
-  overflow: visible;
+/* Hesap cüzdan ikonu — gerçekteki gibi: gövde + sağdan çıkan kayış + uçta beyaz klips düğmesi */
+.acard-logo.wallet {
+  width: 56px; height: 45px;
+  border-radius: 9px;            /* dikdörtgene yakın, köşeler hafif yumuşak */
+  position: relative; overflow: visible;
+  background: var(--wallet-bg);
+  color: #fff;
 }
-.acard-logo.wallet-tl::after {
+/* gövdeden sağa çıkan küçük klips tabı — gövdeden biraz daha koyu */
+.acard-logo.wallet::after {
   content: '';
-  position: absolute; right: -7px; top: 50%; transform: translateY(-50%);
-  width: 13px; height: 22px;
-  background: #0a6cb4;
-  border-radius: 0 8px 8px 0;
+  position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
+  width: 12px; height: 11px; border-radius: 3px;
+  background: var(--wallet-strap); z-index: 0;
 }
-.acard-logo.wallet-tl .tl-glyph { font-size: 24px; font-weight: 700; }
-.wallet-dot { position: absolute; right: -3px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; background: #fff; z-index: 1; }
+/* tabın ucundaki küçük beyaz klips düğmesi */
+.acard-logo.wallet .wallet-dot {
+  position: absolute; right: -4px; top: 50%; transform: translateY(-50%);
+  width: 7px; height: 7px; border-radius: 50%; background: #fff; z-index: 2;
+}
+/* TL ve Euro işaretleri aynı boyut/konumda, gövdede ortalı */
+.acard-logo.wallet .tl-img { height: 25px; }
+.acard-logo.wallet .wallet-glyph {
+  font-size: 26px; font-weight: 700; line-height: 1;
+}
+/* renk varyantları (gövde + kayış ortak değişken) */
+.acard-logo.wallet-tl  { --wallet-bg: #0a84d9; --wallet-strap: #086099; }
+.acard-logo.wallet-eur { --wallet-bg: #0a84d9; --wallet-strap: #086099; }
+.acard-logo.wallet-gold {
+  --wallet-bg: linear-gradient(135deg, #e9bd5a, #c8941d);
+  --wallet-strap: #a9760f;
+  color: #5a3d05;
+}
+.acard-logo.wallet-gold .wallet-dot { background: #fff7e3; }
+/* altın külçe simgesi */
+.acard-logo.wallet-gold .wallet-bar {
+  width: 22px; height: 13px; border-radius: 3px;
+  transform: translateX(-3px) skewX(-9deg);
+  background: linear-gradient(180deg, #fff2cf, #e7b94e);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+
+/* Hesaplarım — yatay kaydırmalı hesap kartları (TL · Euro · Altın) */
+.acard-scroll {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 16px;
+  padding: 0 0 6px 16px;         /* sol 16 (Kartlarım ile aynı), sağ 0 */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.acard-scroll::-webkit-scrollbar { display: none; }
+.acard-scroll > .acard {
+  margin: 0;
+  /* Kartlarım kartıyla birebir aynı genişlik; sağda ~8px ince şerit peek */
+  flex: 0 0 calc(100% - 16px);
+  scroll-snap-align: start;
+  box-sizing: border-box;
+}
 
 /* =========================================================
    BÖLÜM BAŞLIKLARI
@@ -256,11 +300,19 @@ main#app {
    HESAP / KART KARTLARI
    ========================================================= */
 .acard {
+  position: relative;
   margin: 0 16px 10px;
   background: var(--card);
   border-radius: var(--radius);
-  border-left: 4px solid var(--primary);   /* gerçekteki sol mavi şerit */
-  padding: 16px 14px;
+  padding: 16px 16px 16px 18px;
+  overflow: hidden;             /* sol şerit köşe yuvarlaklığını takip etsin, taşmasın */
+}
+/* sol mavi şerit — kartın sol tarafını boydan boya kaplar */
+.acard::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: var(--primary);
 }
 .acard-top { display: flex; align-items: center; gap: 14px; }
 .acard-logo {
@@ -303,8 +355,8 @@ main#app {
 
 /* HIZLI İŞLEMLER (4 koyu kutu) */
 .quick-row4 {
-  display: flex; gap: 10px;
-  padding: 0 16px 14px;
+  display: flex; gap: 12px;
+  padding: 2px 14px 16px;
 }
 .quick4 {
   flex: 1;
@@ -312,10 +364,11 @@ main#app {
   cursor: pointer;
 }
 .q4-ico {
-  width: 100%; aspect-ratio: 1 / 1; max-width: 70px;
-  border-radius: 18px; background: var(--card);
+  width: 100%; aspect-ratio: 1 / 1; max-width: 80px;
+  border-radius: 20px; background: var(--card);
   display: grid; place-items: center; color: var(--primary);
 }
+.q4-ico svg { width: 32px; height: 32px; }
 .quick4:active .q4-ico { background: var(--card-2); }
 .quick4 span { font-size: 12px; color: var(--text); text-align: center; line-height: 1.25; }
 
@@ -760,13 +813,14 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
    ÖDEME EKRANI (World Pay)
    ========================================================= */
 .wp-brand {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 18px; font-weight: 800;
+  display: inline-flex; align-items: center;
 }
-.wp-brand .wp-logo {
-  background: var(--navy); color: #fff; font-weight: 800;
-  padding: 3px 8px; border-radius: 7px; font-size: 15px;
+.wp-brand .wp-img {
+  height: 26px; width: auto; display: block;
 }
+/* Temaya göre logo: açık temada mor orijinal, koyu temada açık (lavanta) versiyon */
+body[data-theme="dark"] .wp-brand .wp-light { display: none; }
+body[data-theme="light"] .wp-brand .wp-dark { display: none; }
 .pay-summary {
   display: flex; align-items: center; gap: 14px;
   margin: 16px; padding: 14px;
@@ -843,7 +897,14 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
   cursor: pointer;
 }
 .inst-opt:last-child { border-bottom: none; }
-.inst-opt .io-l { display: flex; align-items: center; gap: 8px; }
+.inst-opt .io-l { display: flex; align-items: center; gap: 10px; }
+.inst-opt .io-text { display: flex; flex-direction: column; gap: 3px; }
+.inst-opt .io-name { display: inline-flex; align-items: center; gap: 8px; }
+.inst-opt .io-note {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; color: var(--success);
+}
+.inst-opt .io-note svg { width: 12px; height: 12px; flex: 0 0 auto; }
 .inst-opt .io-radio {
   width: 18px; height: 18px; border-radius: 50%; flex: 0 0 auto;
   border: 2px solid var(--border); display: grid; place-items: center;
