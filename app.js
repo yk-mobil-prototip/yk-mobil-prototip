@@ -113,6 +113,14 @@ function imgOrFallback(src, emoji, cls) {
 
 const ASSISTANT_PROMPT = 'Evim için güçlü ama sessiz çalışan, paspaslama özelliği de olan bir robot süpürge arıyorum. Bütçem 2.500 TL. World kampanyası ve taksit avantajı olan Koçtaş seçeneklerini gösterir misin?';
 
+/* Asistan sohbet metinleri — animasyonlu akış ve anlık dolu görünüm (deeplink) aynı kaynağı kullanır */
+const GREET = 'Merhaba! 👋 Ben Yapı Kredi Alışveriş Asistanı. World üye iş yerlerindeki kampanya ve taksit avantajlarıyla sana en uygun ürünleri buluyorum. Ne aramıştın?';
+const CHAT_REPLY = 'Elbette! Bütçene uygun, World kampanyalı ve taksit avantajlı 3 seçenek buldum. Kartları sağa kaydırarak inceleyebilirsin 👇';
+function recFollowup() {
+  const rec = PRODUCTS.find(p => p.id === REC_ID);
+  return `Önerim Fakir Robert RS 700 — paspaslama yapan tek model ve 2.500 TL bütçenin altında (${rec.price.replace(',00 TL', ' TL')}). 6 taksit imkanı ve ${rec.puan.replace('+', '')} hediyesi var. Hazır olduğunda "World Pay ile Al" ile ödemeye geçebilirsin 💳`;
+}
+
 /* Öneri çipleri — Koç Grubu markaları. Yalnızca robot süpürge akışı uçtan uca hazır. */
 const CHIPS = [
   { key: 'robot', label: '🤖 Robot süpürge önerisi' },
@@ -134,6 +142,18 @@ const CHIP_FLOWS = {
     reply: 'Opet kampanyaları çok yakında burada olacak! ⛽ Bu prototipte robot süpürge alışveriş akışını deneyimleyebilirsin — World\'e özel taksit ve Worldpuan avantajlarıyla.',
   },
 };
+
+/* Demo bölümleri — her biri kendi hash'iyle doğrudan açılır (bütün akışı tekrarlamadan) */
+const SECTIONS = [
+  { hash: 'home',      icon: 'home',     t: 'Ana Ekran',           d: 'Kartlar, hızlı işlemler, asistan girişi' },
+  { hash: 'assistant', icon: 'spark',    t: 'Alışveriş Asistanı',  d: 'Sohbet + ürün önerileri (dolu görünüm)' },
+  { hash: 'chat',      icon: 'guide',    t: 'Asistan — Boştan',    d: 'Sohbeti baştan, animasyonlu dene' },
+  { hash: 'payment',   icon: 'card',     t: 'Ödeme Ekranı',        d: 'Adres, kargo, taksit, Worldpuan, sözleşme' },
+  { hash: 'success',   icon: 'check',    t: 'Ödeme Başarılı',      d: 'Onay, Worldpuan, dekont' },
+  { hash: 'tracking',  icon: 'box',      t: 'Sipariş Takibi',      d: 'Durum çizgisi, YK Kargo, fatura, iade/cayma' },
+  { hash: 'search',    icon: 'search',   t: 'Arama',               d: 'Arama ekranı' },
+  { hash: 'settings',  icon: 'gear',     t: 'Ayarlar',             d: 'Tema ve bildirimler' },
+];
 
 const MENU = [
   { id: 'home', label: 'Ana Sayfa', icon: 'home' },
@@ -776,6 +796,27 @@ function confirmReturn() {
   toast('Cayma talebin alındı, e-posta ile bilgilendirileceksin 💙');
 }
 
+/* Bölümler hub'ı — tüm ekranlara tek dokunuşla atlama (demo için) */
+function SectionsScreen() {
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <div class="nav-title">Bölümler</div>
+    </div>
+    <div class="screen-scroll">
+      <div class="sec-intro">Full prototip akışı aynen çalışır. Buradan herhangi bir bölümü tek dokunuşla, baştan akış yapmadan açabilirsin. Linkler paylaşılabilir — tarayıcı adresindeki <b>#etiketi</b> ile (ör. <b>#tracking</b>).</div>
+      ${SECTIONS.map(s => `
+        <a class="sec-card" href="#${s.hash}" data-action="route" data-hash="${s.hash}">
+          <span class="sec-ico">${I[s.icon]}</span>
+          <span class="sec-txt"><span class="sec-t">${s.t}</span><span class="sec-d">${s.d}</span></span>
+          <span class="sec-hash">#${s.hash}</span>
+          <span class="sec-chev">${I.chevR}</span>
+        </a>`).join('')}
+    </div>
+  </div>`;
+}
+
 function SettingsScreen() {
   const dark = state.theme === 'dark';
   return `
@@ -846,6 +887,7 @@ function render() {
     case 'payment': html = PaymentScreen(); break;
     case 'success': html = SuccessScreen(); break;
     case 'tracking': html = TrackingScreen(); break;
+    case 'sections': html = SectionsScreen(); break;
     case 'settings': html = SettingsScreen(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
@@ -887,6 +929,7 @@ function DrawerHTML() {
         </div>`).join('')}
     </div>
     <div class="drawer-foot">
+      <button class="settings" data-action="route" data-hash="sections">${I.grid} Bölümler</button>
       <button class="settings" data-action="go-settings">${I.gear} Ayarlarım</button>
       <button class="logout" data-action="toast" data-msg="Çıkış prototipte aktif değil">${I.power} Çıkış</button>
     </div>`;
@@ -913,13 +956,20 @@ function setupChat() {
   });
   setTimeout(autosize, 0);
 
-  // Gün ayracı + açılış mesajı + öneri çipleri (yazma efektiyle)
   const scroll = document.getElementById('chat-scroll');
+
+  // Deeplink (#assistant): tüm sohbeti animasyonsuz, anında dolu göster
+  if (state.chatSeed) {
+    state.chatSeed = false;
+    seedChatInstant(scroll);
+    return;
+  }
+
+  // Gün ayracı + açılış mesajı + öneri çipleri (yazma efektiyle)
   const divider = document.createElement('div');
   divider.className = 'day-divider';
   divider.innerHTML = '<span>Bugün</span>';
   scroll.appendChild(divider);
-  const greet = 'Merhaba! 👋 Ben Yapı Kredi Alışveriş Asistanı. World üye iş yerlerindeki kampanya ve taksit avantajlarıyla sana en uygun ürünleri buluyorum. Ne aramıştın?';
   const gen = startGen();
   setStatus('typing');
   const typing = addTyping(scroll);
@@ -928,11 +978,30 @@ function setupChat() {
     if (gen.aborted) return;
     typing.remove();
     const bubble = addBotBubble(scroll);
-    typeText(bubble, greet, 14, () => {
+    typeText(bubble, GREET, 14, () => {
       addChips(scroll);
       endGen(gen);
     }, gen);
   }, 650);
+}
+
+/* Asistan sohbetini anında dolu kurar (deeplink ile bölüm görüntüleme) */
+function seedChatInstant(scroll) {
+  const divider = document.createElement('div');
+  divider.className = 'day-divider';
+  divider.innerHTML = '<span>Bugün</span>';
+  scroll.appendChild(divider);
+  const setMsg = (txt) => { const b = addBotBubble(scroll); b.classList.remove('typing-caret'); b.textContent = txt; return b; };
+  setMsg(GREET);
+  addUserMessage(scroll, ASSISTANT_PROMPT);
+  setMsg(CHAT_REPLY);
+  const wrap = document.createElement('div');
+  wrap.className = 'products';
+  PRODUCTS.forEach(p => { const h = document.createElement('div'); h.innerHTML = ProductCardHTML(p); wrap.appendChild(h.firstElementChild); });
+  scroll.appendChild(wrap);
+  const b2 = setMsg(recFollowup());
+  addMsgActions(b2);
+  scrollChatBottom();
 }
 
 /* Öneri çiplerini ekle (yatay kaydırılabilir) */
@@ -1146,7 +1215,7 @@ function chatSend() {
     if (gen.aborted) return;
     setStatus('typing');
     const bubble = addBotBubble(scroll);
-    const reply = 'Elbette! Bütçene uygun, World kampanyalı ve taksit avantajlı 3 seçenek buldum. Kartları sağa kaydırarak inceleyebilirsin 👇';
+    const reply = CHAT_REPLY;
     typeText(bubble, reply, 14, () => {
       if (gen.aborted) return;
       showProductCards(scroll, () => {
@@ -1155,8 +1224,7 @@ function chatSend() {
         setTimeout(() => {
           if (gen.aborted) return;
           const b2 = addBotBubble(scroll);
-          const rec = PRODUCTS.find(p => p.id === REC_ID);
-          const followup = `Önerim Fakir Robert RS 700 — paspaslama yapan tek model ve 2.500 TL bütçenin altında (${rec.price.replace(',00 TL',' TL')}). 6 taksit imkanı ve ${rec.puan.replace('+','')} hediyesi var. Hazır olduğunda "World Pay ile Al" ile ödemeye geçebilirsin 💳`;
+          const followup = recFollowup();
           typeText(b2, followup, 14, () => {
             addMsgActions(b2);
             endGen(gen);
@@ -1466,6 +1534,7 @@ document.addEventListener('click', (e) => {
     case 'go-chat': return go('chat');
     case 'go-settings': return go('settings');
     case 'go-tracking': return go('tracking');
+    case 'route': e.preventDefault(); return gotoSection(t.dataset.hash);
     case 'open-invoice': return openInvoiceSheet();
     case 'open-return': return openReturnSheet();
     case 'confirm-return': return confirmReturn();
@@ -1579,22 +1648,45 @@ function updateClock() {
   }
 }
 
-/* ---------- Başlat ---------- */
-// İsteğe bağlı derin bağlantı: #search, #chat, #payment, #success, #settings
-// (demo sırasında belirli bir ekrana atlamak için kullanılabilir)
-function applyHash() {
-  const h = (location.hash || '').replace('#', '');
-  const valid = ['home', 'search', 'chat', 'payment', 'success', 'tracking', 'settings'];
-  if (valid.includes(h)) {
-    if ((h === 'payment' || h === 'success' || h === 'tracking') && !state.selectedProduct) {
-      state.selectedProduct = PRODUCTS[0];
-    }
-    state.screen = h;
+/* ---------- Yönlendirme / derin bağlantı ----------
+   Her bölümün kendi hash linki var: #home #assistant #chat #payment
+   #success #tracking #search #settings #sections
+   Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'payment', 'success', 'tracking', 'settings', 'sections'];
+function routeTo(hash) {
+  const h = (hash || '').replace('#', '') || 'home';
+  if (!ROUTES.includes(h)) return false;
+  // Ödeme/başarı/takip: ürün seçili değilse asistanın önerdiğiyle hazırla
+  if (['payment', 'success', 'tracking'].includes(h) && !state.selectedProduct) {
+    state.selectedProduct = PRODUCTS.find(p => p.id === REC_ID) || PRODUCTS[0];
   }
+  // Ödeme ekranını her zaman temiz (sıfır) halde aç
+  if (h === 'payment') {
+    state.payMethod = null; state.installment = 'single';
+    state.preInfoOk = false; state.contractOk = false; state.usePuan = false;
+  }
+  if (h === 'assistant') {            // sohbeti dolu göster
+    state.chatStarted = true;
+    state.chatSeed = true;
+    state.screen = 'chat';
+    return true;
+  }
+  state.chatSeed = false;
+  state.screen = h;
+  return true;
 }
+/* Bölüm linkine git: state'i kur, URL hash'ini güncelle (paylaşılabilir), çiz */
+function gotoSection(hash) {
+  if (!routeTo(hash)) return;
+  closeDrawer();
+  history.replaceState(null, '', '#' + hash.replace('#', ''));
+  render();
+}
+// Adres çubuğundan hash değişirse (bookmark / elle düzenleme) canlı yönlen
+window.addEventListener('hashchange', () => { if (routeTo(location.hash)) render(); });
 
 setTheme(state.theme);
 updateClock();
 setInterval(updateClock, 30000);
-applyHash();
+routeTo(location.hash);
 render();

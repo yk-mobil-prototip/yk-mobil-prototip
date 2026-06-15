@@ -13,6 +13,25 @@
 6. **Worldcard ile öde** seç → **Öde** → **Yapı Kredi Mobil ile Onayla**
 7. Başarı ekranı + Worldpuan kazanımı
 
+## 🔖 Bölüm linkleri (akışı tekrarlamadan)
+Full prototip aynen çalışır; ayrıca her bölüm kendi hash linkiyle, gereken state hazır olacak şekilde doğrudan açılır. Uygulama içinden **soldaki menü → Bölümler** ile de erişilir.
+
+Temel: `https://bselcukimre.github.io/yk-app-prototip/` + aşağıdaki etiket:
+
+| Bölüm | Link |
+|---|---|
+| Ana ekran | `#home` |
+| Alışveriş Asistanı (dolu sohbet) | `#assistant` |
+| Asistan — boştan (animasyonlu) | `#chat` |
+| Ödeme ekranı | `#payment` |
+| Ödeme başarılı | `#success` |
+| Sipariş takibi | `#tracking` |
+| Arama | `#search` |
+| Ayarlar | `#settings` |
+| Bölümler hub'ı | `#sections` |
+
+Örnek: `https://bselcukimre.github.io/yk-app-prototip/#tracking`
+
 ## Dosyalar
 - `index.html` — iskelet + telefon çerçevesi + durum çubuğu
 - `styles.css` — tüm stiller, koyu/açık tema değişkenleri
