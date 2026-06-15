@@ -181,20 +181,21 @@ const state = {
   preInfoOk: false,          // Ön Bilgilendirme Formu onayı
   contractOk: false,         // Mesafeli Satış Sözleşmesi onayı
   usePuan: false,            // Worldpuan ile kısmi ödeme
+  nav: [],                   // geri (back) yığını — gerçek uygulama gibi geri davranışı
   theme: localStorage.getItem('ykm-theme') || 'dark',
 };
 
 /* ---------- Mock teslimat adresleri (kişisel veri yok, tamamen örnek) ---------- */
 const ADDRESSES = [
-  { id: 'a1', title: 'Ev',     name: 'Ada Yılmaz', line: 'Bağdat Cad. No:128 D:5, Fenerbahçe', city: 'Kadıköy / İstanbul', phone: '0 (5••) ••• •• 24' },
-  { id: 'a2', title: 'İş',     name: 'Ada Yılmaz', line: 'Büyükdere Cad. No:201 Kat:8, Levent', city: 'Şişli / İstanbul',  phone: '0 (5••) ••• •• 24' },
-  { id: 'a3', title: 'Yazlık', name: 'Ada Yılmaz', line: 'Sahil Sok. No:7, 3850. Mah.',        city: 'Çeşme / İzmir',     phone: '0 (5••) ••• •• 24' },
+  { id: 'a1', title: 'Ev',     name: 'Selçuk İmre', line: 'Zincirlidere Cad. No:1 Daire:1 Kat:1', city: 'Şişli / İstanbul',    phone: '0 (5••) ••• •• 24' },
+  { id: 'a2', title: 'İş',     name: 'Selçuk İmre', line: 'Yapı Kredi Bankacılık Üssü, Rahmi Dibek Cad. No:1', city: 'Çayırova / Kocaeli', phone: '0 (5••) ••• •• 24' },
+  { id: 'a3', title: 'Yazlık', name: 'Selçuk İmre', line: 'Güzeloba Mah. Lara Cad. No:42 D:7', city: 'Muratpaşa / Antalya', phone: '0 (5••) ••• •• 24' },
 ];
 function getAddress() { return ADDRESSES.find(a => a.id === state.addressId) || ADDRESSES[0]; }
 
 /* ---------- Mock kullanıcı finansal profili (örnek veriler) ---------- */
 const USER = {
-  name: 'Ada',
+  name: 'Selçuk',
   limit: 18500,          // Worldcard kullanılabilir limit (TL)
   worldpuan: 1250,       // mevcut Worldpuan bakiyesi
   balance: 10000,        // Vadesiz TL hesap bakiyesi
@@ -397,7 +398,7 @@ function ChatScreen() {
   return `
   <div class="screen anim-right">
     <div class="nav-head">
-      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
       <div class="ai-avatar">${I.spark}</div>
       <div>
         <div class="nav-title">Alışveriş Asistanı</div>
@@ -512,18 +513,14 @@ function BankBoxHTML() {
   </div>`;
 }
 
-/* Worldpuan ile öde — sade onay kutusu (puanın TL karşılığını gösterir) */
+/* Worldpuan ile öde — sade form tiki (puanın TL karşılığını gösterir) */
 function FinanceBoxHTML() {
   const tl = fmtTL(Math.round(USER.worldpuan * PUAN_VALUE));
   return `
-  <div class="puan-box ${state.usePuan ? 'on' : ''}" id="fin-box" data-action="toggle-puan">
+  <label class="puan-row ${state.usePuan ? 'on' : ''}" id="fin-box" data-action="toggle-puan">
     <span class="cbx">${I.check}</span>
-    <div class="pt-ico"><img src="assets/world.webp" alt="World" onerror="this.outerHTML='🎉'"></div>
-    <div class="pt-txt">
-      <div class="pt-name">Worldpuanlarımla öde</div>
-      <div class="pt-sub">${USER.worldpuan.toLocaleString('tr-TR')} puanın var = <b>${tl}</b> indirim</div>
-    </div>
-  </div>`;
+    <span class="puan-txt">Worldpuan'larımı kullan <b>(${tl} indirim)</b></span>
+  </label>`;
 }
 
 /* Mesafeli ödeme yasal onayları — iki ayrı checkbox (ön bilgilendirme + sözleşme) */
@@ -551,13 +548,9 @@ function deliveryRange(minD, maxD) {
 function DeliveryStripHTML(p) {
   const range = p.delivery === 'Yarın kargoda' ? deliveryRange(1, 2) : deliveryRange(2, 4);
   return `
-  <div class="del-strip">
-    <div class="del-ico">${I.truck}</div>
-    <div class="del-txt">
-      <div class="del-main">Tahmini teslimat: <b>${range}</b></div>
-      <div class="del-sub">${p.shipping} · ${p.warranty}</div>
-    </div>
-    <div class="del-cargo"><img src="assets/yk-kargo.png" alt="YK Kargo" onerror="this.parentElement.textContent='YK Kargo'"></div>
+  <div class="del-line">
+    <span class="del-i">${I.truck}</span>
+    <span>Tahmini teslimat <b>${range}</b> · ${p.shipping} · YK Kargo</span>
   </div>`;
 }
 
@@ -566,7 +559,7 @@ function PaymentScreen() {
   return `
   <div class="screen anim-right">
     <div class="nav-head">
-      <button class="icon-btn" data-action="go-chat">${I.back}</button>
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
       <div class="wp-brand"><img src="assets/worldpay.png" alt="World Pay" class="wp-img wp-light"><img src="assets/worldpay-dark.png" alt="World Pay" class="wp-img wp-dark"></div>
     </div>
 
@@ -697,7 +690,7 @@ function TrackingScreen() {
   return `
   <div class="screen anim-right">
     <div class="nav-head">
-      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
       <div class="nav-title">Sipariş Takibi</div>
     </div>
     <div class="screen-scroll">
@@ -801,7 +794,7 @@ function SectionsScreen() {
   return `
   <div class="screen anim-right">
     <div class="nav-head">
-      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
       <div class="nav-title">Bölümler</div>
     </div>
     <div class="screen-scroll">
@@ -822,7 +815,7 @@ function SettingsScreen() {
   return `
   <div class="screen anim-right">
     <div class="nav-head">
-      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
       <div class="nav-title">Ayarlarım</div>
     </div>
     <div class="screen-scroll">
@@ -862,7 +855,7 @@ function PlaceholderScreen(title) {
   return `
   <div class="screen anim-right">
     <div class="nav-head">
-      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
       <div class="nav-title">${title}</div>
     </div>
     <div class="placeholder">
@@ -898,9 +891,33 @@ function render() {
   if (state.screen === 'chat') setupChat();
 }
 
+/* İleri navigasyon — mevcut ekranı geri yığınına ekler (gerçek uygulama gibi) */
 function go(screen) {
-  state.screen = screen;
+  state.nav.push(curFrame());
   closeDrawer();
+  state.chatSeed = false;
+  state.screen = screen;
+  render();
+}
+/* O anki ekranın geri-frame'i. Chat'e geri dönülürse tamamlanmış haliyle gelsin. */
+function curFrame() {
+  return { screen: state.screen, chatSeed: state.screen === 'chat' };
+}
+/* Geri (back) — yığından bir önceki ekrana dön; boşsa ana sayfa */
+function navBack() {
+  closeDrawer();
+  const f = state.nav.pop();
+  if (!f) { state.chatSeed = false; state.screen = 'home'; return render(); }
+  state.chatSeed = !!f.chatSeed;
+  state.screen = f.screen;
+  render();
+}
+/* Ana sayfaya dön — geri yığınını temizler (taze başlangıç) */
+function goHome() {
+  state.nav = [];
+  state.chatSeed = false;
+  closeDrawer();
+  state.screen = 'home';
   render();
 }
 
@@ -1526,11 +1543,12 @@ document.addEventListener('click', (e) => {
     case 'open-drawer': return openDrawer();
     case 'close-drawer': return closeDrawer();
     case 'open-search': return go('search');
-    case 'close-search': return go('home');
+    case 'close-search': return navBack();
     case 'open-assistant':
       state.chatStarted = true;
       return go('chat');
-    case 'go-home': return go('home');
+    case 'nav-back': return navBack();
+    case 'go-home': return goHome();
     case 'go-chat': return go('chat');
     case 'go-settings': return go('settings');
     case 'go-tracking': return go('tracking');
@@ -1624,12 +1642,10 @@ document.addEventListener('click', (e) => {
 
     case 'menu-nav': {
       const id = t.dataset.id;
-      if (id === 'home') return go('home');
+      if (id === 'home') return goHome();
       // Diğer menüler placeholder
       state.placeholderTitle = t.dataset.label;
-      state.screen = 'placeholder';
-      closeDrawer();
-      return render();
+      return go('placeholder');
     }
 
     case 'set-theme': return setTheme(t.dataset.theme);
@@ -1675,15 +1691,20 @@ function routeTo(hash) {
   state.screen = h;
   return true;
 }
-/* Bölüm linkine git: state'i kur, URL hash'ini güncelle (paylaşılabilir), çiz */
+/* Bölüm linkine git: nereden geldiğimizi geri yığınına ekle (geri o ekrana dönsün),
+   state'i kur, URL hash'ini güncelle (paylaşılabilir), çiz */
 function gotoSection(hash) {
+  const back = curFrame();
   if (!routeTo(hash)) return;
+  state.nav.push(back);
   closeDrawer();
   history.replaceState(null, '', '#' + hash.replace('#', ''));
   render();
 }
-// Adres çubuğundan hash değişirse (bookmark / elle düzenleme) canlı yönlen
-window.addEventListener('hashchange', () => { if (routeTo(location.hash)) render(); });
+// Adres çubuğundan hash değişirse (bookmark / elle düzenleme) taze yönlen (yığın sıfır)
+window.addEventListener('hashchange', () => {
+  if (routeTo(location.hash)) { state.nav = []; render(); }
+});
 
 setTheme(state.theme);
 updateClock();
