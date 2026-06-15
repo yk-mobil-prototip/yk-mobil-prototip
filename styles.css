@@ -743,6 +743,24 @@ body[data-theme="light"] .pcard-rating { color: #d99800; }
 .mtag.inst { background: rgba(0,152,203,.14); color: var(--primary); }
 .mtag.puan { background: #ffffff; color: #5a2480; border: 1px solid #ece3f3; }
 .puan-logo { height: 13px; width: auto; display: block; }
+.pcard-ship {
+  display: flex; align-items: center; gap: 5px;
+  margin-top: 9px; font-size: 11px; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden;
+}
+.pcard-ship .ship-i { display: inline-flex; align-items: center; gap: 4px; }
+.pcard-ship .ship-i svg { width: 13px; height: 13px; flex: 0 0 auto; }
+.pcard-ship .ship-i.free { color: var(--success); font-weight: 600; }
+.pcard-ship .ship-dot { color: var(--text-faint); }
+.tag.stock {
+  position: absolute; top: 10px; right: 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 8px;
+  color: #fff; letter-spacing: .2px;
+}
+.tag.stock svg { width: 12px; height: 12px; }
+.tag.stock.low { background: rgba(226,0,26,.92); box-shadow: 0 2px 8px rgba(226,0,26,.35); }
+.tag.stock.ok  { background: rgba(46,204,113,.95); box-shadow: 0 2px 8px rgba(46,204,113,.30); }
 .pcard-buy {
   margin-top: 14px; width: 100%;
   background: var(--primary); color: #fff;
@@ -964,6 +982,250 @@ body[data-theme="light"] .wp-brand .wp-dark { display: none; }
   text-align: center; font-size: 11px; color: var(--text-dim);
   margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 5px;
 }
+
+/* =========================================================
+   TESLİMAT ADRESİ KARTI
+   ========================================================= */
+.addr-card {
+  margin: 12px 16px 4px; padding: 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+}
+.addr-head { display: flex; align-items: center; justify-content: space-between; }
+.addr-title { font-size: 14px; font-weight: 700; }
+.addr-edit {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  color: var(--primary); font-size: 13px; font-weight: 600; padding: 2px 0;
+}
+.addr-edit svg { width: 15px; height: 15px; }
+.addr-body {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+  cursor: pointer;
+}
+.addr-pin {
+  width: 38px; height: 38px; border-radius: 10px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: var(--card-2); color: var(--primary);
+}
+.addr-info { min-width: 0; }
+.addr-name { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.addr-tag {
+  font-size: 10px; font-weight: 700; color: var(--primary);
+  background: rgba(0,152,203,.12); padding: 2px 7px; border-radius: 6px;
+}
+.addr-line { font-size: 13px; color: var(--text-dim); margin-top: 3px; line-height: 1.35; }
+.addr-city { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+.addr-billing {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--text-dim);
+}
+
+/* Kare onay kutucuğu (faturamı aynı adrese + sözleşmeler) */
+.cbx {
+  width: 20px; height: 20px; border-radius: 6px; flex: 0 0 auto;
+  border: 2px solid var(--border); display: grid; place-items: center;
+  color: #fff; transition: background .15s, border-color .15s;
+}
+.cbx svg { width: 13px; height: 13px; opacity: 0; }
+.addr-billing.on .cbx, .contract-row.on .cbx { background: var(--primary); border-color: var(--primary); }
+.addr-billing.on .cbx svg, .contract-row.on .cbx svg { opacity: 1; }
+.addr-billing.on { color: var(--text); }
+
+/* Teslimat tahmini şeridi (ödeme ekranı) */
+.del-strip {
+  display: flex; align-items: center; gap: 12px;
+  margin: 10px 16px 4px; padding: 12px 14px;
+  background: rgba(46,204,113,.08); border: 1px solid rgba(46,204,113,.25);
+  border-radius: 14px;
+}
+.del-ico {
+  width: 38px; height: 38px; border-radius: 10px; flex: 0 0 auto;
+  display: grid; place-items: center; background: rgba(46,204,113,.16); color: var(--success);
+}
+.del-ico svg { width: 20px; height: 20px; }
+.del-txt { flex: 1; min-width: 0; }
+.del-main { font-size: 13.5px; font-weight: 500; }
+.del-main b { font-weight: 700; }
+.del-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.del-cargo {
+  flex: 0 0 auto; background: #fff; border-radius: 8px;
+  padding: 6px 10px; display: grid; place-items: center;
+  font-size: 11px; font-weight: 800; color: var(--navy);
+}
+.del-cargo img { height: 22px; width: auto; object-fit: contain; display: block; }
+
+/* =========================================================
+   WORLDPUAN İLE ÖDE — sade onay kutusu
+   ========================================================= */
+.puan-box {
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  margin: 4px 16px 10px; padding: 13px 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  transition: border-color .15s, background .15s;
+}
+.puan-box.on { border-color: var(--primary); background: rgba(0,152,203,.05); }
+.puan-box .cbx { width: 22px; height: 22px; }
+.puan-box.on .cbx { background: var(--primary); border-color: var(--primary); }
+.puan-box.on .cbx svg { opacity: 1; }
+.pt-ico {
+  width: 34px; height: 34px; border-radius: 9px; flex: 0 0 auto;
+  background: #fff; display: grid; place-items: center; overflow: hidden; padding: 5px;
+}
+.pt-ico img { width: 100%; height: 100%; object-fit: contain; }
+.pt-txt { min-width: 0; }
+.pt-name { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.pt-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.pt-sub b { color: var(--success); font-weight: 700; }
+
+.sheet-disc {
+  text-align: center; font-size: 12px; font-weight: 600; color: var(--success);
+  margin: 0 0 4px;
+}
+
+/* =========================================================
+   MESAFELİ SATIŞ ONAYLARI
+   ========================================================= */
+.contract-box {
+  margin: 14px 16px 4px; padding: 4px 2px;
+}
+.contract-row {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 9px 0; font-size: 13px; color: var(--text-dim); line-height: 1.4;
+}
+.contract-txt a { color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* =========================================================
+   SHEET — başlık çubuğu, adres listesi, yasal metin
+   ========================================================= */
+.sheet-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sheet-bar h3 { flex: 1; text-align: center; }
+.sheet-x {
+  position: absolute; right: 18px; background: var(--card); border: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--text-dim);
+}
+.addr-list { max-height: 52vh; overflow-y: auto; margin-bottom: 14px; -webkit-overflow-scrolling: touch; }
+.addr-pick {
+  display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+  padding: 14px; margin-bottom: 10px;
+  background: var(--card); border: 2px solid var(--border); border-radius: 14px;
+}
+.addr-pick.sel { border-color: var(--primary); }
+.ap-radio {
+  width: 20px; height: 20px; border-radius: 50%; flex: 0 0 auto; margin-top: 2px;
+  border: 2px solid var(--border); display: grid; place-items: center;
+}
+.addr-pick.sel .ap-radio { border-color: var(--primary); }
+.addr-pick.sel .ap-radio::after {
+  content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--primary);
+}
+.ap-info { min-width: 0; }
+.ap-title { font-size: 14px; font-weight: 700; }
+.ap-line { font-size: 12.5px; color: var(--text-dim); margin-top: 3px; line-height: 1.35; }
+.ap-city { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+.addr-add {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 14px; border: 1.5px dashed var(--border); border-radius: 14px;
+  color: var(--primary); font-weight: 600; font-size: 14px;
+}
+.aa-plus {
+  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(0,152,203,.12); color: var(--primary);
+}
+.legal-scroll {
+  max-height: 56vh; overflow-y: auto; margin-bottom: 14px;
+  padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  -webkit-overflow-scrolling: touch;
+}
+.legal-scroll p { text-align: left; font-size: 13px; color: var(--text-dim); margin: 0 0 12px; line-height: 1.55; }
+.legal-scroll h4 { font-size: 13.5px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+.legal-scroll b { color: var(--text); font-weight: 600; }
+
+/* =========================================================
+   SİPARİŞ TAKİBİ
+   ========================================================= */
+.trk-head {
+  display: flex; gap: 14px; align-items: center;
+  margin: 14px 16px 4px; padding: 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+}
+.trk-thumb {
+  width: 60px; height: 60px; border-radius: 12px; flex: 0 0 auto;
+  background: #fff; display: grid; place-items: center; padding: 6px; overflow: hidden;
+}
+.trk-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.trk-meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+.trk-eta {
+  display: flex; align-items: center; gap: 12px;
+  margin: 10px 16px 4px; padding: 12px 14px;
+  background: rgba(46,204,113,.08); border: 1px solid rgba(46,204,113,.25); border-radius: 14px;
+}
+
+/* Kargo satırı — YK Kargo logosu + takip no */
+.cargo-row {
+  display: flex; align-items: center; gap: 12px;
+  margin: 10px 16px 4px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+}
+.cargo-logo {
+  flex: 0 0 auto; display: grid; place-items: center;
+  background: #fff; border-radius: 10px; padding: 8px 12px; min-width: 104px;
+  font-size: 13px; font-weight: 800; color: var(--navy);
+}
+.cargo-logo img { height: 34px; width: auto; object-fit: contain; display: block; }
+.cargo-info { min-width: 0; flex: 1; }
+.cargo-name { font-size: 13.5px; font-weight: 700; }
+.cargo-track { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.cargo-btn {
+  flex: 0 0 auto; padding: 9px 14px; border-radius: 10px; cursor: pointer; font-family: inherit;
+  background: var(--card-2); border: 1px solid var(--border); color: var(--primary);
+  font-size: 12.5px; font-weight: 700;
+}
+
+/* Durum çizgisi */
+.stepper { margin: 4px 16px 10px; padding: 6px 4px; }
+.step { position: relative; display: flex; gap: 14px; padding-bottom: 22px; }
+.step:last-child { padding-bottom: 0; }
+.step-dot {
+  width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto; z-index: 1;
+  display: grid; place-items: center; color: #fff;
+  background: var(--card-3); border: 2px solid var(--border);
+}
+.step-dot svg { width: 15px; height: 15px; }
+.step-line {
+  position: absolute; left: 12px; top: 26px; bottom: 0; width: 2px; background: var(--border);
+}
+.step.done .step-dot { background: var(--success); border-color: var(--success); }
+.step.done .step-line { background: var(--success); }
+.step.active .step-dot {
+  background: var(--primary); border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0,152,203,.18);
+}
+.step.active .step-dot::after {
+  content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff;
+}
+.step-body { padding-top: 2px; }
+.step-t { font-size: 14px; font-weight: 700; }
+.step.todo .step-t { color: var(--text-faint); font-weight: 600; }
+.step-d { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+.trk-actions { margin: 14px 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+.trk-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 14px; border-radius: 12px; cursor: pointer; font-family: inherit;
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  font-size: 14px; font-weight: 600;
+}
+.trk-btn svg { width: 18px; height: 18px; color: var(--primary); }
+.trk-btn:active { background: var(--card-2); }
+
+.inv-total {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--border);
+  font-size: 14px; color: var(--text-dim);
+}
+.inv-total b { font-size: 17px; font-weight: 800; color: var(--text); }
 
 /* =========================================================
    ONAY SHEET'İ (Yapı Kredi Mobil ile onayla)

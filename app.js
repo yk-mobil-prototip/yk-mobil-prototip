@@ -49,6 +49,15 @@ const I = {
   sun: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>',
   moon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
   spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 14l.9 2.6L22.5 17l-2.6.9L19 20l-.9-2.6L15.5 17l2.6-.9z"/></svg>',
+  pin: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  doc: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
+  close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  truck: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>',
+  box: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',
+  receipt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18l2-1.5L9 21l2-1.5L13 21l2-1.5L17 21l2-1.5V3l-2 1.5L15 3l-2 1.5L11 3 9 4.5 7 3z"/><path d="M8 8h8M8 12h8"/></svg>',
+  undo: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+  wallet2: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12h.5M3 10h18"/></svg>',
 };
 
 /* ---------- Veri ---------- */
@@ -61,6 +70,8 @@ const PRODUCTS = [
     rating: '4.7', reviews: '1.284',
     inst: '6 Taksit', instSub: '6 x 366,50 TL',
     puan: '+220 Worldpuan', store: 'Koçtaş',
+    stock: 'Son 4 ürün', delivery: 'Yarın kargoda', shipping: 'Ücretsiz kargo', warranty: '2 yıl garanti',
+    specs: { tip: 'Robot süpürge', guc: '120 dk şarj', paspas: true },
   },
   {
     id: 'p2', emoji: '🧹', img: 'assets/arzum.webp',
@@ -70,6 +81,8 @@ const PRODUCTS = [
     rating: '4.5', reviews: '932',
     inst: '9 Taksit', instSub: '9 x 277,67 TL',
     puan: '+250 Worldpuan', store: 'Koçtaş',
+    stock: 'Stokta', delivery: '2-3 iş günü', shipping: 'Ücretsiz kargo', warranty: '3 yıl garanti',
+    specs: { tip: 'Toz torbalı', guc: '2000 W', paspas: false },
   },
   {
     id: 'p3', emoji: '🌀', img: 'assets/karcher.png',
@@ -79,6 +92,8 @@ const PRODUCTS = [
     rating: '4.8', reviews: '2.041',
     inst: '3 Taksit', instSub: '3 x 633,00 TL',
     puan: '+190 Worldpuan', store: 'Koçtaş',
+    stock: 'Son 2 ürün', delivery: 'Yarın kargoda', shipping: 'Ücretsiz kargo', warranty: '2 yıl garanti',
+    specs: { tip: 'Dikey şarjlı', guc: '40 dk şarj', paspas: false },
   },
 ];
 
@@ -140,8 +155,38 @@ const state = {
   selectedProduct: null,
   payMethod: null,      // 'worldcard' | 'worldpuan' | 'bank'
   installment: 'single', // 'single' | 't3' | 't6' — varsayılan tek çekim
+  // Mesafeli ödeme deneyimi
+  addressId: 'a1',           // seçili teslimat adresi
+  billingSame: true,         // faturamı aynı adrese gönder (varsayılan açık)
+  preInfoOk: false,          // Ön Bilgilendirme Formu onayı
+  contractOk: false,         // Mesafeli Satış Sözleşmesi onayı
+  usePuan: false,            // Worldpuan ile kısmi ödeme
   theme: localStorage.getItem('ykm-theme') || 'dark',
 };
+
+/* ---------- Mock teslimat adresleri (kişisel veri yok, tamamen örnek) ---------- */
+const ADDRESSES = [
+  { id: 'a1', title: 'Ev',     name: 'Ada Yılmaz', line: 'Bağdat Cad. No:128 D:5, Fenerbahçe', city: 'Kadıköy / İstanbul', phone: '0 (5••) ••• •• 24' },
+  { id: 'a2', title: 'İş',     name: 'Ada Yılmaz', line: 'Büyükdere Cad. No:201 Kat:8, Levent', city: 'Şişli / İstanbul',  phone: '0 (5••) ••• •• 24' },
+  { id: 'a3', title: 'Yazlık', name: 'Ada Yılmaz', line: 'Sahil Sok. No:7, 3850. Mah.',        city: 'Çeşme / İzmir',     phone: '0 (5••) ••• •• 24' },
+];
+function getAddress() { return ADDRESSES.find(a => a.id === state.addressId) || ADDRESSES[0]; }
+
+/* ---------- Mock kullanıcı finansal profili (örnek veriler) ---------- */
+const USER = {
+  name: 'Ada',
+  limit: 18500,          // Worldcard kullanılabilir limit (TL)
+  worldpuan: 1250,       // mevcut Worldpuan bakiyesi
+  balance: 10000,        // Vadesiz TL hesap bakiyesi
+};
+const PUAN_VALUE = 0.1;  // 1 Worldpuan = 0,10 TL (örnek değerleme)
+
+function fmtTL(n) { return n.toLocaleString('tr-TR') + ',00 TL'; }
+function productTotal() { return parseInt(state.selectedProduct.priceNum.replace('.', '')); }
+function puanDiscount() { return state.usePuan ? Math.round(USER.worldpuan * PUAN_VALUE) : 0; }
+function payableNum() { return productTotal() - puanDiscount(); }
+function payableStr() { return fmtTL(payableNum()); }
+function earnedPuan() { return parseInt((state.selectedProduct.puan.match(/\d+/) || [0])[0]); }
 
 /* ---------- DOM kısayolları ---------- */
 const app = document.getElementById('app');
@@ -352,12 +397,18 @@ function ChatScreen() {
   </div>`;
 }
 
+/* Stok rozeti — az stokta kırmızı (aciliyet), stokta sakin yeşil */
+function stockBadge(p) {
+  if (/^Son/.test(p.stock)) return `<span class="tag stock low">${p.stock}</span>`;
+  return `<span class="tag stock ok">${I.box} Stokta</span>`;
+}
 function ProductCardHTML(p) {
   return `
     <div class="pcard">
       <div class="pcard-img">
         ${imgOrFallback(p.img, p.emoji, 'p-photo')}
         <span class="tag world">World'e Özel</span>
+        ${stockBadge(p)}
       </div>
       <div class="pcard-body">
         <div class="pcard-store"><img src="assets/koctas.png" alt="Koçtaş" class="koctas-logo"
@@ -369,6 +420,11 @@ function ProductCardHTML(p) {
         <div class="pcard-meta">
           <span class="mtag inst">${I.card} ${p.inst}</span>
           <span class="mtag puan"><img src="assets/world.webp" class="puan-logo" alt="World"> ${p.puan}</span>
+        </div>
+        <div class="pcard-ship">
+          <span class="ship-i">${I.truck} ${p.delivery}</span>
+          <span class="ship-dot">·</span>
+          <span class="ship-i free">${p.shipping}</span>
         </div>
         <button class="pcard-buy" data-action="buy" data-id="${p.id}">${I.card} World Pay ile Al</button>
       </div>
@@ -398,10 +454,95 @@ function InstBoxHTML(p) {
     </div>`).join('');
 }
 
+/* Teslimat adresi kartı — başlık + seçili adres + "faturamı aynı adrese" tiki */
+function AddressCardHTML() {
+  const a = getAddress();
+  return `
+  <div class="addr-card" id="addr-card">
+    <div class="addr-head">
+      <span class="addr-title">Teslimat Adresi</span>
+      <button class="addr-edit" data-action="open-address">Değiştir ${I.chevR}</button>
+    </div>
+    <div class="addr-body" data-action="open-address">
+      <div class="addr-pin">${I.pin}</div>
+      <div class="addr-info">
+        <div class="addr-name"><span class="addr-tag">${a.title}</span>${a.name}</div>
+        <div class="addr-line">${a.line}</div>
+        <div class="addr-city">${a.city} · ${a.phone}</div>
+      </div>
+    </div>
+    <div class="addr-billing ${state.billingSame ? 'on' : ''}" data-action="toggle-billing">
+      <span class="cbx">${I.check}</span>
+      <span>Faturamı aynı adrese gönder</span>
+    </div>
+  </div>`;
+}
+
+/* Hesap bilgisi kutusu — Vadesiz TL'den ödeme (Worldpuan indirimini de yansıtır) */
+function BankBoxHTML() {
+  const pay = payableNum();
+  const after = USER.balance - pay;
+  return `
+  <div class="bank-box" id="bank-box">
+    <div class="ib-title">Hesap Bilgisi</div>
+    <div class="bb-row"><span class="bb-l">Kullanılabilir Bakiye</span><span class="bb-r">${fmtTL(USER.balance)}</span></div>
+    <div class="bb-row"><span class="bb-l">Ödeme Tutarı</span><span class="bb-r">- ${fmtTL(pay)}</span></div>
+    <div class="bb-row total"><span class="bb-l">İşlem Sonrası Bakiye</span><span class="bb-r">${fmtTL(after)}</span></div>
+    <div class="bb-note">${I.lock} Tutar hesabından tek çekimde, masrafsız tahsil edilir.</div>
+  </div>`;
+}
+
+/* Worldpuan ile öde — sade onay kutusu (puanın TL karşılığını gösterir) */
+function FinanceBoxHTML() {
+  const tl = fmtTL(Math.round(USER.worldpuan * PUAN_VALUE));
+  return `
+  <div class="puan-box ${state.usePuan ? 'on' : ''}" id="fin-box" data-action="toggle-puan">
+    <span class="cbx">${I.check}</span>
+    <div class="pt-ico"><img src="assets/world.webp" alt="World" onerror="this.outerHTML='🎉'"></div>
+    <div class="pt-txt">
+      <div class="pt-name">Worldpuanlarımla öde</div>
+      <div class="pt-sub">${USER.worldpuan.toLocaleString('tr-TR')} puanın var = <b>${tl}</b> indirim</div>
+    </div>
+  </div>`;
+}
+
+/* Mesafeli ödeme yasal onayları — iki ayrı checkbox (ön bilgilendirme + sözleşme) */
+function ContractBoxHTML() {
+  return `
+  <div class="contract-box">
+    <label class="contract-row ${state.preInfoOk ? 'on' : ''}" data-action="toggle-contract" data-key="preInfoOk">
+      <span class="cbx">${I.check}</span>
+      <span class="contract-txt"><a data-action="open-preinfo">Ön Bilgilendirme Formu</a>'nu okudum, onaylıyorum.</span>
+    </label>
+    <label class="contract-row ${state.contractOk ? 'on' : ''}" data-action="toggle-contract" data-key="contractOk">
+      <span class="cbx">${I.check}</span>
+      <span class="contract-txt"><a data-action="open-contract">Mesafeli Satış Sözleşmesi</a>'ni okudum, onaylıyorum.</span>
+    </label>
+  </div>`;
+}
+
+/* Tahmini teslimat tarih aralığı (bugünden +min/+max gün) */
+const AYLAR = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+function deliveryRange(minD, maxD) {
+  const a = new Date(); a.setDate(a.getDate() + minD);
+  const b = new Date(); b.setDate(b.getDate() + maxD);
+  return `${a.getDate()} ${AYLAR[a.getMonth()]} - ${b.getDate()} ${AYLAR[b.getMonth()]}`;
+}
+function DeliveryStripHTML(p) {
+  const range = p.delivery === 'Yarın kargoda' ? deliveryRange(1, 2) : deliveryRange(2, 4);
+  return `
+  <div class="del-strip">
+    <div class="del-ico">${I.truck}</div>
+    <div class="del-txt">
+      <div class="del-main">Tahmini teslimat: <b>${range}</b></div>
+      <div class="del-sub">${p.shipping} · ${p.warranty}</div>
+    </div>
+    <div class="del-cargo"><img src="assets/yk-kargo.png" alt="YK Kargo" onerror="this.parentElement.textContent='YK Kargo'"></div>
+  </div>`;
+}
+
 function PaymentScreen() {
   const p = state.selectedProduct;
-  const total = parseInt(p.priceNum.replace('.', ''));
-  const remaining = (10000 - total).toLocaleString('tr-TR');
   return `
   <div class="screen anim-right">
     <div class="nav-head">
@@ -418,6 +559,10 @@ function PaymentScreen() {
         </div>
         <div class="ps-price">${p.price}</div>
       </div>
+
+      ${AddressCardHTML()}
+
+      ${DeliveryStripHTML(p)}
 
       <div class="pay-section-title">Ödeme Yöntemi</div>
 
@@ -439,30 +584,46 @@ function PaymentScreen() {
         ${InstBoxHTML(p)}
       </div>
 
-      <div class="bank-box" id="bank-box">
-        <div class="ib-title">Hesap Bilgisi</div>
-        <div class="bb-row"><span class="bb-l">Kullanılabilir Bakiye</span><span class="bb-r">10.000,00 TL</span></div>
-        <div class="bb-row"><span class="bb-l">Ödeme Tutarı</span><span class="bb-r">- ${p.price}</span></div>
-        <div class="bb-row total"><span class="bb-l">İşlem Sonrası Bakiye</span><span class="bb-r">${remaining},00 TL</span></div>
-        <div class="bb-note">${I.lock} Tutar hesabından tek çekimde, masrafsız tahsil edilir.</div>
-      </div>
+      ${BankBoxHTML()}
+
+      ${FinanceBoxHTML()}
+
+      ${ContractBoxHTML()}
     </div>
 
     <div class="pay-foot">
       <button class="pay-btn" id="pay-btn" data-action="pay" disabled>
-        <span>Öde</span><span class="div"></span><span id="pay-amt">${p.price}</span>
+        <span>Öde</span><span class="div"></span><span id="pay-amt">${payableStr()}</span>
       </button>
       <div class="secure-note">${I.lock} 256-bit güvenli ödeme</div>
     </div>
   </div>`;
 }
 
+/* Sipariş kaydı — yoksa (örn. derin bağlantı) anlık üretilir */
+function getOrder() {
+  if (!state.lastOrder) {
+    state.lastOrder = {
+      no: 'YKM' + String(Math.floor(100000000 + Math.random() * 900000000)),
+      date: new Date(), productId: state.selectedProduct && state.selectedProduct.id,
+      addressId: state.addressId, payable: payableStr(),
+      bank: state.payMethod === 'bank', inst: instLabel(),
+      cargo: 'YK Kargo', track: 'YK' + String(Math.floor(100000000000 + Math.random() * 899999999999)),
+    };
+  }
+  return state.lastOrder;
+}
+function orderDateStr(d) {
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
 function SuccessScreen() {
   const p = state.selectedProduct;
   const bank = state.payMethod === 'bank';
-  const d = new Date();
-  const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} · ${nowTime()}`;
-  const txnNo = 'YKM' + String(Math.floor(100000000 + Math.random() * 900000000));
+  const order = getOrder();
+  const dateStr = orderDateStr(order.date);
+  const txnNo = order.no;
+  const totalPuan = USER.worldpuan - (state.usePuan ? USER.worldpuan : 0) + earnedPuan();
   return `
   <div class="screen anim-fade">
     <div class="screen-scroll">
@@ -470,14 +631,14 @@ function SuccessScreen() {
         <div class="success-check"><div class="ring">${I.checkBig}</div></div>
         <h2>Ödemeniz Başarıyla Gerçekleşti</h2>
         <div class="succ-date">${dateStr}</div>
-        <div class="amt">${p.price}</div>
+        <div class="amt">${payableStr()}</div>
         <div class="prod">${p.name}</div>
 
         <div class="puan-card">
           <div class="pc-logo"><img src="assets/world.webp" alt="World" onerror="this.outerHTML='🎉'"></div>
           <div>
-            <div class="pc-val">${p.puan.replace('+','')}</div>
-            <div class="pc-lbl">hesabına eklendi · Toplam: 1.470 Worldpuan</div>
+            <div class="pc-val">+${earnedPuan()} Worldpuan</div>
+            <div class="pc-lbl">hesabına eklendi · Toplam: ${totalPuan.toLocaleString('tr-TR')} Worldpuan</div>
           </div>
         </div>
 
@@ -486,16 +647,133 @@ function SuccessScreen() {
           <div class="r-row"><span class="r-l">İş Yeri</span><span class="r-r">${p.store} · World Pay</span></div>
           <div class="r-row"><span class="r-l">Ödeme Yöntemi</span><span class="r-r">${bank ? 'Vadesiz TL Hesabım · 12345678' : 'Worldcard **** 3333'}</span></div>
           <div class="r-row"><span class="r-l">Taksit</span><span class="r-r">${instLabel()}</span></div>
-          <div class="r-row"><span class="r-l">Tutar</span><span class="r-r">${p.price}</span></div>
+          <div class="r-row"><span class="r-l">Teslimat Adresi</span><span class="r-r">${getAddress().title} · ${getAddress().city}</span></div>
+          ${state.usePuan ? `<div class="r-row"><span class="r-l">Worldpuan İndirimi</span><span class="r-r">- ${fmtTL(puanDiscount())}</span></div>` : ''}
+          <div class="r-row"><span class="r-l">Tutar</span><span class="r-r">${payableStr()}</span></div>
         </div>
 
         <div class="success-actions">
-          <button class="btn-outline" data-action="toast" data-msg="Dekont paylaşımı prototipte aktif değil">Dekont Paylaş</button>
-          <button class="btn-primary" data-action="go-home">Ana Sayfaya Dön</button>
+          <button class="btn-primary" data-action="go-tracking">${I.box} Siparişimi Takip Et</button>
+          <button class="btn-outline" data-action="go-home">Ana Sayfaya Dön</button>
         </div>
       </div>
     </div>
   </div>`;
+}
+
+/* Sipariş takibi — durum çizgisi (stepper) + kargo + fatura/iade aksiyonları */
+function TrackingScreen() {
+  const order = getOrder();
+  const p = PRODUCTS.find(x => x.id === order.productId) || state.selectedProduct || PRODUCTS[0];
+  const a = ADDRESSES.find(x => x.id === order.addressId) || getAddress();
+  const range = p.delivery === 'Yarın kargoda' ? deliveryRange(1, 2) : deliveryRange(2, 4);
+  // 4 adımlı durum: 2. adım (Hazırlanıyor) aktif
+  const steps = [
+    { t: 'Sipariş Alındı', s: 'done', d: orderDateStr(order.date) },
+    { t: 'Hazırlanıyor', s: 'active', d: `${p.store} siparişini paketliyor` },
+    { t: 'Kargoya Verildi', s: 'todo', d: order.cargo },
+    { t: 'Teslim Edildi', s: 'todo', d: `Tahmini ${range}` },
+  ];
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="go-home">${I.back}</button>
+      <div class="nav-title">Sipariş Takibi</div>
+    </div>
+    <div class="screen-scroll">
+      <div class="trk-head">
+        <div class="trk-thumb">${imgOrFallback(p.img, p.emoji, 'ps-photo')}</div>
+        <div>
+          <div class="trk-name">${p.name}</div>
+          <div class="trk-meta">Sipariş No: ${order.no}</div>
+          <div class="trk-meta">${orderDateStr(order.date)}</div>
+        </div>
+      </div>
+
+      <div class="trk-eta">
+        <div class="del-ico">${I.truck}</div>
+        <div><div class="del-main">Tahmini teslimat: <b>${range}</b></div>
+        <div class="del-sub">${p.shipping} · ${order.bank ? 'Vadesiz TL Hesabı' : 'Worldcard'} ile ödendi</div></div>
+      </div>
+
+      <div class="cargo-row">
+        <div class="cargo-logo"><img src="assets/yk-kargo.png" alt="YK Kargo" onerror="this.parentElement.textContent='YK Kargo'"></div>
+        <div class="cargo-info">
+          <div class="cargo-name">${order.cargo}</div>
+          <div class="cargo-track">Takip No: ${order.track}</div>
+        </div>
+        <button class="cargo-btn" data-action="toast" data-msg="Kargo takibi prototipte aktif değil">Takip Et</button>
+      </div>
+
+      <div class="pay-section-title">Sipariş Durumu</div>
+      <div class="stepper">
+        ${steps.map((st, i) => `
+          <div class="step ${st.s}">
+            <div class="step-dot">${st.s === 'done' ? I.check : ''}</div>
+            ${i < steps.length - 1 ? '<div class="step-line"></div>' : ''}
+            <div class="step-body"><div class="step-t">${st.t}</div><div class="step-d">${st.d}</div></div>
+          </div>`).join('')}
+      </div>
+
+      <div class="addr-card" style="margin-top:6px">
+        <div class="addr-head"><span class="addr-title">Teslimat Adresi</span></div>
+        <div class="addr-body" style="cursor:default">
+          <div class="addr-pin">${I.pin}</div>
+          <div class="addr-info">
+            <div class="addr-name"><span class="addr-tag">${a.title}</span>${a.name}</div>
+            <div class="addr-line">${a.line}</div>
+            <div class="addr-city">${a.city} · ${a.phone}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trk-actions">
+        <button class="trk-btn" data-action="open-invoice">${I.receipt} Faturayı Görüntüle</button>
+        <button class="trk-btn" data-action="open-return">${I.undo} İade / Cayma Talebi</button>
+        <button class="trk-btn" data-action="toast" data-msg="Tekrar sipariş prototipte aktif değil">${I.refresh} Tekrar Sipariş Ver</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* Fatura görüntüleme sheet'i */
+function openInvoiceSheet() {
+  const order = getOrder();
+  const p = PRODUCTS.find(x => x.id === order.productId) || PRODUCTS[0];
+  const a = ADDRESSES.find(x => x.id === order.addressId) || getAddress();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>e-Fatura</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="legal-scroll">
+      <h4>${p.store} · World Pay</h4>
+      <p>Fatura No: ${order.no.replace('YKM','FT')}<br>Tarih: ${orderDateStr(order.date)}</p>
+      <h4>Alıcı</h4>
+      <p>${a.name}<br>${a.line}, ${a.city}</p>
+      <h4>Ürün</h4>
+      <p>${p.name}<br>Ödeme: ${order.bank ? 'Vadesiz TL Hesabı · Tek Çekim' : 'Worldcard · ' + order.inst}</p>
+      <div class="inv-total"><span>Genel Toplam (KDV dahil)</span><b>${order.payable}</b></div>
+      <p style="margin-top:12px">Bu belge prototip amaçlı örnek bir e-faturadır.</p>
+    </div>
+    <button class="sheet-btn ghost" data-action="toast" data-msg="Fatura PDF indirme prototipte aktif değil">PDF Olarak İndir</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+
+/* İade / cayma talebi sheet'i (14 günlük cayma hakkı) */
+function openReturnSheet() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>İade / Cayma Talebi</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="sheet-ico" style="background:rgba(226,0,26,.12);color:var(--world)">${I.undo}</div>
+    <p>Mesafeli Satış Sözleşmesi kapsamında, ürünü teslim aldıktan sonra <b>14 gün</b> içinde gerekçe göstermeden cayma hakkını kullanabilirsin. Talebin oluşturulduğunda kargo kodu tarafına iletilir, iade onayında ödemen aynı yönteme iade edilir.</p>
+    <button class="sheet-btn" data-action="confirm-return">${I.undo} Cayma Talebi Oluştur</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function confirmReturn() {
+  closeSheet();
+  toast('Cayma talebin alındı, e-posta ile bilgilendirileceksin 💙');
 }
 
 function SettingsScreen() {
@@ -567,6 +845,7 @@ function render() {
     case 'chat': html = ChatScreen(); break;
     case 'payment': html = PaymentScreen(); break;
     case 'success': html = SuccessScreen(); break;
+    case 'tracking': html = TrackingScreen(); break;
     case 'settings': html = SettingsScreen(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
@@ -872,12 +1151,12 @@ function chatSend() {
       if (gen.aborted) return;
       showProductCards(scroll, () => {
         if (gen.aborted) return;
-        // 3) kartlardan sonra kısa takip mesajı — sohbeti tek atımlık olmaktan çıkarır
+        // 3) kısa gerekçeli takip mesajı — neden önerdi + fiyat + Worldpuan hediyesi
         setTimeout(() => {
           if (gen.aborted) return;
           const b2 = addBotBubble(scroll);
-          const rec = PRODUCTS[0]; // önerilen: Fakir Robert RS 700
-          const followup = `Bütçene en uygunu Fakir Robert RS 700 görünüyor — hem paspaslama özelliği var hem de 6 taksit imkanı ve ${rec.puan.replace('+', '')} hediyesi var. Hazır olduğunda karttaki "World Pay ile Al" ile ödemeye geçebilirsin 💳`;
+          const rec = PRODUCTS.find(p => p.id === REC_ID);
+          const followup = `Önerim Fakir Robert RS 700 — paspaslama yapan tek model ve 2.500 TL bütçenin altında (${rec.price.replace(',00 TL',' TL')}). 6 taksit imkanı ve ${rec.puan.replace('+','')} hediyesi var. Hazır olduğunda "World Pay ile Al" ile ödemeye geçebilirsin 💳`;
           typeText(b2, followup, 14, () => {
             addMsgActions(b2);
             endGen(gen);
@@ -912,6 +1191,9 @@ function chipOtherFlow(key) {
   }, 900);
 }
 
+/* Asistanın önerdiği ürün */
+const REC_ID = 'p1'; // Fakir Robert RS 700
+
 /* Ürün kartlarını sırayla göster */
 function showProductCards(scroll, done, gen) {
   const wrap = document.createElement('div');
@@ -941,14 +1223,126 @@ function selectMethod(method, el) {
   el.classList.add('selected');
   document.getElementById('inst-box').classList.toggle('show', method === 'worldcard');
   document.getElementById('bank-box').classList.toggle('show', method === 'bank');
-  const btn = document.getElementById('pay-btn');
-  btn.disabled = false;
+  updatePayState();
 }
 
 function selectInst(id, el) {
   state.installment = id;
   document.querySelectorAll('.inst-opt').forEach(o => o.classList.remove('active'));
   el.classList.add('active');
+}
+
+/* Öde butonu: yöntem seçili VE her iki yasal onay verilmişse aktif olur */
+function updatePayState() {
+  const btn = document.getElementById('pay-btn');
+  if (!btn) return;
+  btn.disabled = !(state.payMethod && state.preInfoOk && state.contractOk);
+}
+
+/* Sözleşme/ön bilgilendirme onay kutucukları */
+function toggleContract(key, el) {
+  state[key] = !state[key];
+  el.classList.toggle('on', state[key]);
+  updatePayState();
+}
+function toggleBilling(el) {
+  state.billingSame = !state.billingSame;
+  el.classList.toggle('on', state.billingSame);
+}
+
+/* Worldpuan ile öde — tutarı ve finansal özeti günceller */
+function togglePuan() {
+  state.usePuan = !state.usePuan;
+  replaceById('fin-box', FinanceBoxHTML());
+  // Banka kutusunu da tazele ama açık/kapalı (show) durumunu koru
+  const bb = document.getElementById('bank-box');
+  if (bb) {
+    const shown = bb.classList.contains('show');
+    replaceById('bank-box', BankBoxHTML());
+    if (shown) document.getElementById('bank-box').classList.add('show');
+  }
+  const amt = document.getElementById('pay-amt');
+  if (amt) amt.textContent = payableStr();
+}
+/* Bir elemanı id'siyle, verilen HTML'in ilk elemanıyla değiştirir */
+function replaceById(id, html) {
+  const old = document.getElementById(id);
+  if (!old) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html.trim();
+  old.replaceWith(tmp.firstElementChild);
+}
+
+/* Adres kartını yerinde tazele (tüm ekranı render etmeden — yöntem seçimi korunur) */
+function refreshAddressCard() {
+  const old = document.getElementById('addr-card');
+  if (!old) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = AddressCardHTML().trim();
+  old.replaceWith(tmp.firstElementChild);
+}
+
+/* "Adres Seçiniz" sheet'i — radio'lu adres kartları + yeni adres ekle */
+let tmpAddressId = null;
+function openAddressSheet() {
+  tmpAddressId = state.addressId;
+  const cards = ADDRESSES.map(a => `
+    <div class="addr-pick ${a.id === tmpAddressId ? 'sel' : ''}" data-action="pick-address" data-id="${a.id}">
+      <span class="ap-radio"></span>
+      <div class="ap-info">
+        <div class="ap-title">${a.title}</div>
+        <div class="ap-line">${a.name} · ${a.line}</div>
+        <div class="ap-city">${a.city}</div>
+      </div>
+    </div>`).join('');
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>Adres Seçiniz</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="addr-list">
+      ${cards}
+      <div class="addr-add" data-action="toast" data-msg="Yeni adres ekleme prototipte aktif değil">
+        <span class="aa-plus">${I.plus}</span><span>Yeni Adres Ekle</span>
+      </div>
+    </div>
+    <button class="sheet-btn" data-action="confirm-address">Adresi Seç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function pickAddress(id) {
+  tmpAddressId = id;
+  document.querySelectorAll('.addr-pick').forEach(c => c.classList.toggle('sel', c.dataset.id === id));
+}
+function confirmAddress() {
+  state.addressId = tmpAddressId || state.addressId;
+  refreshAddressCard();
+  closeSheet();
+}
+
+/* Yasal metin sheet'i — ön bilgilendirme formu / mesafeli satış sözleşmesi */
+function openLegalSheet(kind) {
+  const a = getAddress();
+  const p = state.selectedProduct;
+  const title = kind === 'preinfo' ? 'Ön Bilgilendirme Formu' : 'Mesafeli Satış Sözleşmesi';
+  const intro = kind === 'preinfo'
+    ? 'İşbu form, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği uyarınca, siparişinizi onaylamadan önce sizi bilgilendirmek amacıyla hazırlanmıştır.'
+    : 'İşbu sözleşme, aşağıda bilgileri yer alan ALICI ile SATICI arasında, ALICI tarafından elektronik ortamda verilen siparişe ilişkin olarak kurulmuştur.';
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>${title}</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="legal-scroll">
+      <p>${intro}</p>
+      <h4>1. Taraflar</h4>
+      <p><b>SATICI:</b> World Pay üye iş yeri — ${p.store}<br><b>ALICI:</b> ${a.name}<br>${a.line}, ${a.city}<br>${a.phone}</p>
+      <h4>2. Sözleşme Konusu Ürün</h4>
+      <p>${p.name}<br>Satış bedeli (KDV dahil): <b>${p.price}</b><br>Ödeme şekli: ${state.payMethod === 'bank' ? 'Vadesiz TL Hesabı · Tek Çekim' : 'Worldcard · ' + instLabel()}<br>Teslimat: Adresinize kargo ile, ortalama 2-4 iş günü.</p>
+      <h4>3. Cayma Hakkı</h4>
+      <p>ALICI, malın teslim tarihinden itibaren 14 (on dört) gün içinde herhangi bir gerekçe göstermeksizin ve cezai şart ödemeksizin sözleşmeden cayma hakkına sahiptir. Cayma hakkının kullanıldığına dair bildirimin bu süre içinde SATICI'ya yöneltilmesi yeterlidir.</p>
+      <h4>4. Genel Hükümler</h4>
+      <p>ALICI, sözleşme konusu ürünün temel nitelikleri, satış fiyatı ve ödeme şekli ile teslimata ilişkin tüm ön bilgileri okuyup bilgi sahibi olduğunu ve elektronik ortamda gerekli teyidi verdiğini kabul, beyan ve taahhüt eder. Bu belge prototip amaçlı örnek bir metindir.</p>
+    </div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Kapat</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
 }
 
 /* iOS tarzı Face ID sembolü: köşe parantezleri + yüz (beyaz, koyu kutuda) */
@@ -983,7 +1377,8 @@ function openConfirmSheet() {
     <div class="faceid-box" id="faceid-box"><div class="fid-glyph">${FACEID_GLYPH}</div></div>
     <div class="faceid-caption" id="faceid-caption">Face ID</div>
     <div class="sheet-pay-row"><span>${p.store} · World Pay</span><span class="spr-r">${methodLbl}</span></div>
-    <div class="sheet-amount">${p.price}</div>
+    ${state.usePuan ? `<div class="sheet-disc">${fmtTL(puanDiscount())} Worldpuan indirimi uygulandı</div>` : ''}
+    <div class="sheet-amount">${payableStr()}</div>
     <button class="sheet-btn" id="approve-btn" data-action="approve" disabled>${I.shield} Onayla</button>
     <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
   sheetEl.classList.add('open');
@@ -1011,6 +1406,18 @@ function approvePayment() {
   const btn = document.getElementById('approve-btn');
   btn.innerHTML = `<span class="spinner"></span> Ödeme Onaylanıyor…`;
   btn.style.pointerEvents = 'none';
+  // Sipariş kaydı oluştur — başarı ve takip ekranları aynı numarayı paylaşır
+  state.lastOrder = {
+    no: 'YKM' + String(Math.floor(100000000 + Math.random() * 900000000)),
+    date: new Date(),
+    productId: state.selectedProduct.id,
+    addressId: state.addressId,
+    payable: payableStr(),
+    bank: state.payMethod === 'bank',
+    inst: instLabel(),
+    cargo: 'YK Kargo',
+    track: 'YK' + String(Math.floor(100000000000 + Math.random() * 899999999999)),
+  };
   setTimeout(() => {
     closeSheet();
     setTimeout(() => go('success'), 250);
@@ -1058,6 +1465,10 @@ document.addEventListener('click', (e) => {
     case 'go-home': return go('home');
     case 'go-chat': return go('chat');
     case 'go-settings': return go('settings');
+    case 'go-tracking': return go('tracking');
+    case 'open-invoice': return openInvoiceSheet();
+    case 'open-return': return openReturnSheet();
+    case 'confirm-return': return confirmReturn();
 
     case 'toggle-bar': {
       const bar = t; const body = document.getElementById('bar-' + t.dataset.bar);
@@ -1116,10 +1527,22 @@ document.addEventListener('click', (e) => {
       state.selectedProduct = PRODUCTS.find(p => p.id === t.dataset.id);
       state.payMethod = null;
       state.installment = 'single';
+      state.preInfoOk = false;
+      state.contractOk = false;
+      state.usePuan = false;
       return go('payment');
     }
     case 'select-method': return selectMethod(t.dataset.method, t);
     case 'select-inst': return selectInst(t.dataset.inst, t);
+
+    case 'open-address': return openAddressSheet();
+    case 'pick-address': return pickAddress(t.dataset.id);
+    case 'confirm-address': return confirmAddress();
+    case 'toggle-billing': return toggleBilling(t);
+    case 'toggle-puan': return togglePuan();
+    case 'toggle-contract': return toggleContract(t.dataset.key, t);
+    case 'open-preinfo': return openLegalSheet('preinfo');
+    case 'open-contract': return openLegalSheet('contract');
     case 'chip-other': return chipOtherFlow(t.dataset.key);
     case 'step-close': {
       const card = t.closest('.step-card');
@@ -1161,9 +1584,9 @@ function updateClock() {
 // (demo sırasında belirli bir ekrana atlamak için kullanılabilir)
 function applyHash() {
   const h = (location.hash || '').replace('#', '');
-  const valid = ['home', 'search', 'chat', 'payment', 'success', 'settings'];
+  const valid = ['home', 'search', 'chat', 'payment', 'success', 'tracking', 'settings'];
   if (valid.includes(h)) {
-    if ((h === 'payment' || h === 'success') && !state.selectedProduct) {
+    if ((h === 'payment' || h === 'success' || h === 'tracking') && !state.selectedProduct) {
       state.selectedProduct = PRODUCTS[0];
     }
     state.screen = h;
