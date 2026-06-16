@@ -13,10 +13,12 @@
 6. **Worldcard ile öde** seç → **Öde** → **Yapı Kredi Mobil ile Onayla**
 7. Başarı ekranı + Worldpuan kazanımı
 
-## 🔖 Bölüm linkleri (akışı tekrarlamadan)
-Full prototip aynen çalışır; ayrıca her bölüm kendi hash linkiyle, gereken state hazır olacak şekilde doğrudan açılır. Uygulama içinden **soldaki menü → Bölümler** ile de erişilir.
+## Bölümlere doğrudan erişim
+Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açılır ve gereken state hazır gelir.
 
-Temel: `https://bselcukimre.github.io/yk-app-prototip/` + aşağıdaki etiket:
+İki şekilde erişilir:
+- **Uygulama içinden:** soldaki menü → Bölümler
+- **Bağlantıyla:** `https://bselcukimre.github.io/yk-app-prototip/` adresinin sonuna aşağıdaki etiketlerden birini ekle
 
 | Bölüm | Link |
 |---|---|

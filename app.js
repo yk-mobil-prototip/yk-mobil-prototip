@@ -1430,26 +1430,8 @@ function openLegalSheet(kind) {
   sheetScrimEl.classList.add('open');
 }
 
-/* iOS tarzı Face ID sembolü: köşe parantezleri + yüz (beyaz, koyu kutuda) */
-const FACEID_GLYPH = `
-  <svg width="62" height="62" viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20 6h-5a9 9 0 0 0-9 9v5"/>
-    <path d="M44 6h5a9 9 0 0 1 9 9v5"/>
-    <path d="M20 58h-5a9 9 0 0 1-9-9v-5"/>
-    <path d="M44 58h5a9 9 0 0 0 9-9v-5"/>
-    <path d="M22 26v6"/>
-    <path d="M42 26v6"/>
-    <path d="M32 26v10c0 1.6-1.1 2.6-2.7 2.6"/>
-    <path d="M23 45.5c2.4 2.5 5.5 3.9 9 3.9s6.6-1.4 9-3.9"/>
-  </svg>`;
-/* Kendini çizen daire + tik (iOS onay animasyonu) */
-const FACEID_CHECK = `
-  <svg width="62" height="62" viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="32" cy="32" r="26" class="fc-circle"/>
-    <path d="M21 33l8 8 14-17" class="fc-check"/>
-  </svg>`;
-
-/* Onay sheet'i: iPhone'daki gibi Face ID doğrulaması, ardından Onayla aktifleşir */
+/* Onay sheet'i: güvenli alandayız, Face ID yok — bu ikinci dokunuş
+   müşterinin ödemeyi bilinçli onayladığını netleştiren son adım. */
 function openConfirmSheet() {
   const p = state.selectedProduct;
   const methodLbl = state.payMethod === 'bank'
@@ -1457,31 +1439,14 @@ function openConfirmSheet() {
     : `Worldcard **** 3333 · ${instLabel()}`;
   sheetEl.innerHTML = `
     <div class="sheet-handle"></div>
-    <h3 id="sheet-title">Ödemeyi Onayla</h3>
-    <p id="sheet-desc">Güvenliğin için Face ID ile doğrulama yapılıyor, telefonuna bakmaya devam et.</p>
-    <div class="faceid-box" id="faceid-box"><div class="fid-glyph">${FACEID_GLYPH}</div></div>
-    <div class="faceid-caption" id="faceid-caption">Face ID</div>
-    <div class="sheet-pay-row"><span>${p.store} · World Pay</span><span class="spr-r">${methodLbl}</span></div>
-    ${state.usePuan ? `<div class="sheet-disc">${fmtTL(puanDiscount())} Worldpuan indirimi uygulandı</div>` : ''}
+    <div class="sheet-amount-label">Ödenecek tutar</div>
     <div class="sheet-amount">${payableStr()}</div>
-    <button class="sheet-btn" id="approve-btn" data-action="approve" disabled>${I.shield} Onayla</button>
+    ${state.usePuan ? `<div class="sheet-disc">${fmtTL(puanDiscount())} Worldpuan indirimi uygulandı</div>` : ''}
+    <div class="sheet-pay-row"><span>${p.store} · World Pay</span><span class="spr-r">${methodLbl}</span></div>
+    <button class="sheet-btn" id="approve-btn" data-action="approve">${I.shield} Ödemeyi Onaylıyorum</button>
     <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
   sheetEl.classList.add('open');
   sheetScrimEl.classList.add('open');
-
-  // Face ID "başarılı" senaryosu
-  setTimeout(() => {
-    const box = document.getElementById('faceid-box');
-    const caption = document.getElementById('faceid-caption');
-    const desc = document.getElementById('sheet-desc');
-    const approve = document.getElementById('approve-btn');
-    if (!box || !sheetEl.classList.contains('open')) return;
-    box.classList.add('ok');
-    box.innerHTML = FACEID_CHECK;
-    caption.textContent = 'Doğrulandı';
-    desc.textContent = 'Kimliğin doğrulandı. Ödemeyi tamamlamak için Onayla\'ya dokun.';
-    approve.disabled = false;
-  }, 1800);
 }
 function closeSheet() {
   sheetEl.classList.remove('open');
