@@ -97,6 +97,51 @@ const PRODUCTS = [
   },
 ];
 
+/* ---------- Otonom (agentic) Setur tatil akışı ----------
+   Kullanıcı agent'a yetki verir; agent arka planda arar, uygun seçeneği
+   bulduğunda BİLDİRİM gönderir, kullanıcı son onayı verince rezervasyon yapılır. */
+const SETUR_AUTH = {
+  dates: '15 – 20 Temmuz',
+  nights: 5,
+  guests: '2 yetişkin',
+  budget: 40000,                 // üst bütçe (TL)
+  region: 'Ege & Akdeniz kıyıları',
+  criteria: ['Havuz', 'Deniz manzarası', 'Kahvaltı dahil', 'Ücretsiz iptal'],
+  card: 'Worldcard **** 3333',     // tercih edilen kart (yetkiyle birlikte hatırlanır)
+  inst: '6 Taksit',                // tercih edilen taksit
+  rule: 'Tutar 40.000 TL’yi aşmasın ve rezervasyon yapmadan önce mutlaka onayımı al.',
+};
+/* Otonom akış için sade kullanıcı talebi (Setur'u kullanıcı söylemez — agent bulur) */
+const SETUR_REQUEST = 'Temmuzun ikinci haftası 5 gün, 2 kişi denize gitmek istiyoruz. Havuzu ve deniz manzarası olan, kahvaltı dahil bir otel olsun; bütçemiz 40 bin lira. Sen benim için uygun bir yer bulup ayarlar mısın?';
+/* Setur'a özel KISA düşünme adımları (Koçtaş katalog taraması değil) */
+const SETUR_THINK = [
+  { t: 'Düşünüyor…', d: 450 },
+  { t: 'Tatil tercihlerini çıkarıyorum…', d: 950 },
+];
+const SETUR_HOTELS = [
+  {
+    id: 's1', emoji: '🏖️', img: 'assets/bodrum-hotel.webp',
+    name: 'Le Méridien Bodrum Beach Resort',
+    loc: 'Torba, Bodrum · Muğla',
+    rating: '4.6', reviews: '2.140',
+    board: 'Yarım Pansiyon', view: 'Deniz manzarası',
+    nights: 5, priceNum: 37500, old: '44.900',
+    cancel: '13 Temmuz’a kadar ücretsiz iptal',
+    inst: '6 Taksit', instSub: '6 x 6.250,00 TL', puan: '+1.875 Worldpuan',
+  },
+  {
+    id: 's2', emoji: '🏝️',
+    name: 'Çeşme Marina Hotel',
+    loc: 'Ilıca, Çeşme · İzmir',
+    rating: '4.7', reviews: '1.508',
+    board: 'Oda & Kahvaltı', view: 'Deniz manzarası',
+    nights: 5, priceNum: 39200, old: '46.500',
+    cancel: '12 Temmuz’a kadar ücretsiz iptal',
+    inst: '6 Taksit', instSub: '6 x 6.533,33 TL', puan: '+1.960 Worldpuan',
+  },
+];
+function seturHotel() { return SETUR_HOTELS[state.seturOptionIdx % SETUR_HOTELS.length]; }
+
 const WORLDCARD_IMG = 'assets/worldcard.png';
 
 // Tutar formatı: "10.000" -> "10.000<span>,00 TL</span>" (büyük rakam + küçük kuruş/TL)
@@ -183,6 +228,10 @@ const state = {
   usePuan: false,            // Worldpuan ile kısmi ödeme
   nav: [],                   // geri (back) yığını — gerçek uygulama gibi geri davranışı
   theme: localStorage.getItem('ykm-theme') || 'dark',
+  // Otonom Setur akışı
+  seturOptionIdx: 0,         // gösterilen tatil seçeneği (0/1 arası dönüşümlü)
+  seturAuthorized: false,    // agent'a yetki verildi mi
+  seturSeed: false,          // sohbeti Setur sonucuyla anında kur
 };
 
 /* ---------- Mock teslimat adresleri (kişisel veri yok, tamamen örnek) ---------- */
@@ -216,6 +265,7 @@ const scrimEl = document.getElementById('scrim');
 const sheetEl = document.getElementById('sheet');
 const sheetScrimEl = document.getElementById('sheet-scrim');
 const toastEl = document.getElementById('toast');
+const lockEl = document.getElementById('lockscreen');
 
 /* ===================================================================
    EKRANLAR
@@ -982,6 +1032,13 @@ function setupChat() {
     return;
   }
 
+  // "Asistanda aç": Setur konuşmasını sonucuyla anında kur
+  if (state.seturSeed) {
+    state.seturSeed = false;
+    seedSeturChat(scroll);
+    return;
+  }
+
   // Gün ayracı + açılış mesajı + öneri çipleri (yazma efektiyle)
   const divider = document.createElement('div');
   divider.className = 'day-divider';
@@ -1025,11 +1082,11 @@ function seedChatInstant(scroll) {
 function addChips(scroll) {
   const chips = document.createElement('div');
   chips.className = 'chip-row anim-in';
-  chips.innerHTML = CHIPS.map(c =>
-    c.key === 'robot'
-      ? `<div class="chip" data-action="use-prompt">${c.label}</div>`
-      : `<div class="chip" data-action="chip-other" data-key="${c.key}">${c.label}</div>`
-  ).join('');
+  chips.innerHTML = CHIPS.map(c => {
+    if (c.key === 'robot') return `<div class="chip" data-action="use-prompt">${c.label}</div>`;
+    if (c.key === 'setur') return `<div class="chip" data-action="setur-start">${c.label}</div>`;
+    return `<div class="chip" data-action="chip-other" data-key="${c.key}">${c.label}</div>`;
+  }).join('');
   scroll.appendChild(chips);
   scrollChatBottom();
 }
@@ -1139,11 +1196,10 @@ function addTyping(scroll) {
    adımlar arasında yumuşak geçiş yapar, cevap gelince sohbetten kaybolur.
    Süreler kasıtlı olarak eşit değil: analiz ve katalog taraması daha uzun. */
 const THINK_STEPS = [
-  { t: 'Düşünüyor…', d: 600 },
-  { t: 'İhtiyacın analiz ediliyor…', d: 1700 },
-  { t: 'Koçtaş kataloğu taranıyor…', d: 1900 },
-  { t: 'World kampanyaları kontrol ediliyor…', d: 950 },
-  { t: 'Worldpuan kazanımı hesaplanıyor…', d: 700 },
+  { t: 'Düşünüyor…', d: 450 },
+  { t: 'İhtiyacın analiz ediliyor…', d: 1050 },
+  { t: 'Koçtaş kataloğu taranıyor…', d: 1250 },
+  { t: 'World kampanyaları kontrol ediliyor…', d: 650 },
 ];
 function addThinking(scroll) {
   const row = document.createElement('div');
@@ -1153,12 +1209,13 @@ function addThinking(scroll) {
   scrollChatBottom();
   return row;
 }
-function runThinking(row, done, gen) {
+function runThinking(row, done, gen, steps) {
+  const S = steps || THINK_STEPS;
   const el = row.querySelector('.shimmer');
   let i = 0;
   const next = () => {
     if (gen && gen.aborted) return;
-    if (i >= THINK_STEPS.length) {
+    if (i >= S.length) {
       // iz bırakmadan kaybol
       row.classList.add('fade-out');
       setTimeout(() => { row.remove(); if (done) done(); }, 240);
@@ -1166,26 +1223,29 @@ function runThinking(row, done, gen) {
     }
     el.classList.remove('step-in');
     void el.offsetWidth; // animasyonu yeniden tetikle
-    el.textContent = THINK_STEPS[i].t;
+    el.textContent = S[i].t;
     el.classList.add('step-in');
     scrollChatBottom();
-    const wait = THINK_STEPS[i].d + Math.random() * 300;
+    const wait = S[i].d + Math.random() * 200;
     i++;
     setTimeout(next, wait);
   };
   next();
 }
 
-/* Daktilo efekti — gen verilirse durdurulunca yarım bırakır (gerçek LLM gibi) */
+/* AI metin akışı — gerçek LLM gibi KELİME KELİME stream eder (tek tek harf değil).
+   gen verilirse durdurulunca yarım bırakır. */
 function typeText(el, text, speed, done, gen) {
   el.classList.add('typing-caret');
+  const tokens = text.match(/\S+\s*/g) || [text];
   let i = 0;
   const tick = () => {
     if (gen && gen.aborted) { el.classList.remove('typing-caret'); return; }
-    el.textContent = text.slice(0, i);
+    el.textContent = tokens.slice(0, i).join('');
     scrollChatBottom();
-    if (i++ < text.length) {
-      setTimeout(tick, speed + (Math.random() * 24 - 8));
+    if (i++ < tokens.length) {
+      // kelime başına ~34–82ms; arada çift kelimelik küçük sıçramalar (token hissi)
+      setTimeout(tick, 34 + Math.random() * 48);
     } else {
       el.classList.remove('typing-caret');
       if (done) done();
@@ -1206,6 +1266,28 @@ function addMsgActions(bubble) {
     <button class="ma-btn" data-action="msg-dislike" aria-label="Beğenme">${I.thumbDown}</button>`;
   col.appendChild(div);
   scrollChatBottom();
+}
+
+/* Kullanıcı mesajını giriş kutusuna sanki elle yazıyormuş gibi harf harf yazar,
+   sonra verilen gönderme fonksiyonunu çağırır (insan yazışı hissi). */
+function typeInInput(text, onSend) {
+  const ta = document.getElementById('chat-text');
+  if (!ta) return;
+  document.querySelectorAll('.chip-row').forEach(c => c.remove());
+  ta.disabled = false;
+  let i = 0;
+  const type = () => {
+    ta.value = text.slice(0, i);
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 96) + 'px';
+    scrollChatBottom();
+    if (i++ < text.length) {
+      setTimeout(type, 24 + Math.random() * 22);
+    } else {
+      setTimeout(onSend, 430);
+    }
+  };
+  type();
 }
 
 /* ---------- Chat akışı ---------- */
@@ -1274,6 +1356,313 @@ function chipOtherFlow(key) {
       endGen(gen);
     }, gen);
   }, 900);
+}
+
+/* ===================================================================
+   OTONOM SETUR AKIŞI — yetki ver → arka planda ara → bildirim → son onay
+   =================================================================== */
+
+/* Yetki çerçevesi kartı (chat içinde) — agent neyi, hangi sınırlarla yapacak */
+function SeturAuthCardHTML() {
+  const a = SETUR_AUTH;
+  return `
+  <div class="auth-card anim-in" id="setur-auth">
+    <div class="auth-head">
+      <span class="auth-ico">${I.shield}</span>
+      <div>
+        <div class="auth-title">Agent'a yetki ver</div>
+        <div class="auth-sub">Setur · senin adına otonom arama</div>
+      </div>
+    </div>
+    <div class="auth-grid">
+      <div class="auth-row"><span>Tarih</span><b>${a.dates} · ${a.nights} gece</b></div>
+      <div class="auth-row"><span>Kişi</span><b>${a.guests}</b></div>
+      <div class="auth-row"><span>Bölge</span><b>${a.region}</b></div>
+      <div class="auth-row"><span>Bütçe</span><b>En çok ${fmtTL(a.budget)}</b></div>
+      <div class="auth-row"><span>Kriter</span><b>${a.criteria.join(' · ')}</b></div>
+      <div class="auth-row"><span>Ödeme</span><b class="auth-pay">${I.card} ${a.card} · ${a.inst}</b></div>
+    </div>
+    <div class="auth-rule">${I.lock} ${a.rule}</div>
+    <button class="auth-btn" data-action="setur-grant">${I.shield} Yetki ver ve aramaya başla</button>
+    <button class="auth-edit" data-action="toast" data-msg="Bu prototipte kriterler sabittir">Kriterleri düzenle</button>
+  </div>`;
+}
+
+/* Tatil seçeneği kartı (chat içinde) — son onay butonlarıyla */
+function SeturHotelCardHTML() {
+  const h = seturHotel();
+  return `
+  <div class="hotel-card anim-in" id="setur-hotel">
+    <div class="hotel-img">
+      ${h.img ? imgOrFallback(h.img, h.emoji, 'hotel-photo') : `<span class="img-fallback" style="display:grid">${h.emoji}</span>`}
+      <span class="tag world">Setur · World'e Özel</span>
+      <span class="tag stock ok">${I.check} Uygun</span>
+    </div>
+    <div class="hotel-body">
+      <div class="hotel-name">${h.name}</div>
+      <div class="hotel-loc">${I.pin} ${h.loc}</div>
+      <div class="hotel-rating">★ ${h.rating} <span>(${h.reviews} değerlendirme)</span></div>
+      <div class="hotel-tags">
+        <span class="htag">${SETUR_AUTH.dates}</span>
+        <span class="htag">${h.nights} gece</span>
+        <span class="htag">Havuz</span>
+        <span class="htag">${h.view}</span>
+        <span class="htag">${h.board}</span>
+      </div>
+      <div class="hotel-old">${h.old} TL</div>
+      <div class="hotel-price">${fmtTL(h.priceNum)} <span>/ ${h.nights} gece, 2 kişi</span></div>
+      <div class="hotel-meta">
+        <span class="mtag inst">${I.card} ${h.inst}</span>
+        <span class="mtag puan"><img src="assets/world.webp" class="puan-logo" alt="World"> ${h.puan}</span>
+      </div>
+      <div class="hotel-cancel">${I.check} ${h.cancel}</div>
+      <button class="hotel-buy" data-action="setur-approve">${I.shield} Onayla ve rezerve et</button>
+      <button class="hotel-alt" data-action="setur-swap">Başka seçenek göster</button>
+    </div>
+  </div>`;
+}
+
+/* 1) Setur çipi → talebi kullanıcı yazıyormuş gibi giriş kutusuna yaz, sonra gönder */
+function seturStart() {
+  state.seturAuthorized = false;
+  state.seturOptionIdx = 0;
+  typeInInput(SETUR_REQUEST, seturSend);
+}
+function seturSend() {
+  const ta = document.getElementById('chat-text');
+  const scroll = document.getElementById('chat-scroll');
+  if (ta) { ta.value = ''; ta.style.height = 'auto'; }
+  addUserMessage(scroll, SETUR_REQUEST);
+
+  const gen = startGen();
+  setStatus('thinking');
+  const think = addThinking(scroll);
+  gen.cleanup.push(() => { if (think.isConnected) think.remove(); });
+  runThinking(think, () => {
+    if (gen.aborted) return;
+    setStatus('typing');
+    const bubble = addBotBubble(scroll);
+    const reply = 'Tabii, bunu senin için ben halledebilirim. 🏖️ Setur üzerinden, tarif ettiğin kriterlere uyan otelleri tarayıp en uygun fiyatı yakalayabilirim. Önce bana bu işi şu sınırlarla devretmeni rica edeyim — onaylarsan arka planda aramaya başlarım:';
+    typeText(bubble, reply, 14, () => {
+      if (gen.aborted) return;
+      const holder = document.createElement('div');
+      holder.innerHTML = SeturAuthCardHTML();
+      scroll.appendChild(holder.firstElementChild);
+      scrollChatBottom();
+      endGen(gen);
+    }, gen);
+  }, gen, SETUR_THINK);
+}
+
+/* 2) Yetki verildi → agent arka planda aramaya başlar, sonra bildirim düşer */
+function seturGrant() {
+  if (state.seturAuthorized) return;
+  state.seturAuthorized = true;
+  const scroll = document.getElementById('chat-scroll');
+
+  // Yetki kartını "verildi" durumuna kilitle
+  const card = document.getElementById('setur-auth');
+  if (card) {
+    const btn = card.querySelector('.auth-btn');
+    if (btn) { btn.innerHTML = `${I.check} Yetki verildi`; btn.classList.add('done'); btn.removeAttribute('data-action'); }
+    const edit = card.querySelector('.auth-edit');
+    if (edit) edit.remove();
+    card.classList.add('granted');
+  }
+
+  const gen = startGen();
+  setStatus('typing');
+  const typing = addTyping(scroll);
+  gen.cleanup.push(() => typing.remove());
+  setTimeout(() => {
+    if (gen.aborted) return;
+    typing.remove();
+    const bubble = addBotBubble(scroll);
+    const reply = `Teşekkürler, yetkini aldım ✅ Kriterlerini ve ödeme tercihini (${SETUR_AUTH.card} · ${SETUR_AUTH.inst}) not ettim. Setur’da uygun otelleri tarıyorum; birkaç saat içinde en iyi fiyatı yakaladığımda bildirim göndereceğim. Uygulamayı kapatabilirsin, ben arka planda devam ederim.`;
+    typeText(bubble, reply, 14, () => {
+      // Arıyor durum kartı
+      const s = document.createElement('div');
+      s.className = 'setur-search anim-in';
+      s.id = 'setur-search';
+      s.innerHTML = `<span class="ss-spin"></span><div><div class="ss-t">Setur taranıyor…</div><div class="ss-d">320+ otel, 18 bölge · uygun fiyat bekleniyor</div></div>`;
+      scroll.appendChild(s);
+      scrollChatBottom();
+      endGen(gen);
+
+      // Kullanıcı uygulamadan çıkmış gibi: birkaç saniye sonra kilit ekranına geç
+      setTimeout(goToLockScreen, 2200);
+    }, gen);
+  }, 900);
+}
+
+/* Kilit ekranı — "uygulamadan çıktık" hissi. Saat 2 saat ileriye akar,
+   sonra push bildirimi düşer (zaman geçtiğini görsel olarak anlatır). */
+function fmtClock(mins) {
+  mins = ((Math.round(mins) % 1440) + 1440) % 1440;
+  return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+}
+function goToLockScreen() {
+  const d = new Date();
+  const dateStr = d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const startMin = d.getHours() * 60 + d.getMinutes();
+  const targetMin = startMin + 120;              // 2 saat sonrası
+  lockEl.innerHTML = `
+    <div class="lock-top">
+      <div class="lock-lockico">${I.lock}</div>
+      <div class="lock-date">${dateStr.charAt(0).toUpperCase() + dateStr.slice(1)}</div>
+      <div class="lock-time spinning" id="lock-time">${fmtClock(startMin)}</div>
+      <div class="lock-elapsed" id="lock-elapsed"></div>
+    </div>
+    <div class="lock-notif-slot" id="lock-notif-slot"></div>
+    <div class="lock-bottom"><div class="lock-bar"></div></div>`;
+  lockEl.classList.add('show');
+  // Saat akışı: 1 sn dur, sonra ~3.4 sn boyunca 2 saat ileri sar
+  setTimeout(() => animateClock(startMin, targetMin, 3400, () => {
+    const el = document.getElementById('lock-elapsed');
+    if (el) { el.textContent = '⏳ 2 saat sonra'; el.classList.add('show'); }
+    setTimeout(fireSeturNotification, 750);
+  }), 1000);
+}
+function animateClock(from, to, dur, done) {
+  const start = performance.now();
+  const step = (t) => {
+    if (!lockEl.classList.contains('show')) return;   // kilit kapandıysa dur
+    const p = Math.min((t - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);             // ease-out (hızlı başlar, yavaşlar)
+    const el = document.getElementById('lock-time');
+    if (el) el.textContent = fmtClock(from + (to - from) * eased);
+    if (p < 1) { requestAnimationFrame(step); }
+    else {
+      const e = document.getElementById('lock-time');
+      if (e) { e.textContent = fmtClock(to); e.classList.remove('spinning'); e.classList.add('settle'); }
+      if (done) done();
+    }
+  };
+  requestAnimationFrame(step);
+}
+function dismissLockScreen() { lockEl.classList.remove('show'); }
+
+/* 3) Push bildirimi — kilit ekranına düşer (kullanıcı uygulamada değilken) */
+function fireSeturNotification() {
+  const h = seturHotel();
+  const slot = document.getElementById('lock-notif-slot');
+  if (!slot) return;
+  slot.innerHTML = `
+    <div class="notif-card pop-in" data-action="notif-open">
+      <div class="notif-app">${I.yklogo}<span>Yapı Kredi Asistanı</span><span class="notif-time">şimdi</span></div>
+      <div class="notif-title">Sana uygun bir tatil buldum 🏖️</div>
+      <div class="notif-body">${h.loc.split('·')[0].trim()} · ${h.nights} gece — ${fmtTL(h.priceNum)}. Aç ve onayla, rezerve edeyim.</div>
+      <div class="notif-hint">Detay ve onay için dokun ›</div>
+    </div>`;
+}
+
+/* 4) Bildirime dokunuldu → uygulama ANA SAYFASINA dön ve ödeme onay popup'ını çıkar.
+   Kullanıcı buradan direkt rezerve edebilir ya da "Asistanda aç" ile sohbete geçebilir. */
+function seturOpenResult() {
+  dismissLockScreen();
+  const search = document.getElementById('setur-search');
+  if (search) search.remove();
+  state.nav = [];                       // temiz dön: ana sayfadayız
+  state.screen = 'home';
+  render();
+  setTimeout(openSeturOfferPopup, 460); // ana sayfa görünür, sonra popup
+}
+
+/* Ana sayfada / sohbette açılan teklif + ödeme onay popup'ı */
+function openSeturOfferPopup() {
+  const h = seturHotel();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="offer-head">
+      <span class="offer-ai">${I.spark}</span>
+      <div><div class="offer-t">Yapı Kredi Asistanı</div><div class="offer-s">Senin için bir tatil buldu 🏖️</div></div>
+    </div>
+    <div class="offer-hotel">
+      <div class="offer-thumb">${h.img ? `<img src="${h.img}" class="offer-thumb-img" alt="">` : h.emoji}</div>
+      <div class="offer-hinfo">
+        <div class="offer-name">${h.name}</div>
+        <div class="offer-loc">${I.pin} ${h.loc}</div>
+        <div class="offer-feat">${SETUR_AUTH.dates} · ${h.nights} gece · ${SETUR_AUTH.guests}</div>
+        <div class="offer-feat sub">Havuz · ${h.view} · ${h.board}</div>
+      </div>
+    </div>
+    <div class="sheet-amount-label">Rezervasyon tutarı</div>
+    <div class="sheet-amount">${fmtTL(h.priceNum)}</div>
+    <div class="sheet-disc">${I.check} ${h.cancel}</div>
+    <div class="offer-paynote">${I.lock} Yetki verirken seçtiğin ödeme tercihiyle</div>
+    <div class="sheet-pay-row"><span>${I.card} ${SETUR_AUTH.card}</span><span class="spr-r">${SETUR_AUTH.inst}</span></div>
+    <button class="sheet-btn" id="setur-confirm-btn" data-action="setur-book">${I.shield} Onayla ve rezerve et</button>
+    <button class="sheet-btn ghost" data-action="setur-open-chat">Asistanda aç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+
+/* "Asistanda aç" → sohbete geç, Setur konuşmasını sonucuyla hazır göster */
+function seturOpenChat() {
+  closeSheet();
+  state.seturSeed = true;
+  go('chat');   // mevcut ekran (ana sayfa) geri yığınına eklenir
+}
+
+/* Sohbet kartındaki "Onayla ve rezerve et" → aynı onay popup'ını aç */
+function openSeturConfirm() { openSeturOfferPopup(); }
+
+function renderSeturHotel(scroll) {
+  const old = document.getElementById('setur-hotel');
+  const holder = document.createElement('div');
+  holder.innerHTML = SeturHotelCardHTML();
+  const card = holder.firstElementChild;
+  if (old) { old.replaceWith(card); } else { scroll.appendChild(card); }
+  scrollChatBottom();
+}
+
+/* "Başka seçenek göster" → alternatif oteli yerinde göster (sohbette) */
+function seturSwap() {
+  state.seturOptionIdx = (state.seturOptionIdx + 1) % SETUR_HOTELS.length;
+  const scroll = document.getElementById('chat-scroll');
+  if (scroll) renderSeturHotel(scroll);
+  toast('Alternatif seçenek getirildi');
+}
+
+/* Onayla → rezervasyonu yap, popup'ı başarı durumuna çevir (her ekranda çalışır) */
+function seturBook() {
+  const btn = document.getElementById('setur-confirm-btn');
+  if (btn) { btn.innerHTML = `<span class="spinner"></span> Rezervasyon yapılıyor…`; btn.style.pointerEvents = 'none'; }
+  const h = seturHotel();
+  // Sohbetteki otonom kart varsa pasifleştir
+  const card = document.getElementById('setur-hotel');
+  if (card) card.classList.add('booked');
+  setTimeout(() => {
+    sheetEl.innerHTML = `
+      <div class="sheet-handle"></div>
+      <div class="bd-check">${I.checkBig}</div>
+      <div class="bd-title" style="text-align:center">Rezervasyonun tamam!</div>
+      <div class="bd-sub" style="text-align:center">${h.name}</div>
+      <div class="bd-rows">
+        <div><span>Tarih</span><b>${SETUR_AUTH.dates} · ${h.nights} gece</b></div>
+        <div><span>Tutar</span><b>${fmtTL(h.priceNum)} · ${SETUR_AUTH.inst}</b></div>
+        <div><span>Ödeme</span><b>${SETUR_AUTH.card}</b></div>
+        <div><span>İptal</span><b>${h.cancel}</b></div>
+        <div><span>Onay No</span><b>STR${String(Math.floor(100000 + Math.random() * 899999))}</b></div>
+      </div>
+      <div class="bd-note" style="text-align:center">Rezervasyon belgen e-posta ve uygulama bildirimlerine gönderildi.</div>
+      <button class="sheet-btn" data-action="close-sheet">Tamam</button>`;
+    toast('Setur rezervasyonu onaylandı 🏖️');
+  }, 1500);
+}
+
+/* "Asistanda aç" yolundan gelindiğinde sohbeti sonucuyla anında kurar */
+function seedSeturChat(scroll) {
+  const divider = document.createElement('div');
+  divider.className = 'day-divider';
+  divider.innerHTML = '<span>Bugün</span>';
+  scroll.appendChild(divider);
+  const setMsg = (txt) => { const b = addBotBubble(scroll); b.classList.remove('typing-caret'); b.textContent = txt; return b; };
+
+  addUserMessage(scroll, SETUR_REQUEST);
+  setMsg('Tabii, bunu senin için ben halledebilirim. 🏖️ Setur üzerinden kriterlerine uyan otelleri tarayıp en uygun fiyatı yakaladım. İşte sana uygun seçenek 👇 Onaylarsan rezerve ediyorum.');
+  renderSeturHotel(scroll);
+  scrollChatBottom();
 }
 
 /* Asistanın önerdiği ürün */
@@ -1528,27 +1917,9 @@ document.addEventListener('click', (e) => {
       return;
     }
 
-    case 'use-prompt': {
-      // Öneri çipi: prompt'u input'a daktiloyla yaz, sonra otomatik gönder
-      const ta = document.getElementById('chat-text');
-      const sendBtn = document.getElementById('send-btn');
-      document.querySelectorAll('.chip-row').forEach(c => c.remove());
-      ta.disabled = false;
-      let i = 0;
-      const text = ASSISTANT_PROMPT;
-      const type = () => {
-        ta.value = text.slice(0, i);
-        ta.style.height = 'auto';
-        ta.style.height = Math.min(ta.scrollHeight, 96) + 'px';
-        if (i++ < text.length) {
-          setTimeout(type, 26 + Math.random() * 20);
-        } else {
-          setTimeout(chatSend, 450);
-        }
-      };
-      type();
-      return;
-    }
+    case 'use-prompt':
+      // Öneri çipi: prompt'u input'a elle yazar gibi yaz, sonra otomatik gönder
+      return typeInInput(ASSISTANT_PROMPT, chatSend);
     case 'chat-send': return chatSend();
     case 'chat-stop': return abortGen();
 
@@ -1596,6 +1967,15 @@ document.addEventListener('click', (e) => {
     case 'open-preinfo': return openLegalSheet('preinfo');
     case 'open-contract': return openLegalSheet('contract');
     case 'chip-other': return chipOtherFlow(t.dataset.key);
+
+    // Otonom Setur akışı
+    case 'setur-start': return seturStart();
+    case 'setur-grant': return seturGrant();
+    case 'notif-open': return seturOpenResult();
+    case 'setur-open-chat': return seturOpenChat();
+    case 'setur-swap': return seturSwap();
+    case 'setur-approve': return openSeturConfirm();
+    case 'setur-book': return seturBook();
     case 'step-close': {
       const card = t.closest('.step-card');
       if (card) card.remove();
