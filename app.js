@@ -107,9 +107,15 @@ const SETUR_AUTH = {
   budget: 40000,                 // üst bütçe (TL)
   region: 'Ege & Akdeniz kıyıları',
   criteria: ['Havuz', 'Deniz manzarası', 'Kahvaltı dahil', 'Ücretsiz iptal'],
-  card: 'Worldcard **** 3333',     // tercih edilen kart (yetkiyle birlikte hatırlanır)
-  inst: '6 Taksit',                // tercih edilen taksit
-  rule: 'Tutar 40.000 TL’yi aşmasın ve rezervasyon yapmadan önce mutlaka onayımı al.',
+  // Ödeme otonom: agent, kartlarım arasından en avantajlısını seçme yetkisi alır.
+  cardPool: 'Kartlarım',           // ödeme yetkisinin kapsamı (sınır)
+  maxInst: 9,                      // izin verilen en yüksek taksit
+  match: 94,                       // bulunan teklifin kriterlerle uyum skoru (%)
+  // Agent'ın yetkiyle seçtiği sonuç — teklif popup'ında gerekçesiyle gösterilir.
+  card: 'Worldcard **** 3333',
+  inst: '6 Taksit',
+  cardWhy: 'Kartların arasından Worldcard’ı seçtim — Setur’da en yüksek Worldpuan ve 6 taksit avantajı bu kartta.',
+  rule: 'Tutar 40.000 TL’yi aşmasın, ödemede en avantajlı kart/taksiti sen seç ve rezervasyon yapmadan önce mutlaka onayımı al.',
 };
 /* Otonom akış için sade kullanıcı talebi (Setur'u kullanıcı söylemez — agent bulur) */
 const SETUR_REQUEST = 'Temmuzun ikinci haftası 5 gün, 2 kişi denize gitmek istiyoruz. Havuzu ve deniz manzarası olan, kahvaltı dahil bir otel olsun; bütçemiz 40 bin lira. Sen benim için uygun bir yer bulup ayarlar mısın?';
@@ -191,7 +197,8 @@ const CHIP_FLOWS = {
 /* Demo bölümleri — her biri kendi hash'iyle doğrudan açılır (bütün akışı tekrarlamadan) */
 const SECTIONS = [
   { hash: 'home',      icon: 'home',     t: 'Ana Ekran',           d: 'Kartlar, hızlı işlemler, asistan girişi' },
-  { hash: 'assistant', icon: 'spark',    t: 'Alışveriş Asistanı',  d: 'Sohbet + ürün önerileri (dolu görünüm)' },
+  { hash: 'assistant', icon: 'spark',    t: 'Koçtaş Senaryosu — Tamamlandı', d: 'Robot süpürge sohbeti + öneriler (dolu görünüm)' },
+  { hash: 'setur',     icon: 'sun',      t: 'Setur Senaryosu — Tamamlandı',  d: 'Otonom agent tatili buldu — sonucuyla dolu sohbet' },
   { hash: 'chat',      icon: 'guide',    t: 'Asistan — Boştan',    d: 'Sohbeti baştan, animasyonlu dene' },
   { hash: 'payment',   icon: 'card',     t: 'Ödeme Ekranı',        d: 'Adres, kargo, taksit, Worldpuan, sözleşme' },
   { hash: 'success',   icon: 'check',    t: 'Ödeme Başarılı',      d: 'Onay, Worldpuan, dekont' },
@@ -1368,7 +1375,7 @@ function SeturAuthCardHTML() {
   return `
   <div class="auth-card anim-in" id="setur-auth">
     <div class="auth-head">
-      <span class="auth-ico">${I.shield}</span>
+      <span class="auth-ico"><img src="assets/mandate.png" alt=""></span>
       <div>
         <div class="auth-title">Agent'a yetki ver</div>
         <div class="auth-sub">Setur · senin adına otonom arama</div>
@@ -1380,7 +1387,8 @@ function SeturAuthCardHTML() {
       <div class="auth-row"><span>Bölge</span><b>${a.region}</b></div>
       <div class="auth-row"><span>Bütçe</span><b>En çok ${fmtTL(a.budget)}</b></div>
       <div class="auth-row"><span>Kriter</span><b>${a.criteria.join(' · ')}</b></div>
-      <div class="auth-row"><span>Ödeme</span><b class="auth-pay">${I.card} ${a.card} · ${a.inst}</b></div>
+      <div class="auth-row"><span>Ödeme</span><b class="auth-pay">${I.spark} En avantajlısını agent seçer</b></div>
+      <div class="auth-row"><span>Kart havuzu</span><b>${a.cardPool} · en çok ${a.maxInst} taksit</b></div>
     </div>
     <div class="auth-rule">${I.lock} ${a.rule}</div>
     <button class="auth-btn" data-action="setur-grant">${I.shield} Yetki ver ve aramaya başla</button>
@@ -1478,7 +1486,7 @@ function seturGrant() {
     if (gen.aborted) return;
     typing.remove();
     const bubble = addBotBubble(scroll);
-    const reply = `Teşekkürler, yetkini aldım ✅ Kriterlerini ve ödeme tercihini (${SETUR_AUTH.card} · ${SETUR_AUTH.inst}) not ettim. Setur’da uygun otelleri tarıyorum; birkaç saat içinde en iyi fiyatı yakaladığımda bildirim göndereceğim. Uygulamayı kapatabilirsin, ben arka planda devam ederim.`;
+    const reply = `Teşekkürler, yetkini aldım ✅ Kriterlerini not ettim; ödemede de kartların arasından en avantajlısını (en yüksek Worldpuan + uygun taksit) senin için ben seçeceğim. Setur’da uygun otelleri tarıyorum; birkaç saat içinde en iyi fiyatı yakaladığımda bildirim göndereceğim. Uygulamayı kapatabilirsin, ben arka planda devam ederim.`;
     typeText(bubble, reply, 14, () => {
       // Arıyor durum kartı
       const s = document.createElement('div');
@@ -1549,7 +1557,7 @@ function fireSeturNotification() {
   if (!slot) return;
   slot.innerHTML = `
     <div class="notif-card pop-in" data-action="notif-open">
-      <div class="notif-app">${I.yklogo}<span>Yapı Kredi Asistanı</span><span class="notif-time">şimdi</span></div>
+      <div class="notif-app"><img src="assets/yk-app-icon.jpg" class="notif-appicon" alt=""><span>Yapı Kredi Asistanı</span><span class="notif-time">şimdi</span></div>
       <div class="notif-title">Sana uygun bir tatil buldum 🏖️</div>
       <div class="notif-body">${h.loc.split('·')[0].trim()} · ${h.nights} gece — ${fmtTL(h.priceNum)}. Aç ve onayla, rezerve edeyim.</div>
       <div class="notif-hint">Detay ve onay için dokun ›</div>
@@ -1577,6 +1585,7 @@ function openSeturOfferPopup() {
       <span class="offer-ai">${I.spark}</span>
       <div><div class="offer-t">Yapı Kredi Asistanı</div><div class="offer-s">Senin için bir tatil buldu 🏖️</div></div>
     </div>
+    <div class="offer-match">${I.spark} Kriterlerinle <b>%${SETUR_AUTH.match} uyumlu</b> · 320 otel içindeki en iyi eşleşme</div>
     <div class="offer-hotel">
       <div class="offer-thumb">${h.img ? `<img src="${h.img}" class="offer-thumb-img" alt="">` : h.emoji}</div>
       <div class="offer-hinfo">
@@ -1589,8 +1598,9 @@ function openSeturOfferPopup() {
     <div class="sheet-amount-label">Rezervasyon tutarı</div>
     <div class="sheet-amount">${fmtTL(h.priceNum)}</div>
     <div class="sheet-disc">${I.check} ${h.cancel}</div>
-    <div class="offer-paynote">${I.lock} Yetki verirken seçtiğin ödeme tercihiyle</div>
+    <div class="offer-paynote"><img src="assets/mandate.png" class="paynote-ico" alt=""> Agent'ın senin yetkinle seçtiği ödeme</div>
     <div class="sheet-pay-row"><span>${I.card} ${SETUR_AUTH.card}</span><span class="spr-r">${SETUR_AUTH.inst}</span></div>
+    <div class="offer-paywhy">${SETUR_AUTH.cardWhy}</div>
     <button class="sheet-btn" id="setur-confirm-btn" data-action="setur-book">${I.shield} Onayla ve rezerve et</button>
     <button class="sheet-btn ghost" data-action="setur-open-chat">Asistanda aç</button>`;
   sheetEl.classList.add('open');
@@ -2010,10 +2020,10 @@ function updateClock() {
 }
 
 /* ---------- Yönlendirme / derin bağlantı ----------
-   Her bölümün kendi hash linki var: #home #assistant #chat #payment
+   Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'payment', 'success', 'tracking', 'settings', 'sections'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -2026,9 +2036,19 @@ function routeTo(hash) {
     state.payMethod = null; state.installment = 'single';
     state.preInfoOk = false; state.contractOk = false; state.usePuan = false;
   }
-  if (h === 'assistant') {            // sohbeti dolu göster
+  if (h === 'assistant') {            // Koçtaş sohbetini dolu göster
     state.chatStarted = true;
     state.chatSeed = true;
+    state.seturSeed = false;
+    state.screen = 'chat';
+    return true;
+  }
+  if (h === 'setur') {                // Setur otonom akışını sonucuyla dolu göster
+    state.chatStarted = true;
+    state.chatSeed = false;
+    state.seturSeed = true;
+    state.seturAuthorized = true;
+    state.seturOptionIdx = 0;
     state.screen = 'chat';
     return true;
   }

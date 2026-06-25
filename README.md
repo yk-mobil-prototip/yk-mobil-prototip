@@ -23,7 +23,8 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Bölüm | Link |
 |---|---|
 | Ana ekran | `#home` |
-| Alışveriş Asistanı (dolu sohbet) | `#assistant` |
+| Koçtaş senaryosu — tamamlandı (dolu sohbet) | `#assistant` |
+| Setur otonom senaryosu — tamamlandı | `#setur` |
 | Asistan — boştan (animasyonlu) | `#chat` |
 | Ödeme ekranı | `#payment` |
 | Ödeme başarılı | `#success` |
