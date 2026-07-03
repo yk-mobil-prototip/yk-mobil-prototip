@@ -18,6 +18,10 @@ const I = {
   back: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   chevDown: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
   chevR: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>',
+  trendUp: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 9 11l4 4 8-8"/><path d="M17 4h4v4"/></svg>',
+  target: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>',
+  info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v5" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
+  arrowUp: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>',
   send: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg>',
   stop: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="3"/></svg>',
   copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
@@ -58,6 +62,8 @@ const I = {
   receipt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18l2-1.5L9 21l2-1.5L13 21l2-1.5L17 21l2-1.5V3l-2 1.5L15 3l-2 1.5L11 3 9 4.5 7 3z"/><path d="M8 8h8M8 12h8"/></svg>',
   undo: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
   wallet2: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12h.5M3 10h18"/></svg>',
+  pause: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.4"/><rect x="14" y="5" width="4" height="14" rx="1.4"/></svg>',
+  play: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 8 5.5z"/></svg>',
 };
 
 /* ---------- Veri ---------- */
@@ -203,6 +209,9 @@ const SECTIONS = [
   { hash: 'payment',   icon: 'card',     t: 'Ödeme Ekranı',        d: 'Adres, kargo, taksit, Worldpuan, sözleşme' },
   { hash: 'success',   icon: 'check',    t: 'Ödeme Başarılı',      d: 'Onay, Worldpuan, dekont' },
   { hash: 'tracking',  icon: 'box',      t: 'Sipariş Takibi',      d: 'Durum çizgisi, YK Kargo, fatura, iade/cayma' },
+  { hash: 'roundup',    icon: 'wallet2', t: 'Yuvarla Biriktir — Başvur', d: 'Kart, kural (10/50/100 TL), hesap, talimat onayı → Aktifleştir' },
+  { hash: 'roundup-jar', icon: 'pie',    t: 'Yuvarla Biriktir — Yönet',  d: 'Kumbara, aylık grafik, hedef, duraklat/durdur (dolu)' },
+  { hash: 'roundup-history', icon: 'receipt', t: 'Yuvarla Biriktir — Hareketler', d: 'Aya göre gruplu tüm birikim hareketleri' },
   { hash: 'search',    icon: 'search',   t: 'Arama',               d: 'Arama ekranı' },
   { hash: 'settings',  icon: 'gear',     t: 'Ayarlar',             d: 'Tema ve bildirimler' },
 ];
@@ -239,6 +248,17 @@ const state = {
   seturOptionIdx: 0,         // gösterilen tatil seçeneği (0/1 arası dönüşümlü)
   seturAuthorized: false,    // agent'a yetki verildi mi
   seturSeed: false,          // sohbeti Setur sonucuyla anında kur
+  // Yuvarla Biriktir (işlem başına round-up)
+  roundup: {
+    active: false,           // kural kurulu mu
+    source: null,            // seçili kaynak kart: 'worldgold' | 'tlcard' | null
+    account: null,           // seçili birikim hesabı: 'sav' | 'sav2' | null
+    agreed: false,           // Yuvarla Biriktir Talimat Formu onayı
+    goal: null,              // birikim hedefi: { id, emoji, name, amount } | null
+    jar: 1842.35,            // toplam biriken (TL)
+    monthChange: 15,         // geçen aya göre % değişim
+    txns: [],                // {merchant, emoji, spent, add, date, month} — en yeni başta
+  },
 };
 
 /* ---------- Mock teslimat adresleri (kişisel veri yok, tamamen örnek) ---------- */
@@ -259,6 +279,75 @@ const USER = {
 const PUAN_VALUE = 0.1;  // 1 Worldpuan = 0,10 TL (örnek değerleme)
 
 function fmtTL(n) { return n.toLocaleString('tr-TR') + ',00 TL'; }
+// Küsuratlı TL biçimi — round-up tutarları için (ör. "0,50 TL")
+function fmtTL2(n) { return n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL'; }
+
+/* ---------- Yuvarla Biriktir yardımcıları ---------- */
+// Özelliğin logosu — dairesel oklar + ₺ jeton (tema-uyumlu, currentColor)
+function ruLogo(size) {
+  return `<svg class="ru-logo-svg" width="${size}" height="${size}" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <path d="M9 20.5 A16 16 0 0 1 33.5 11.2" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M33.5 11.2 l-6.2 -1.1 l3 5.5 z" fill="currentColor"/>
+    <path d="M39 27.5 A16 16 0 0 1 14.5 36.8" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M14.5 36.8 l6.2 1.1 l-3 -5.5 z" fill="currentColor"/>
+    <circle cx="24" cy="24" r="8.6" fill="currentColor"/>
+    <text x="24" y="28.4" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff" font-family="Ubuntu, system-ui, sans-serif">₺</text>
+  </svg>`;
+}
+// Kart seç alanının katalogu (Yapı Kredi kredi / banka kartları)
+const RU_CARDS = [
+  { id: 'worldgold', name: 'World Gold', num: '5400 61** **** 1234', kind: 'Kredi Kartı', detail: 'Kullanılabilir Limit 18.500 TL' },
+  { id: 'tlcard',    name: 'TLcard',     num: '4506 34** **** 8842', kind: 'Banka Kartı', detail: 'Vadesiz TL · Bakiye 10.000 TL' },
+];
+function ruCard() { return RU_CARDS.find(c => c.id === state.roundup.source) || null; }
+function ruCardLabel() { const c = ruCard(); return c ? `${c.name} ${c.num}` : 'Seçilmedi'; }
+// Kart görseli — World Gold gerçek kart fotoğrafı, TLcard tema renkli çizilmiş mini kart
+function ruCardArt(c) {
+  if (c.id === 'worldgold') return `<img src="${WORLDCARD_IMG}" class="ru-card-img" alt="" onerror="this.outerHTML='💳'">`;
+  return `<span class="ru-card-art"><i>TLcard</i><b></b></span>`;
+}
+// Birikim (hedef) hesabı katalogu — yalnızca getirili birikim hesapları
+const RU_ACCOUNTS = [
+  { id: 'sav',  name: 'Birikim Hesabım',     iban: 'TR•••• 1234', detail: 'Vadesiz TL · günlük getirili' },
+  { id: 'sav2', name: 'Yardımcı Birikim',    iban: 'TR•••• 9012', detail: 'Vadesiz TL · günlük getirili' },
+];
+function ruAccount() { return RU_ACCOUNTS.find(a => a.id === state.roundup.account) || null; }
+function ruAccountLabel() { const a = ruAccount(); return a ? `${a.name} ${a.iban}` : 'Seçilmedi'; }
+// Yuvarlama kuralı sabit: her harcama sonraki 100 TL'ye tamamlanır
+const RU_UNIT = 100;
+const RU_EST = '~250 TL';               // kaba aylık birikim tahmini (mock)
+const RU_SAMPLES = [225, 386];          // "Nasıl çalışır?" örnek harcamaları
+function ruNextUnit(v, unit) { return Math.ceil(v / (unit || RU_UNIT)) * (unit || RU_UNIT); }
+// Hedef önerileri (birikim hedefi sheet'i)
+const RU_GOAL_PRESETS = [
+  { id: 'tatil', emoji: '🏖️', name: 'Tatil',           amount: 10000 },
+  { id: 'tech',  emoji: '📱', name: 'Yeni Telefon',    amount: 25000 },
+  { id: 'fon',   emoji: '🛟', name: 'Acil Durum Fonu', amount: 20000 },
+];
+// Aylık birikim grafiği — geçmiş 5 ay sabit, içinde bulunulan ay state'ten türetilir
+const RU_CUR_MONTH = 'Mayıs 2026';
+const RU_MONTHS = [
+  { m: 'Ara', v: 96.5 }, { m: 'Oca', v: 141.2 }, { m: 'Şub', v: 128.4 },
+  { m: 'Mar', v: 189.75 }, { m: 'Nis', v: 214.6 },
+];
+// Bu ayın işlemleri / toplamı — hep hareket listesinden türetilir (tutarsızlık olmasın)
+function ruMonthTxns() { return state.roundup.txns.filter(t => t.month === RU_CUR_MONTH); }
+function ruMonthTotal() { return ruMonthTxns().reduce((s, t) => s + t.add, 0); }
+// Kumbara ilk açıldığında geçmiş dolu görünsün diye örnek hareketler (add = birime tamamlanan fark)
+const RU_SEED_TXNS = [
+  { merchant: 'Market alışverişi', emoji: '🛒', spent: 225,  add: 75, date: '24 Mayıs 09:41',  month: 'Mayıs 2026' },
+  { merchant: 'Kahve Dünyası',     emoji: '☕', spent: 390,  add: 10, date: '23 Mayıs 14:12',  month: 'Mayıs 2026' },
+  { merchant: 'Trendyol',          emoji: '🛍️', spent: 645,  add: 55, date: '22 Mayıs 20:05',  month: 'Mayıs 2026' },
+  { merchant: 'Opet',              emoji: '⛽', spent: 612,  add: 88, date: '21 Mayıs 08:30',  month: 'Mayıs 2026' },
+  { merchant: 'Getir',             emoji: '🛵', spent: 269,  add: 31, date: '20 Mayıs 19:47',  month: 'Mayıs 2026' },
+  { merchant: 'Migros',            emoji: '🛒', spent: 843,  add: 57, date: '17 Mayıs 12:20',  month: 'Mayıs 2026' },
+  { merchant: 'BKM Kitap',         emoji: '📚', spent: 176,  add: 24, date: '14 Mayıs 21:03',  month: 'Mayıs 2026' },
+  { merchant: 'Koçtaş',            emoji: '🔧', spent: 1240, add: 60, date: '29 Nisan 16:45',  month: 'Nisan 2026' },
+  { merchant: 'Kahve Dünyası',     emoji: '☕', spent: 285,  add: 15, date: '26 Nisan 09:12',  month: 'Nisan 2026' },
+  { merchant: 'A101',              emoji: '🛒', spent: 458,  add: 42, date: '22 Nisan 18:33',  month: 'Nisan 2026' },
+  { merchant: 'Boyner',            emoji: '👕', spent: 2320, add: 80, date: '18 Nisan 15:27',  month: 'Nisan 2026' },
+  { merchant: 'Opet',              emoji: '⛽', spent: 954,  add: 46, date: '12 Nisan 10:08',  month: 'Nisan 2026' },
+];
 function productTotal() { return parseInt(state.selectedProduct.priceNum.replace('.', '')); }
 function puanDiscount() { return state.usePuan ? Math.round(USER.worldpuan * PUAN_VALUE) : 0; }
 function payableNum() { return productTotal() - puanDiscount(); }
@@ -360,6 +449,8 @@ function HomeScreen() {
         </div>
       </div>
 
+      ${HomeRoundupCard()}
+
       <div class="home-lower">
         <div class="quick-row4">
           <div class="quick4" data-action="toast" data-msg="Varlıklarım prototipte aktif değil"><div class="q4-ico">${I.pie}</div><span>Varlıklarım</span></div>
@@ -394,6 +485,36 @@ function HomeScreen() {
       </div>
     </div>
   </div>`;
+}
+
+// Home'daki Yuvarla Biriktir kartı — kural yoksa promo, varsa durum kartı
+function HomeRoundupCard() {
+  const r = state.roundup;
+  if (r.active) {
+    const g = r.goal;
+    const pct = g ? Math.min(100, Math.round(r.jar / g.amount * 100)) : 0;
+    return `
+      <div class="section-title">Birikim</div>
+      <div class="ru-home-card active" data-action="ru-open">
+        <div class="ru-home-top"><span class="ru-logo">${ruLogo(30)}</span>
+          <div><div class="ru-home-t">Yuvarla Biriktir</div><div class="ru-home-s">Toplam biriken</div></div>
+          <span class="chev-r">${I.chevR}</span></div>
+        <div class="ru-home-amt">${fmtTL2(r.jar)}</div>
+        ${g ? `<div class="ru-goal-track home"><div class="ru-goal-fill" style="width:${pct}%"></div></div>
+        <div class="ru-home-mini"><span>${g.emoji} ${g.name} hedefi</span><span><b>%${pct}</b></span></div>`
+        : `<div class="ru-home-mini"><span>${I.trendUp} Bu ay <b>+${fmtTL2(ruMonthTotal())}</b></span><span>${ruMonthTxns().length} işlem</span></div>`}
+      </div>`;
+  }
+  return `
+    <div class="section-title">Birikim</div>
+    <div class="ru-home-card promo" data-action="ru-open">
+      <span class="ru-logo">${ruLogo(38)}</span>
+      <div class="ru-home-promo-txt">
+        <div class="ru-home-t">Yuvarla Biriktir</div>
+        <div class="ru-home-s">Her harcamanı bir sonraki 100 TL'ye yuvarla, aradaki farkı otomatik biriktir.</div>
+      </div>
+      <span class="ru-home-cta">Başvur ${I.chevR}</span>
+    </div>`;
 }
 
 function SearchScreen() {
@@ -712,6 +833,16 @@ function SuccessScreen() {
           </div>
         </div>
 
+        ${order.ruAdd ? `
+        <div class="puan-card ru-succ" data-action="ru-open">
+          <div class="pc-logo ru-logo">${ruLogo(26)}</div>
+          <div style="flex:1">
+            <div class="pc-val">+${fmtTL2(order.ruAdd)}</div>
+            <div class="pc-lbl">Yuvarla Biriktir kumbarana eklendi</div>
+          </div>
+          <span class="chev-r">${I.chevR}</span>
+        </div>` : ''}
+
         <div class="receipt">
           <div class="r-row"><span class="r-l">İşlem No</span><span class="r-r">${txnNo}</span></div>
           <div class="r-row"><span class="r-l">İş Yeri</span><span class="r-r">${p.store} · World Pay</span></div>
@@ -908,6 +1039,418 @@ function SettingsScreen() {
   </div>`;
 }
 
+/* ===================================================================
+   YUVARLA BİRİKTİR — ekranlar
+   =================================================================== */
+
+// Başvur — tek ekran: tanıtım + 1.Kart 2.Kural (10/50/100) 3.Birikim hesabı + talimat onayı + Aktifleştir
+function RoundupApply() {
+  const r = state.roundup;
+  const c = ruCard();
+  const a = ruAccount();
+  const ready = r.source && r.account && r.agreed;
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Yuvarla Biriktir'e Başvur</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll ru-form">
+      <div class="ru-hero">
+        <div class="ru-hero-logo ru-logo">${ruLogo(58)}</div>
+        <h1 class="ru-hero-title">Yuvarla Biriktir ile<br>her harcamada biriktir.</h1>
+        <p class="ru-hero-sub">Seçtiğin kartla yaptığın harcamalar bir sonraki ${RU_UNIT} TL'ye tamamlanır. Aradaki fark birikim hesabına aktarılır.</p>
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">1</span> Kart Seçimi</div>
+        <div class="ru-select-field ${c ? 'filled' : 'empty'}" data-action="ru-open-cardpick">
+          ${c
+            ? `${ruCardArt(c)}<div class="ru-sf-mid"><div class="ru-sf-name">${c.name}</div><div class="ru-sf-sub">${c.num}</div></div><span class="ru-sf-tick">${I.check}</span>`
+            : `<span class="ru-sf-ico">${I.card}</span><span class="ru-sf-label">Banka veya kredi kartı seçiniz</span>`}
+          <span class="ru-sf-chev">${I.chevR}</span>
+        </div>
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">2</span> Yuvarlama Kuralı</div>
+        ${ruRuleBoxHTML()}
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">3</span> Birikim Hesabı Seç</div>
+        <div class="ru-select-field ${a ? 'filled' : 'empty'}" data-action="ru-open-acctpick">
+          ${a
+            ? `<span class="ru-sf-ico">${I.bank}</span><div class="ru-sf-mid"><div class="ru-sf-name">${a.name}</div><div class="ru-sf-sub">${a.iban} · ${a.detail}</div></div><span class="ru-sf-tick">${I.check}</span>`
+            : `<span class="ru-sf-ico">${I.bank}</span><span class="ru-sf-label">Birikim hesabı seçiniz</span>`}
+          <span class="ru-sf-chev">${I.chevR}</span>
+        </div>
+        <div class="ru-lock-note">${I.lock} Birikimlerin seçtiğin hesapta güvenle birikir.</div>
+      </div>
+
+      <div class="ru-sec">
+        <label class="contract-row ru-agree ${r.agreed ? 'on' : ''}" data-action="ru-agree">
+          <span class="cbx">${I.check}</span>
+          <span class="contract-txt"><a data-action="ru-open-form">Yuvarla Biriktir Talimat Formu</a>'nu okudum, onaylıyorum.</span>
+        </label>
+      </div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-primary ${ready ? '' : 'disabled'}" id="ru-activate-btn" data-action="ru-activate">Aktifleştir</button>
+      <div class="ru-ssl">${I.lock} Bilgilerin 256 bit SSL ile korunmaktadır.</div>
+    </div>
+  </div>`;
+}
+
+// Kural bölümü — sabit 100 TL kuralı, örnekler ve aylık tahmin tek kartta bütünleşik
+function ruRuleBoxHTML() {
+  return `
+    <div class="ru-rule-card">
+      <div class="ru-rule-head">
+        <span class="ru-rule-badge">${RU_UNIT}${I.arrowUp}</span>
+        <div class="ru-rule-mid"><div class="ru-rule-t">Sonraki ${RU_UNIT} TL'ye yuvarla</div><div class="ru-rule-s">Her uygun harcamada otomatik uygulanır.</div></div>
+      </div>
+      <div class="ru-rule-ex">
+        ${RU_SAMPLES.map(s => {
+          const to = ruNextUnit(s, RU_UNIT);
+          return `<div class="ru-how-row"><span>${s} TL harcama</span><span class="ru-how-arw">→ ${to} TL'ye tamamlanır</span><b>+${to - s} TL</b></div>`;
+        }).join('')}
+      </div>
+      <div class="ru-est">${I.trendUp} Bu kuralla ayda yaklaşık <b>${RU_EST}</b> biriktirebilirsin.</div>
+    </div>
+    <div class="ru-rule-note">${I.info} Nakit çekimler, kredi kartı ödemeleri ve bazı işlemler hariçtir. <b>Detaylar</b></div>`;
+}
+
+// Yönet — kumbara + aylık grafik + hedef + ayar özeti + hareketler + duraklat/durdur
+function RoundupJar() {
+  const r = state.roundup;
+  const c = ruCard();
+  const a = ruAccount();
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head ru-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Yuvarla Biriktir</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll">
+      <div class="ru-statcard">
+        <div class="ru-jar-label">Toplam Biriken</div>
+        <div class="ru-jar-amt" id="ru-jar-amt" data-val="${r.jar}">${fmtTL2(r.jar)}</div>
+        <div class="ru-statrow">
+          <div class="ru-stat"><div class="ru-stat-l">Bu ay biriken</div><div class="ru-stat-v">+${fmtTL2(ruMonthTotal())}</div></div>
+          <div class="ru-stat mid"><div class="ru-stat-l">Bu ay işlem</div><div class="ru-stat-v">${ruMonthTxns().length}</div></div>
+          <div class="ru-stat"><div class="ru-stat-l">Geçen aya göre</div><div class="ru-stat-v up">${I.trendUp} %${r.monthChange}</div></div>
+        </div>
+      </div>
+
+      <div class="ru-block">
+        <div class="ru-block-h">Aylık birikim</div>
+        ${ruChartHTML()}
+      </div>
+
+      ${ruGoalCard()}
+
+      <div class="ru-info-card">
+        <div class="ru-info-row"><span class="ru-info-ico">${I.target}</span><span class="ru-info-k">Kural</span><span class="ru-info-v">Sonraki ${RU_UNIT} TL'ye yuvarlanır</span></div>
+        <div class="ru-info-row tap" data-action="ru-open-cardpick"><span class="ru-info-ico">${I.card}</span><span class="ru-info-k">Kart</span><span class="ru-info-v">${c ? c.name + '<br><i>' + c.num + '</i>' : 'Seçilmedi'}</span>${I.chevR}</div>
+        <div class="ru-info-row tap" data-action="ru-open-acctpick"><span class="ru-info-ico">${I.bank}</span><span class="ru-info-k">Birikim hesabı</span><span class="ru-info-v">${a ? a.name + '<br><i>' + a.iban + '</i>' : 'Seçilmedi'}</span>${I.chevR}</div>
+      </div>
+
+      <div class="ru-txn-title">Son birikimler</div>
+      <div class="ru-txns">${ruTxnRows()}</div>
+      <div class="ru-seeall" data-action="ru-history">Tüm hareketleri gör ${I.chevR}</div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-ghost-danger" data-action="ru-stop">Yuvarla Biriktir'i durdur</button>
+    </div>
+  </div>`;
+}
+
+// 6 aylık çubuk grafik — son 5 ay sabit veri, içinde bulunulan ay canlı (state'ten)
+function ruChartHTML() {
+  const months = [...RU_MONTHS, { m: 'May', v: ruMonthTotal(), cur: true }];
+  const max = Math.max(...months.map(x => x.v), 1);
+  return `
+    <div class="ru-chart">
+      ${months.map(x => `
+        <div class="ru-bar-col">
+          <div class="ru-bar-v">${Math.round(x.v)}</div>
+          <div class="ru-bar-track"><div class="ru-bar ${x.cur ? 'cur' : ''}" style="height:${Math.max(9, Math.round(x.v / max * 100))}%"></div></div>
+          <div class="ru-bar-m ${x.cur ? 'cur' : ''}">${x.m}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// Hedef kartı — hedef yoksa çağrı, varsa ilerleme çubuğu
+function ruGoalCard() {
+  const r = state.roundup;
+  const g = r.goal;
+  if (!g) return `
+    <div class="ru-goal-card empty" data-action="ru-open-goal">
+      <span class="ru-goal-emoji">🎯</span>
+      <div class="ru-goal-mid"><div class="ru-goal-t">Bir hedef belirle</div><div class="ru-goal-s">Hedefi olan birikim daha hızlı büyür.</div></div>
+      <span class="ru-home-cta">Belirle ${I.chevR}</span>
+    </div>`;
+  const pct = Math.min(100, Math.round(r.jar / g.amount * 100));
+  return `
+    <div class="ru-goal-card" data-action="ru-open-goal">
+      <span class="ru-goal-emoji">${g.emoji}</span>
+      <div class="ru-goal-mid">
+        <div class="ru-goal-row"><span class="ru-goal-t">${g.name}</span><b>%${pct}</b></div>
+        <div class="ru-goal-track"><div class="ru-goal-fill" style="width:${pct}%"></div></div>
+        <div class="ru-goal-s">${fmtTL2(r.jar)} / ${fmtTL(g.amount)}</div>
+      </div>
+      <span class="ru-txn-chev">${I.chevR}</span>
+    </div>`;
+}
+
+// Tek hareket satırı — iki ekranda da (özet + geçmiş) aynı görünüm
+function ruTxnRow(t) {
+  const idx = state.roundup.txns.indexOf(t);
+  return `
+    <div class="ru-txn" data-action="ru-txn" data-idx="${idx}">
+      <span class="ru-txn-ico">${t.emoji}</span>
+      <div class="ru-txn-mid"><div class="ru-txn-m">${t.merchant}</div><div class="ru-txn-s">${fmtTL2(t.spent).replace(',00', '')} → ${fmtTL2(t.spent + t.add).replace(',00', '')}</div><div class="ru-txn-d">${t.date}</div></div>
+      <span class="ru-txn-add">+${fmtTL2(t.add).replace(',00', '')}</span>
+      <span class="ru-txn-chev">${I.chevR}</span>
+    </div>`;
+}
+
+// Son birikim satırları (yönet ekranında ilk 3)
+function ruTxnRows() {
+  const r = state.roundup;
+  if (!r.txns.length) return `<div class="ru-txn-empty">Henüz birikim yok. Kartını kullandıkça buraya düşecek.</div>`;
+  return r.txns.slice(0, 3).map(ruTxnRow).join('');
+}
+
+// Tüm hareketler — aya göre gruplu, ay toplamı başlıkta
+function RoundupHistory() {
+  const r = state.roundup;
+  const groups = [];
+  r.txns.forEach(t => {
+    let g = groups.find(x => x.m === t.month);
+    if (!g) { g = { m: t.month, items: [], total: 0 }; groups.push(g); }
+    g.items.push(t);
+    g.total += t.add;
+  });
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Birikim Hareketleri</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+      ${groups.map(g => `
+        <div class="ru-month-h"><span>${g.m}</span><b>+${fmtTL2(g.total)}</b></div>
+        <div class="ru-txns">${g.items.map(ruTxnRow).join('')}</div>`).join('')}
+      <div class="ru-hist-note">${I.info} Daha eski hareketler prototipte gösterilmiyor.</div>
+    </div>
+  </div>`;
+}
+
+/* ---- Yuvarla Biriktir akış mantığı ---- */
+// Kumbarayı örnek geçmişle doldur (aktif değilse) — deeplink ve onay ortak kullanır
+function ruSeedJar() {
+  const r = state.roundup;
+  r.active = true;
+  if (!r.source) r.source = 'worldgold';
+  if (!r.account) r.account = 'sav';
+  if (!r.txns.length) r.txns = RU_SEED_TXNS.map(t => ({ ...t }));
+}
+// Talimat formu onayı — checkbox'ı ve Aktifleştir butonunu yerinde güncelle
+function ruToggleAgree(el) {
+  const r = state.roundup;
+  r.agreed = !r.agreed;
+  el.classList.toggle('on', r.agreed);
+  const btn = document.getElementById('ru-activate-btn');
+  if (btn) btn.classList.toggle('disabled', !(r.source && r.account && r.agreed));
+}
+// Talimat Formu — örnek yasal metin sheet'i
+function ruOpenForm() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Yuvarla Biriktir Talimat Formu</div>
+    <div class="legal-scroll">
+      <h4>1. Talimatın Kapsamı</h4>
+      <p>Bu talimat ile seçtiğiniz kartla yapılan uygun harcama tutarları bir sonraki <b>${RU_UNIT} TL</b>'ye tamamlanır ve aradaki fark seçtiğiniz birikim hesabına aktarılır.</p>
+      <h4>2. Kapsam Dışı İşlemler</h4>
+      <p>Nakit çekim, kredi kartı borç ödemesi, para transferi, düzenli ödeme talimatları ve iade işlemlerinde yuvarlama uygulanmaz.</p>
+      <h4>3. Durdurma ve Değişiklik</h4>
+      <p>Talimatınızı dilediğiniz an durdurabilir veya kart/hesap bilgilerini güncelleyebilirsiniz. Biriken tutar hesabınızda kalır.</p>
+      <p><b>Bu metin prototip amaçlı örnek bir sözleşme özetidir.</b></p>
+    </div>
+    <button class="sheet-btn" data-action="close-sheet">Okudum</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+// Aktifleştir → eksikleri söyle ya da onay sheet'ini aç
+function ruActivate() {
+  const r = state.roundup;
+  if (!r.source) return toast('Önce bir kart seçmelisin');
+  if (!r.account) return toast('Birikim hesabı seçmelisin');
+  if (!r.agreed) return toast('Talimat Formu onayı gerekli');
+  const c = ruCard(), a = ruAccount();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Talimatı Onayla</div>
+    <div class="ru-cf-rows">
+      <div class="ru-cf-row"><span>Kart</span><b>${c.name} ${c.num.slice(-4)}</b></div>
+      <div class="ru-cf-row"><span>Kural</span><b>Sonraki ${RU_UNIT} TL'ye yuvarla</b></div>
+      <div class="ru-cf-row"><span>Birikim hesabı</span><b>${a.name}</b></div>
+      <div class="ru-cf-row"><span>Tahmini aylık birikim</span><b class="est">${RU_EST}</b></div>
+    </div>
+    <button class="sheet-btn" id="ru-confirm-btn" data-action="ru-confirm">${I.shield} Onayla ve Aktifleştir</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+// Onay → kısa "talimat oluşturuluyor" bekleme → başarı durumu (aynı sheet içinde)
+function ruConfirm() {
+  const btn = document.getElementById('ru-confirm-btn');
+  btn.innerHTML = `<span class="spinner"></span> Talimat oluşturuluyor…`;
+  btn.style.pointerEvents = 'none';
+  setTimeout(() => {
+    ruSeedJar();
+    sheetEl.innerHTML = `
+      <div class="sheet-handle"></div>
+      <div class="ru-done">
+        <div class="ru-done-ring">${I.checkBig}</div>
+        <div class="ru-done-t">Yuvarla Biriktir aktif! 🎉</div>
+        <div class="ru-done-s">Artık ${ruCard().name} ile yaptığın her uygun harcamada aradaki fark otomatik birikecek.</div>
+      </div>
+      <button class="sheet-btn" data-action="ru-open-jar">Kumbaramı Gör</button>`;
+  }, 1400);
+}
+// Kart seç alanına dokununca → kart listesi sheet'i (gerçek kart görselleriyle)
+function ruOpenCardPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Banka veya kredi kartı seçiniz</div>
+    ${RU_CARDS.map(c => {
+      const on = state.roundup.source === c.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="ru-pick-card" data-val="${c.id}">
+        ${ruCardArt(c)}
+        <div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">${c.num} · ${c.kind}</div><div class="ru-pick-s2">${c.detail}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function ruPickCard(id) { state.roundup.source = id; closeSheet(); render(); }
+// Birikim hesabı seç alanına dokununca → hesap listesi sheet'i
+function ruOpenAcctPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Birikim hesabı seçiniz</div>
+    ${RU_ACCOUNTS.map(a => {
+      const on = state.roundup.account === a.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="ru-pick-acct" data-val="${a.id}">
+        <span class="ru-pick-ico">${I.bank}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${a.name}</div><div class="ru-pick-s">${a.iban} · ${a.detail}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function ruPickAcct(id) { state.roundup.account = id; closeSheet(); render(); }
+// Hedef seç sheet'i — hazır hedefler + kaldırma
+function ruOpenGoalPick() {
+  const g = state.roundup.goal;
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Birikim hedefini seç</div>
+    ${RU_GOAL_PRESETS.map(p => {
+      const on = g && g.id === p.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="ru-pick-goal" data-val="${p.id}">
+        <span class="ru-txn-ico">${p.emoji}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${p.name}</div><div class="ru-pick-s">Hedef: ${fmtTL(p.amount)}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    ${g ? `<button class="sheet-btn ghost danger-txt" data-action="ru-clear-goal">Hedefi kaldır</button>` : ''}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function ruPickGoal(id) {
+  state.roundup.goal = { ...RU_GOAL_PRESETS.find(p => p.id === id) };
+  closeSheet();
+  render();
+  setTimeout(() => toast('Hedefin belirlendi 🎯'), 150);
+}
+function ruClearGoal() {
+  state.roundup.goal = null;
+  closeSheet();
+  render();
+  setTimeout(() => toast('Hedef kaldırıldı'), 150);
+}
+// Hareket detayı sheet'i
+function ruOpenTxn(i) {
+  const t = state.roundup.txns[i];
+  if (!t) return;
+  const c = ruCard();
+  const a = ruAccount();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-td-head">
+      <span class="ru-txn-ico big">${t.emoji}</span>
+      <div class="ru-td-m">${t.merchant}</div>
+      <div class="ru-td-d">${t.date}</div>
+    </div>
+    <div class="ru-cf-rows">
+      <div class="ru-cf-row"><span>Harcama</span><b>${fmtTL2(t.spent)}</b></div>
+      <div class="ru-cf-row"><span>Yuvarlandı</span><b>${fmtTL2(t.spent + t.add)}</b></div>
+      <div class="ru-cf-row"><span>Birikime eklenen</span><b class="est">+${fmtTL2(t.add)}</b></div>
+      ${c ? `<div class="ru-cf-row"><span>Kart</span><b>${c.name} ${c.num.slice(-4)}</b></div>` : ''}
+      ${a ? `<div class="ru-cf-row"><span>Birikim hesabı</span><b>${a.name}</b></div>` : ''}
+    </div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Kapat</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+// Durdur — geri alınamaz aksiyon: önce onay sheet'i
+function ruStop() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Yuvarla Biriktir'i durdur</div>
+    <p class="ru-stop-txt">Talimatın iptal edilir ve yeni harcamalarda birikim yapılmaz. Biriken <b>${fmtTL2(state.roundup.jar)}</b> hesabında kalır.</p>
+    <button class="sheet-btn" data-action="ru-stop-confirm">Durdur</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function ruStopConfirm() {
+  const r = state.roundup;
+  r.active = false;
+  r.agreed = false;
+  closeSheet();
+  goHome();
+  setTimeout(() => toast('Yuvarla Biriktir durduruldu. Biriken paran hesabında kalır.'), 300);
+}
+// Kumbara toplamı sayaç animasyonu — yönet ekranı her açılışta kısa bir count-up oynatır
+function setupJar() {
+  const el = document.getElementById('ru-jar-amt');
+  if (!el) return;
+  const target = parseFloat(el.dataset.val);
+  const from = target * 0.55;
+  const dur = 650;
+  const t0 = performance.now();
+  const tick = (now) => {
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3); // ease-out
+    el.textContent = fmtTL2(from + (target - from) * e);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 function PlaceholderScreen(title) {
   return `
   <div class="screen anim-right">
@@ -939,6 +1482,9 @@ function render() {
     case 'tracking': html = TrackingScreen(); break;
     case 'sections': html = SectionsScreen(); break;
     case 'settings': html = SettingsScreen(); break;
+    case 'roundup-apply': html = RoundupApply(); break;
+    case 'roundup-jar': html = RoundupJar(); break;
+    case 'roundup-history': html = RoundupHistory(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
   app.innerHTML = html;
@@ -946,6 +1492,7 @@ function render() {
   // Ekrana özel kurulum
   if (state.screen === 'search') setupSearch();
   if (state.screen === 'chat') setupChat();
+  if (state.screen === 'roundup-jar') setupJar();
 }
 
 /* İleri navigasyon — mevcut ekranı geri yığınına ekler (gerçek uygulama gibi) */
@@ -1867,6 +2414,21 @@ function approvePayment() {
     cargo: 'YK Kargo',
     track: 'YK' + String(Math.floor(100000000000 + Math.random() * 899999999999)),
   };
+  // Yuvarla Biriktir aktifse (ve duraklatılmadıysa) kartla ödemede farkı kumbaraya at
+  const r = state.roundup;
+  if (r.active && state.payMethod !== 'bank') {
+    const add = ruNextUnit(payableNum(), RU_UNIT) - payableNum();
+    if (add > 0) {
+      const now = new Date();
+      const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      r.txns.unshift({
+        merchant: `${state.selectedProduct.store} · World Pay`, emoji: '🛍️',
+        spent: payableNum(), add, date: `25 Mayıs ${hhmm}`, month: RU_CUR_MONTH,
+      });
+      r.jar = Math.round((r.jar + add) * 100) / 100;
+      state.lastOrder.ruAdd = add;
+    }
+  }
   setTimeout(() => {
     closeSheet();
     setTimeout(() => go('success'), 250);
@@ -1995,6 +2557,25 @@ document.addEventListener('click', (e) => {
     case 'approve': return approvePayment();
     case 'close-sheet': return closeSheet();
 
+    // Yuvarla Biriktir
+    case 'ru-open': return go(state.roundup.active ? 'roundup-jar' : 'roundup-apply');
+    case 'ru-agree': return ruToggleAgree(t);
+    case 'ru-open-form': return ruOpenForm();
+    case 'ru-activate': return ruActivate();
+    case 'ru-confirm': return ruConfirm();
+    case 'ru-open-jar': { closeSheet(); return go('roundup-jar'); }
+    case 'ru-open-cardpick': return ruOpenCardPick();
+    case 'ru-pick-card': return ruPickCard(t.dataset.val);
+    case 'ru-open-acctpick': return ruOpenAcctPick();
+    case 'ru-pick-acct': return ruPickAcct(t.dataset.val);
+    case 'ru-open-goal': return ruOpenGoalPick();
+    case 'ru-pick-goal': return ruPickGoal(t.dataset.val);
+    case 'ru-clear-goal': return ruClearGoal();
+    case 'ru-txn': return ruOpenTxn(+t.dataset.idx);
+    case 'ru-history': return go('roundup-history');
+    case 'ru-stop': return ruStop();
+    case 'ru-stop-confirm': return ruStopConfirm();
+
     case 'menu-nav': {
       const id = t.dataset.id;
       if (id === 'home') return goHome();
@@ -2023,7 +2604,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -2050,6 +2631,17 @@ function routeTo(hash) {
     state.seturAuthorized = true;
     state.seturOptionIdx = 0;
     state.screen = 'chat';
+    return true;
+  }
+  if (h === 'roundup') {              // #roundup → aktifse yönet, değilse başvuru
+    state.chatSeed = false;
+    state.screen = state.roundup.active ? 'roundup-jar' : 'roundup-apply';
+    return true;
+  }
+  if (h === 'roundup-jar' || h === 'roundup-history') { // dolu kumbara/geçmiş — kural yoksa kurup göster (demo linki)
+    if (!state.roundup.active) ruSeedJar();
+    state.chatSeed = false;
+    state.screen = h;
     return true;
   }
   state.chatSeed = false;

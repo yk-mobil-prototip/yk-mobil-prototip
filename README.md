@@ -13,6 +13,14 @@
 6. **Worldcard ile öde** seç → **Öde** → **Yapı Kredi Mobil ile Onayla**
 7. Başarı ekranı + Worldpuan kazanımı
 
+## Yuvarla Biriktir
+1. Ana sayfadaki **Birikim** kartı → başvuru ekranı
+2. Kart seç (gerçek kart görselleri) → yuvarlama kuralını seç (**10 / 50 / 100 TL**, canlı örnekler + aylık tahmin) → birikim hesabı seç
+3. **Talimat Formu**'nu onayla → **Aktifleştir** → özet onay sheet'i → başarı animasyonu
+4. Yönet ekranı: kumbara (sayaç animasyonlu), 6 aylık birikim grafiği, **hedef belirleme** (ilerleme çubuğu), kural/kart/hesap değiştirme, hareket detayı
+5. **Duraklat / Devam Ettir** ve onaylı **Durdur** akışları
+6. Entegrasyon: Yuvarla Biriktir aktifken World Pay ile ödeme yapınca fark kumbaraya düşer ve başarı ekranında görünür
+
 ## Bölümlere doğrudan erişim
 Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açılır ve gereken state hazır gelir.
 
@@ -29,6 +37,9 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Ödeme ekranı | `#payment` |
 | Ödeme başarılı | `#success` |
 | Sipariş takibi | `#tracking` |
+| Yuvarla & Biriktir — başvuru (kart, kural 10/50/100, talimat onayı) | `#roundup` |
+| Yuvarla & Biriktir — kumbara (grafik, hedef, duraklat/durdur) | `#roundup-jar` |
+| Yuvarla & Biriktir — tüm hareketler (aya göre gruplu) | `#roundup-history` |
 | Arama | `#search` |
 | Ayarlar | `#settings` |
 | Bölümler hub'ı | `#sections` |

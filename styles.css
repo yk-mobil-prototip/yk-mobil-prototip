@@ -1732,3 +1732,238 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
   margin: 7px 2px 2px; font-size: 11.5px; line-height: 1.45;
   color: var(--text-dim); font-style: italic;
 }
+
+/* =========================================================
+   YUVARLA BİRİKTİR (round-up) — mockup temelli
+   ========================================================= */
+.ru-logo { color: var(--primary); display: inline-flex; line-height: 0; }
+.ru-logo-svg { display: block; }
+
+/* --- Alt sabit CTA --- */
+.screen-cta {
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border); background: var(--topbar);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.btn-primary.disabled { opacity: .4; pointer-events: none; }
+.btn-danger-outline {
+  width: 100%; background: transparent; color: var(--world);
+  border: 1.5px solid var(--world); border-radius: 14px;
+  padding: 15px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+/* Durdur — temaya uygun ikincil/nötr aksiyon (kırmızı değil) */
+.btn-ghost-danger {
+  width: 100%; background: transparent; color: var(--text-dim);
+  border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 15px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.ru-ssl { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; color: var(--text-faint); }
+.ru-ssl svg { width: 13px; height: 13px; }
+
+/* --- Home kartı --- */
+.ru-home-card { margin: 4px 16px 6px; padding: 15px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); cursor: pointer; }
+.ru-home-card.promo { display: flex; align-items: center; gap: 13px; background: linear-gradient(135deg, rgba(0,169,224,.14), rgba(10,61,122,.10)); }
+.ru-home-promo-txt { flex: 1; }
+.ru-home-t { font-size: 15px; font-weight: 700; color: var(--text); }
+.ru-home-s { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; line-height: 1.35; }
+.ru-home-cta { font-size: 13px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.ru-home-cta svg { width: 15px; height: 15px; }
+.ru-home-top { display: flex; align-items: center; gap: 11px; }
+.ru-home-top > div { flex: 1; }
+.ru-home-top .chev-r { color: var(--text-faint); }
+.ru-home-amt { font-size: 26px; font-weight: 800; color: var(--text); margin: 10px 0 8px; letter-spacing: -.5px; }
+.ru-home-mini { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-dim); }
+.ru-home-mini b { color: var(--success); font-weight: 700; }
+.ru-home-mini span:first-child { display: inline-flex; align-items: center; gap: 5px; }
+.ru-home-mini svg { width: 14px; height: 14px; color: var(--success); }
+
+/* --- Başvur ekranı --- */
+.ru-form { padding-bottom: 20px; }
+.ru-hero { text-align: center; padding: 18px 22px 6px; }
+.ru-hero-logo {
+  display: inline-flex; padding: 14px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,169,224,.18), rgba(0,169,224,.04) 68%, transparent 72%);
+  animation: ru-float 3.2s ease-in-out infinite;
+}
+@keyframes ru-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.ru-hero-title { font-size: 20px; font-weight: 800; line-height: 1.25; margin: 12px 0 8px; letter-spacing: -.3px; color: var(--text); }
+.ru-hero-sub { font-size: 13.5px; line-height: 1.5; color: var(--text-dim); }
+
+.ru-sec { margin: 16px 16px 0; }
+.ru-sec-h { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 9px; }
+.ru-sec-n { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+
+.ru-select-field { display: flex; align-items: center; gap: 12px; padding: 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); cursor: pointer; }
+.ru-select-field.filled { border-color: var(--primary); }
+.ru-sf-ico { color: var(--primary); display: flex; }
+.ru-sf-ico svg { width: 22px; height: 22px; }
+.ru-sf-label { flex: 1; font-size: 15px; color: var(--text-dim); }
+.ru-sf-mid { flex: 1; }
+.ru-sf-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.ru-sf-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+.ru-sf-tick { width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; }
+.ru-sf-tick svg { width: 14px; height: 14px; }
+.ru-sf-chev { color: var(--primary); display: flex; }
+.ru-sf-chev svg { width: 20px; height: 20px; }
+
+/* Kural kartı — başlık + örnekler + aylık tahmin tek bütünleşik kutu */
+.ru-rule-card { border: 1px solid var(--border); border-radius: 14px; background: var(--card); overflow: hidden; }
+.ru-rule-badge { display: inline-flex; align-items: center; gap: 1px; padding: 6px 9px; border-radius: 10px; background: rgba(0,152,203,.12); color: var(--primary); font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.ru-rule-badge svg { width: 13px; height: 13px; }
+.ru-rule-head { display: flex; align-items: center; gap: 12px; padding: 14px 15px; }
+.ru-rule-mid { flex: 1; }
+.ru-rule-t { font-size: 14.5px; font-weight: 700; color: var(--text); }
+.ru-rule-s { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.ru-rule-ex { padding: 4px 15px 10px; border-top: 1px solid var(--border); }
+.ru-how-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text); padding: 5px 0; }
+.ru-how-row span:first-child { min-width: 84px; }
+.ru-how-arw { flex: 1; color: var(--text-dim); }
+.ru-how-row b { color: var(--success); font-weight: 700; }
+.ru-est { display: flex; align-items: center; gap: 7px; padding: 11px 15px; background: rgba(46,204,113,.10); font-size: 12px; color: var(--text); border-top: 1px solid var(--border); }
+.ru-est svg { width: 14px; height: 14px; color: var(--success); flex-shrink: 0; }
+.ru-est b { color: var(--success); }
+.ru-rule-note { margin: 10px 3px 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.45; display: flex; gap: 6px; }
+.ru-rule-note svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+.ru-rule-note b { color: var(--primary); }
+
+.ru-lock-note { display: flex; align-items: center; gap: 7px; margin-top: 9px; font-size: 12px; color: var(--text-dim); }
+.ru-lock-note svg { width: 14px; height: 14px; }
+
+/* --- Yönet ekranı --- */
+.ru-nav-accent { background: var(--navy); }
+.ru-nav-accent .nav-title, .ru-nav-accent .icon-btn { color: #fff; }
+.ru-statcard {
+  position: relative; text-align: center; color: #fff;
+  margin: 0 0 14px; padding: 6px 18px 18px; border-radius: 0 0 24px 24px;
+  background: linear-gradient(160deg, #0d4a92, var(--navy) 55%, var(--navy-dark));
+}
+.ru-jar-label { font-size: 12px; opacity: .8; letter-spacing: .2px; padding-top: 6px; }
+.ru-jar-amt { font-size: 34px; font-weight: 800; letter-spacing: -.8px; margin: 4px 0 14px; font-variant-numeric: tabular-nums; }
+.ru-statrow { display: flex; border-top: 1px solid rgba(255,255,255,.16); padding-top: 12px; }
+.ru-statcard .ru-stat { flex: 1; padding: 2px 0; }
+.ru-statcard .ru-stat.mid { border-left: 1px solid rgba(255,255,255,.16); border-right: 1px solid rgba(255,255,255,.16); }
+.ru-stat-l { font-size: 11px; opacity: .8; }
+.ru-statcard .ru-stat-v { font-size: 15.5px; font-weight: 800; margin-top: 4px; letter-spacing: -.3px; }
+.ru-statcard .ru-stat-v.up { color: #7ee2a8; display: inline-flex; align-items: center; gap: 4px; }
+.ru-statcard .ru-stat-v.up svg { width: 14px; height: 14px; }
+
+/* Aylık birikim grafiği */
+.ru-block { margin: 0 16px 14px; padding: 14px 15px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.ru-block-h { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+.ru-chart { display: flex; gap: 8px; align-items: stretch; }
+.ru-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.ru-bar-v { font-size: 10.5px; font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.ru-bar-track { height: 74px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.ru-bar { width: 20px; border-radius: 6px 6px 3px 3px; background: rgba(0,152,203,.30); transition: height .45s cubic-bezier(.22,.61,.36,1); }
+.ru-bar.cur { background: var(--primary-grad); box-shadow: 0 3px 10px rgba(0,152,203,.35); }
+.ru-bar-m { font-size: 11px; color: var(--text-faint); font-weight: 600; }
+.ru-bar-m.cur { color: var(--primary); font-weight: 800; }
+
+/* Hedef kartı */
+.ru-goal-card {
+  display: flex; align-items: center; gap: 12px; margin: 0 16px 14px;
+  padding: 13px 15px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); cursor: pointer;
+}
+.ru-goal-card.empty { border-style: dashed; background: transparent; }
+.ru-goal-emoji { font-size: 24px; flex-shrink: 0; }
+.ru-goal-mid { flex: 1; min-width: 0; }
+.ru-goal-row { display: flex; justify-content: space-between; align-items: baseline; }
+.ru-goal-row b { color: var(--primary); font-size: 13px; }
+.ru-goal-t { font-size: 14px; font-weight: 700; color: var(--text); }
+.ru-goal-s { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+.ru-goal-track { height: 7px; border-radius: 99px; background: var(--bg-lower); margin-top: 7px; overflow: hidden; }
+.ru-goal-fill { height: 100%; border-radius: 99px; background: var(--primary-grad); transition: width .5s cubic-bezier(.22,.61,.36,1); }
+.ru-goal-track.home { margin: 10px 0 8px; }
+
+.ru-info-card { margin: 0 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); overflow: hidden; }
+.ru-info-row { display: flex; align-items: center; gap: 12px; padding: 14px 15px; border-bottom: 1px solid var(--border); }
+.ru-info-row:last-child { border-bottom: none; }
+.ru-info-row.tap { cursor: pointer; }
+.ru-info-ico { color: var(--primary); display: flex; }
+.ru-info-k { font-size: 14px; color: var(--text-dim); }
+.ru-info-v { flex: 1; text-align: right; font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.35; }
+.ru-info-v i { font-style: normal; font-size: 12px; font-weight: 500; color: var(--text-dim); }
+.ru-info-row svg.chev, .ru-info-row > svg { width: 18px; height: 18px; color: var(--text-faint); }
+
+.ru-txn-title { margin: 18px 16px 6px; font-size: 15px; font-weight: 700; color: var(--text); }
+.ru-txns { margin: 0 16px; }
+.ru-txn { display: flex; align-items: center; gap: 12px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
+.ru-txn-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-lower); display: grid; place-items: center; font-size: 19px; flex-shrink: 0; }
+.ru-txn-mid { flex: 1; }
+.ru-txn-m { font-size: 14px; font-weight: 600; color: var(--text); }
+.ru-txn-s { font-size: 12.5px; color: var(--text-dim); margin-top: 1px; }
+.ru-txn-d { font-size: 11px; color: var(--text-faint); margin-top: 1px; }
+.ru-txn-add { font-size: 15px; font-weight: 800; color: var(--success); }
+.ru-txn-chev { color: var(--text-faint); display: flex; }
+.ru-txn-chev svg { width: 16px; height: 16px; }
+.ru-txn-empty { padding: 22px 8px; text-align: center; font-size: 13px; color: var(--text-dim); }
+.ru-seeall { margin: 14px 16px 4px; display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 14px; font-weight: 600; color: var(--primary); cursor: pointer; }
+.ru-seeall svg { width: 17px; height: 17px; }
+
+/* --- Kart / hesap seçim listesi (sheet) --- */
+.ru-pick-t { font-size: 16px; font-weight: 800; color: var(--text); text-align: center; margin: 2px 0 14px; }
+.ru-pick-row { display: flex; align-items: center; gap: 13px; cursor: pointer; padding: 14px 12px; border: 1.5px solid var(--border); border-radius: 14px; margin-bottom: 10px; }
+.ru-pick-row.active { border-color: var(--primary); background: rgba(0,152,203,.08); }
+.ru-pick-ico { color: var(--primary); display: flex; }
+.ru-pick-ico svg { width: 24px; height: 24px; }
+.ru-pick-mid { flex: 1; }
+.ru-pick-n { font-size: 15px; font-weight: 600; color: var(--text); }
+.ru-pick-s { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+.ru-pick-radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+.ru-pick-radio.on { background: var(--primary); border-color: var(--primary); }
+.ru-pick-radio svg { width: 14px; height: 14px; }
+.ru-pick-s2 { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+
+/* Kart görselleri — World Gold fotoğraf, Bankkart CSS mini kart */
+.ru-card-img { width: 46px; height: 30px; object-fit: cover; border-radius: 5px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.ru-card-art {
+  position: relative; width: 46px; height: 30px; border-radius: 5px; flex-shrink: 0;
+  background: linear-gradient(135deg, #1c83c4, var(--navy) 70%); overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.ru-card-art i { position: absolute; left: 5px; bottom: 4px; font-style: normal; font-size: 6.5px; font-weight: 700; color: #fff; letter-spacing: .2px; }
+.ru-card-art b { position: absolute; left: 5px; top: 5px; width: 9px; height: 7px; border-radius: 2px; background: linear-gradient(135deg, #f2d377, #c9a13b); }
+
+/* Onay / detay sheet satırları */
+.ru-cf-rows { margin: 4px 2px 16px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.ru-cf-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12.5px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.ru-cf-row:last-child { border-bottom: none; }
+.ru-cf-row span { color: var(--text-dim); }
+.ru-cf-row b { color: var(--text); font-weight: 700; text-align: right; }
+.ru-cf-row b.est { color: var(--success); }
+
+/* Aktivasyon başarı durumu (sheet içinde) */
+.ru-done { text-align: center; padding: 10px 14px 18px; }
+.ru-done-ring {
+  width: 74px; height: 74px; margin: 0 auto 14px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; background: var(--primary-grad);
+  box-shadow: 0 8px 24px rgba(0,152,203,.4);
+  animation: ru-pop .45s cubic-bezier(.34,1.56,.64,1) both;
+}
+.ru-done-ring svg { width: 36px; height: 36px; }
+@keyframes ru-pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.ru-done-t { font-size: 18px; font-weight: 800; color: var(--text); }
+.ru-done-s { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-top: 7px; }
+
+/* Hareket detayı sheet başlığı */
+.ru-td-head { text-align: center; padding: 2px 0 14px; }
+.ru-txn-ico.big { width: 54px; height: 54px; font-size: 26px; margin: 0 auto 8px; }
+.ru-td-m { font-size: 16px; font-weight: 800; color: var(--text); }
+.ru-td-d { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+
+/* Geçmiş ekranı — ay başlıkları */
+.ru-month-h { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 16px 4px; font-size: 13.5px; font-weight: 700; color: var(--text-dim); }
+.ru-month-h b { color: var(--success); font-size: 13px; }
+.ru-hist-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 18px 16px; font-size: 12px; color: var(--text-faint); }
+.ru-hist-note svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Durdurma onay sheet'i */
+.sheet-btn.ghost.danger-txt { color: var(--world); }
+.ru-stop-txt { font-size: 13.5px; color: var(--text-dim); line-height: 1.55; text-align: center; margin: 2px 8px 16px; }
+.ru-stop-txt b { color: var(--text); }
+
+/* Başarı ekranı — kumbara kartı */
+.puan-card.ru-succ { cursor: pointer; margin-top: 10px; background: linear-gradient(135deg, rgba(46,204,113,.12), rgba(0,152,203,.10)); border-color: rgba(46,204,113,.3); }
+.puan-card.ru-succ .pc-val { color: var(--success); }
+.puan-card.ru-succ .chev-r { color: var(--text-faint); display: flex; }
