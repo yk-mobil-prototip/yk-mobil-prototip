@@ -1547,6 +1547,20 @@ function spLimitInfo(c) {
 function fmtShortTL(n) { return Math.round(n).toLocaleString('tr-TR') + ' TL'; }
 function momTxt(n) { return (n >= 0 ? '+' : '−') + '%' + Math.abs(n); }
 
+/* Standart kategori ikonları — tema-uyumlu monoline (currentColor). Her ekranda aynı. */
+const CAT_ICO = {
+  market:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/><path d="M2.5 3.5h2L6.6 15h10.2l1.7-7.5H6.2"/></svg>',
+  giyim:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.6 3.2 4 6l1.6 2.4L7.5 7v13.5h9V7l1.9 1.4L20 6l-4.6-2.8a3.4 3.4 0 0 1-6.8 0Z"/></svg>',
+  yeme:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a2 2 0 0 0 4 0V3M8 11v10M15.5 3c-1.4 0-2.3 2-2.3 4.4S14.1 12 15.5 12v9"/></svg>',
+  fatura:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3v18l2-1.4 2 1.4 2-1.4 2 1.4 2-1.4 2 1.4V3l-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M8.5 8.5h7M8.5 12.5h7"/></svg>',
+  akaryakit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16M3.5 21h11M5.5 11h7M13.5 8l2.4 2.4V16a1.7 1.7 0 0 0 3.4 0V9.5L16.5 6.5"/></svg>',
+  saglik:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5S4.5 16 4.5 10.6A3.7 3.7 0 0 1 12 8.2a3.7 3.7 0 0 1 7.5 2.4c0 5.4-7.5 9.9-7.5 9.9Z"/></svg>',
+  ulasim:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5 4.8 8a2 2 0 0 1 1.9-1.3h10.6A2 2 0 0 1 19.2 8L21 13.5V18h-2.4M3 13.5V18h2.4M3 13.5h18"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>',
+  eglence:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10.2 8.4v7.2l6-3.6z" fill="currentColor" stroke="none"/></svg>',
+  diger:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>',
+};
+function spIco(c, size) { const col = (c && c.color) || '#8A8F98'; return `<span class="sp-ico ${size || ''}" style="background:${col}">${(c && CAT_ICO[c.id]) || CAT_ICO.diger}</span>`; }
+
 /* ---- Donut ---- */
 function spDonutParts() {
   const cats = spSorted(); const total = spTotal() || 1;
@@ -1649,7 +1663,7 @@ function InsightsScreen() {
         <div class="sp-cat-list">
           ${top.map(c => spCatRow(c, total)).join('')}
           ${rest.length ? `<div class="sp-cat" data-action="sp-allcats">
-            <span class="sp-cat-ico dots" style="background:#8A8F98">•••</span>
+            <span class="sp-ico" style="background:#8A8F98">${I.grid}</span>
             <div class="sp-cat-mid"><div class="sp-cat-n">Diğer kategoriler</div><div class="sp-cat-sub">${rest.length} kategori</div></div>
             <span class="sp-cat-a">${fmtTL2(restSum)}</span>
             <span class="sp-cat-chev">${I.chevR}</span>
@@ -1678,7 +1692,7 @@ function spCatRow(c, total) {
   const pct = total ? Math.round(amt / total * 100) : 0;
   return `
     <div class="sp-cat" data-action="sp-cat" data-id="${c.id}">
-      <span class="sp-cat-ico" style="background:${c.color}">${c.emoji}</span>
+      ${spIco(c)}
       <div class="sp-cat-mid"><div class="sp-cat-n">${c.name}</div><div class="sp-cat-sub">%${pct} · geçen aya göre ${momTxt(c.mom)}</div></div>
       <span class="sp-cat-a">${fmtTL2(amt)}</span>
       <span class="sp-cat-chev">${I.chevR}</span>
@@ -1788,7 +1802,7 @@ function InsightsCategoryScreen() {
     </div>
     <div class="screen-scroll">
       <div class="sp-cat-hero">
-        <span class="sp-cat-ico big" style="background:${c.color}">${c.emoji}</span>
+        ${spIco(c, 'big')}
         <div class="sp-cat-hero-amt">${fmtTL2(amt)}</div>
         <div class="sp-cat-hero-sub">${SPEND_MONTH} · ${txns.length} işlem${state.spendCard !== 'all' ? ' · ' + spCardObj().name : ''}</div>
       </div>
@@ -1806,6 +1820,20 @@ function InsightsCategoryScreen() {
     </div>
   </div>`;
 }
+/* Sakin limit çubuğu — near'da uyarı rengi yok (hep sakin); aşımda limit çentiği + minik taşma (mercan) */
+function spBar(spent, lim, big) {
+  const cls = big ? 'sp-limit-track big' : 'sp-limit-track';
+  if (!lim || spent <= lim) {
+    const pct = lim ? Math.min(100, Math.round(spent / lim * 100)) : 0;
+    return `<div class="${cls}"><div class="sp-limit-fill calm" style="width:${pct}%"></div></div>`;
+  }
+  const notch = (lim / spent * 100).toFixed(1);
+  return `<div class="${cls} over">
+    <div class="sp-limit-fill calm" style="width:${notch}%"></div>
+    <div class="sp-over-seg" style="left:${notch}%"></div>
+    <div class="sp-notch" style="left:${notch}%"></div>
+  </div>`;
+}
 function spCatLimitBlock(c, li) {
   if (!li) return `
     <div class="sp-setlimit" data-action="sp-set-limit" data-id="${c.id}">
@@ -1813,13 +1841,13 @@ function spCatLimitBlock(c, li) {
       <div class="sp-sl-mid"><div class="sp-sl-t">Bu kategoriye limit koy</div><div class="sp-sl-s">Aylık harcamanı kontrol altında tut.</div></div>
       <span class="sp-sl-cta">${I.plus} Ekle</span>
     </div>`;
-  const cls = li.over ? 'over' : (li.near ? 'warn' : 'ok');
+  const over = li.over;
   return `
-    <div class="sp-limit-card ${cls}">
+    <div class="sp-limit-card ${over ? 'over' : ''}">
       <div class="sp-limit-head"><span>Aylık limit${state.spendCard !== 'all' ? ' · tüm kartlar' : ''}</span><b>${fmtShortTL(li.lim)}</b></div>
-      <div class="sp-lim-hero ${cls}">${li.over ? fmtShortTL(-li.remaining) + ' aşıldı' : fmtShortTL(li.remaining) + ' kaldı'}</div>
-      <div class="sp-limit-track"><div class="sp-limit-fill ${cls === 'ok' ? 'ok2' : cls}" style="width:${Math.min(100, li.pct)}%${cls === 'ok' ? ';background:' + c.color : ''}"></div></div>
-      <div class="sp-lim-meta"><span>${fmtShortTL(li.spent)} harcandı</span><span class="sp-lim-pct ${cls}">%${li.pct}</span></div>
+      <div class="sp-lim-hero ${over ? 'over' : ''}">${over ? fmtShortTL(-li.remaining) + ' aşıldı' : fmtShortTL(li.remaining) + ' kaldı'}</div>
+      ${spBar(li.spent, li.lim)}
+      <div class="sp-lim-meta"><span>${fmtShortTL(li.spent)} harcandı</span><span class="sp-lim-pct ${over ? 'over' : ''}">%${li.pct}</span></div>
       <div class="sp-limit-proj">${I.trendUp} Bu hızla ay sonunda ~${fmtShortTL(li.proj)} ${li.projOver ? '· limiti aşabilirsin' : '· limit içinde'}</div>
       <div class="sp-limit-actions">
         <button class="sp-lim-btn" data-action="sp-set-limit" data-id="${c.id}">Limiti düzenle</button>
@@ -1836,7 +1864,6 @@ function LimitsScreen() {
   const pct = tl ? Math.round(used / tl * 100) : 0;
   const limited = SPEND_CATS.filter(c => spLimit(c.id)).sort((a, b) => spLimitInfo(b).pct - spLimitInfo(a).pct);
   const sugg = spSuggestion();
-  const tcls = pct >= 100 ? 'over' : (pct >= 80 ? 'warn' : 'ok2');
   return `
   <div class="screen anim-right sp-screen">
     ${spHeader('limits')}
@@ -1848,12 +1875,12 @@ function LimitsScreen() {
           <div class="mid"><div class="sp-s3-l">Kullanılan</div><div class="sp-s3-v">${fmtShortTL(used)}</div></div>
           <div><div class="sp-s3-l">Kalan</div><div class="sp-s3-v ${rem < 0 ? 'over' : 'blue'}">${fmtShortTL(rem)}</div></div>
         </div>
-        <div class="sp-limit-track big"><div class="sp-limit-fill ${tcls}" style="width:${Math.min(100, pct)}%"></div></div>
+        ${spBar(used, tl, true)}
         <div class="sp-sum-note">${I.trendUp} Genel aylık hedefinin <b>%${pct}</b>'i kullanıldı.</div>
       </div>
 
       <div class="sp-card pad0">
-        <div class="sp-card-h col"><span>Kategori limitlerin</span><span class="sp-card-sub">Kategori bütçelerin — genel hedeften bağımsız</span></div>
+        <div class="sp-card-h">Kategori limitlerin</div>
         <div class="sp-lim-list">${limited.length ? limited.map(spLimRow).join('') : '<div class="sp-empty">Henüz kategori limiti yok. Aşağıdan ekleyebilirsin.</div>'}</div>
       </div>
 
@@ -1873,15 +1900,15 @@ function LimitsScreen() {
 }
 function spLimRow(c) {
   const li = spLimitInfo(c);
-  const cls = li.over ? 'over' : (li.near ? 'warn' : 'ok');
-  const badge = li.over ? '<span class="sp-badge over">Limit aşıldı</span>' : (li.near ? '<span class="sp-badge warn">Limite yakın</span>' : '');
+  const over = li.over;
+  const badge = over ? '<span class="sp-badge over">Limit aşıldı</span>' : '';
   return `
     <div class="sp-lim" data-action="sp-set-limit" data-id="${c.id}">
-      <span class="sp-cat-ico" style="background:${c.color}">${c.emoji}</span>
+      ${spIco(c)}
       <div class="sp-lim-mid">
         <div class="sp-lim-top"><span class="sp-lim-n">${c.name}</span>${badge}<span class="sp-cat-chev">${I.chevR}</span></div>
-        <div class="sp-lim-hero ${cls}">${li.over ? fmtShortTL(-li.remaining) + ' aşıldı' : fmtShortTL(li.remaining) + ' kaldı'}</div>
-        <div class="sp-limit-track"><div class="sp-limit-fill ${cls === 'ok' ? 'ok2' : cls}" style="width:${Math.min(100, li.pct)}%${cls === 'ok' ? ';background:' + c.color : ''}"></div></div>
+        <div class="sp-lim-hero ${over ? 'over' : ''}">${over ? fmtShortTL(-li.remaining) + ' aşıldı' : fmtShortTL(li.remaining) + ' kaldı'}</div>
+        ${spBar(li.spent, li.lim)}
         <div class="sp-lim-meta"><span>${fmtShortTL(li.spent)} harcandı</span><span>Limit ${fmtShortTL(li.lim)}</span></div>
       </div>
     </div>`;
@@ -1906,7 +1933,7 @@ function openLimitSheet(id) {
   sheetEl.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="sp-sheet-head">
-      <span class="sp-cat-ico" style="background:${c.color}">${c.emoji}</span>
+      ${spIco(c)}
       <div><div class="sp-sheet-t">${c.name} limiti</div><div class="sp-sheet-s">Bu ay harcanan: ${fmtShortTL(spent)}</div></div>
     </div>
     <div class="sp-amt-wrap"><input id="sp-limit-input" class="sp-amt-input" type="text" inputmode="numeric" placeholder="0" value="${cur || ''}" autocomplete="off" /><span class="sp-amt-cur">TL</span></div>
@@ -1922,7 +1949,7 @@ function openTotalLimitSheet() {
   sheetEl.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="sp-sheet-head">
-      <span class="sp-cat-ico" style="background:var(--navy)">${I.target}</span>
+      <span class="sp-ico" style="background:var(--navy)">${I.target}</span>
       <div><div class="sp-sheet-t">Toplam aylık limit</div><div class="sp-sheet-s">Bu ay kullanılan: ${fmtShortTL(used)}</div></div>
     </div>
     <div class="sp-amt-wrap"><input id="sp-limit-input" class="sp-amt-input" type="text" inputmode="numeric" placeholder="0" value="${cur || ''}" autocomplete="off" /><span class="sp-amt-cur">TL</span></div>
@@ -1953,7 +1980,7 @@ function spOpenAddPick() {
     <div class="ru-pick-t">Limit eklenecek kategori</div>
     ${cats.length ? cats.map(c => `
       <div class="ru-pick-row" data-action="sp-set-limit" data-id="${c.id}">
-        <span class="sp-cat-ico sm" style="background:${c.color}">${c.emoji}</span>
+        ${spIco(c, 'sm')}
         <div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">Bu ay ${fmtShortTL(spCatAmtAll(c))}</div></div>
         ${I.chevR}
       </div>`).join('') : '<div class="sp-empty">Tüm kategorilerde limit tanımlı.</div>'}

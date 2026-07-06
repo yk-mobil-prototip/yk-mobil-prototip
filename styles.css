@@ -2044,6 +2044,13 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sp-cat-ico { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; flex-shrink: 0; }
 .sp-cat-ico.big { width: 62px; height: 62px; font-size: 29px; }
 .sp-cat-ico.sm { width: 38px; height: 38px; font-size: 18px; }
+/* Standart kategori ikonu — her ekranda aynı: kategorinin kendi rengi (Akbank formatı), beyaz glif */
+.sp-ico { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; color: #fff; }
+.sp-ico svg { width: 22px; height: 22px; }
+.sp-ico.sm { width: 38px; height: 38px; }
+.sp-ico.sm svg { width: 19px; height: 19px; }
+.sp-ico.big { width: 64px; height: 64px; margin: 0 auto 12px; }
+.sp-ico.big svg { width: 32px; height: 32px; }
 .sp-cat-ico.dots { color: #fff; font-size: 22px; letter-spacing: 1px; padding-bottom: 6px; }
 .sp-cat-mid { flex: 1; min-width: 0; }
 .sp-cat-n { font-size: 15px; font-weight: 600; }
@@ -2094,8 +2101,7 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sp-sl-cta { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 700; color: var(--primary); }
 .sp-sl-cta svg { width: 14px; height: 14px; }
 .sp-limit-card { margin: 0 16px 16px; padding: 15px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); }
-.sp-limit-card.warn { border-color: rgba(217,138,0,.4); }
-.sp-limit-card.over { border-color: rgba(224,70,58,.4); }
+.sp-limit-card.over { border-color: rgba(230,138,114,.30); }
 .sp-limit-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--text-dim); }
 .sp-limit-head b { font-size: 16px; color: var(--text); font-variant-numeric: tabular-nums; }
 .sp-limit-proj { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--border); }
@@ -2105,21 +2111,18 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sp-lim-btn.ghost { background: transparent; color: var(--text-dim); }
 
 /* Ortak progress + kalan-odaklı gösterim */
-.sp-limit-track { height: 8px; border-radius: 99px; background: var(--bg-lower); overflow: hidden; margin: 9px 0; }
+.sp-limit-track { position: relative; height: 8px; border-radius: 99px; background: var(--bg-lower); overflow: hidden; margin: 9px 0; }
 .sp-limit-track.big { height: 11px; margin: 12px 0 10px; }
 .sp-limit-fill { height: 100%; border-radius: 99px; background: var(--primary); transition: width .55s cubic-bezier(.22,.61,.36,1); }
-.sp-limit-fill.ok2 { background: var(--primary); }
-.sp-limit-fill.warn { background: #d98a00; }
-.sp-limit-fill.over { background: #e0463a; }
+.sp-limit-fill.calm { background: var(--primary); }
+/* aşım: limit çentiği + minik taşma segmenti (yumuşak mercan) */
+.sp-over-seg { position: absolute; top: 0; bottom: 0; right: 0; background: #E68A72; }
+.sp-notch { position: absolute; top: -1px; bottom: -1px; width: 2px; background: var(--card); transform: translateX(-1px); }
 .sp-lim-hero { font-size: 19px; font-weight: 800; letter-spacing: -.3px; margin-top: 8px; font-variant-numeric: tabular-nums; }
-.sp-lim-hero.ok { color: var(--text); }
-.sp-lim-hero.warn { color: #d98a00; }
-.sp-lim-hero.over { color: #e0463a; }
+.sp-lim-hero.over { color: #CF6B4C; }
 .sp-lim-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-dim); }
-.sp-lim-pct { font-variant-numeric: tabular-nums; font-weight: 700; }
-.sp-lim-pct.ok { color: var(--success); }
-.sp-lim-pct.warn { color: #d98a00; }
-.sp-lim-pct.over { color: #e0463a; }
+.sp-lim-pct { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-dim); }
+.sp-lim-pct.over { color: #CF6B4C; }
 
 /* İşlem satırları (detay) */
 .sp-txns { margin: 0 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -2144,7 +2147,7 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sp-s3-l { font-size: 12px; color: var(--text-dim); }
 .sp-s3-v { font-size: 19px; font-weight: 800; margin-top: 3px; letter-spacing: -.3px; font-variant-numeric: tabular-nums; }
 .sp-s3-v.blue { color: var(--primary); }
-.sp-s3-v.over { color: #e0463a; }
+.sp-s3-v.over { color: #CF6B4C; }
 .sp-sum-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-dim); }
 .sp-sum-note b { color: var(--text); }
 .sp-sum-note svg { width: 14px; height: 14px; color: var(--primary); }
@@ -2154,13 +2157,14 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sp-lim { display: flex; gap: 13px; padding: 15px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
 .sp-lim:last-child { border-bottom: none; }
 .sp-lim:active { background: var(--card-2); }
+/* Nötr kategori ikonu — Limit tarafında kimlik renkleri yerine sade tek ton */
+.sp-lim-ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; flex-shrink: 0; background: var(--card-2); }
 .sp-lim-mid { flex: 1; min-width: 0; }
 .sp-lim-top { display: flex; align-items: center; gap: 8px; }
 .sp-lim-n { font-size: 15px; font-weight: 700; }
 .sp-lim-top .sp-cat-chev { margin-left: auto; }
 .sp-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
-.sp-badge.warn { background: rgba(217,138,0,.16); color: #d98a00; }
-.sp-badge.over { background: rgba(224,70,58,.14); color: #e0463a; }
+.sp-badge.over { background: rgba(230,138,114,.16); color: #C56A4C; }
 
 /* Akıllı öneri */
 .sp-sugg { margin: 14px 16px 0; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
