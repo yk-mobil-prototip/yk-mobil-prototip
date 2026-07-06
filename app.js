@@ -48,6 +48,8 @@ const I = {
   gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7a1.6 1.6 0 0 0 1.5 1H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>',
   power: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v9M6.4 6.4a8 8 0 1 0 11.2 0"/></svg>',
   pie: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 12 L12 3.5 A8.5 8.5 0 0 1 19.4 8.2 Z" fill="currentColor" stroke="none"/></svg>',
+  // Harcamalarım — yükselen çubuk grafiği + taban çizgisi (indirilen app-icon'un tema-uyarlı hali)
+  bars: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="11" width="3.2" height="7" rx="1.6"/><rect x="10.4" y="7.3" width="3.2" height="10.7" rx="1.6"/><rect x="16.8" y="3.8" width="3.2" height="14.2" rx="1.6"/><rect x="3.4" y="20" width="17.2" height="2.2" rx="1.1"/></svg>',
   qr: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="8.5" height="8.5" rx="1.2"/><rect x="5" y="5" width="3.5" height="3.5" rx=".5" fill="currentColor" stroke="none"/><rect x="8.5" y="11.5" width="13" height="9" rx="1.5"/><circle cx="15" cy="16" r="2.1"/><path d="M11 11.5v9M19 11.5v9" stroke-width="1"/></svg>',
   guide: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a2.5 2.5 0 1 0-2.5-2.9"/></svg>',
   sun: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>',
@@ -212,6 +214,8 @@ const SECTIONS = [
   { hash: 'roundup',    icon: 'wallet2', t: 'Yuvarla Biriktir — Başvur', d: 'Kart, kural (10/50/100 TL), hesap, talimat onayı → Aktifleştir' },
   { hash: 'roundup-jar', icon: 'pie',    t: 'Yuvarla Biriktir — Yönet',  d: 'Kumbara, aylık grafik, hedef, duraklat/durdur (dolu)' },
   { hash: 'roundup-history', icon: 'receipt', t: 'Yuvarla Biriktir — Hareketler', d: 'Aya göre gruplu tüm birikim hareketleri' },
+  { hash: 'insights',   icon: 'pie',      t: 'Harcama Analizi',      d: 'Aylık toplam, kategori dağılımı, işyeri kırılımı' },
+  { hash: 'limits',     icon: 'target',   t: 'Harcama Limitlerim',   d: 'Kategoriye tutar girerek aylık limit koy' },
   { hash: 'search',    icon: 'search',   t: 'Arama',               d: 'Arama ekranı' },
   { hash: 'settings',  icon: 'gear',     t: 'Ayarlar',             d: 'Tema ve bildirimler' },
 ];
@@ -248,6 +252,11 @@ const state = {
   seturOptionIdx: 0,         // gösterilen tatil seçeneği (0/1 arası dönüşümlü)
   seturAuthorized: false,    // agent'a yetki verildi mi
   seturSeed: false,          // sohbeti Setur sonucuyla anında kur
+  // Harcama analizi & limit
+  spendCat: 'market',        // seçili kategori (detay ekranı)
+  spendCard: 'all',          // harcama/limit filtresi: 'all' | 'worldcard' | 'tlcard'
+  totalLimit: 20000,         // ayrı, düzenlenebilir toplam aylık limit
+  limits: { market: 4000, yeme: 2000, giyim: 3000, akaryakit: 2500, eglence: 1500 },   // kategori → aylık limit (TL)
   // Yuvarla Biriktir (işlem başına round-up)
   roundup: {
     active: false,           // kural kurulu mu
@@ -453,7 +462,7 @@ function HomeScreen() {
 
       <div class="home-lower">
         <div class="quick-row4">
-          <div class="quick4" data-action="toast" data-msg="Varlıklarım prototipte aktif değil"><div class="q4-ico">${I.pie}</div><span>Varlıklarım</span></div>
+          <div class="quick4" data-action="sp-open"><div class="q4-ico">${I.bars}</div><span>Harcamalarım</span></div>
           <div class="quick4" data-action="toast" data-msg="Para Çek/Yatır prototipte aktif değil"><div class="q4-ico">${I.qr}</div><span>Para Çek/<br>Yatır</span></div>
           <div class="quick4" data-action="toast" data-msg="Son Hareketler prototipte aktif değil"><div class="q4-ico">${I.transfer}</div><span>Son<br>Hareketler</span></div>
           <div class="quick4" data-action="toast" data-msg="Aylık Ödeme Planım prototipte aktif değil"><div class="q4-ico">${I.calendar}</div><span>Aylık Ödeme<br>Planım</span></div>
@@ -1451,6 +1460,529 @@ function setupJar() {
   requestAnimationFrame(tick);
 }
 
+/* ===================================================================
+   HARCAMA ANALİZİ & LİMİT  (Harcamalarım)
+   İki ekran: Analiz + Limit (üstte segment). Analiz'de dönem + kart filtresi.
+   Limitler hesap geneli (tüm kartlar) hesaplanır; kart filtresi yalnız Analiz'de.
+   =================================================================== */
+const SPEND_MONTH = 'Bu ay';
+const SPEND_DAY = 20, SPEND_DAYS = 30;   // ayın kaçıncı günü / toplam gün
+const SPEND_CHANGE = 8;                   // toplamda geçen aya göre % (artış)
+
+// Filtre kartları — 'all' + gerçek kartlar
+const SP_CARDS = [
+  { id: 'all',       name: 'Tüm kartlar', num: '' },
+  { id: 'worldcard', name: 'Worldcard',   num: '1234 56** **** 3333', kind: 'Kredi Kartı' },
+  { id: 'tlcard',    name: 'TLcard',       num: '4506 34** **** 8842', kind: 'Banka Kartı' },
+];
+function spCardObj() { return SP_CARDS.find(c => c.id === state.spendCard) || SP_CARDS[0]; }
+
+// Kategoriler — tutar işyeri kırılımından türetilir. dn: gün, card: filtre, mom: geçen aya göre %
+const SPEND_CATS = [
+  { id: 'market', name: 'Market', emoji: '🛒', color: '#14A5A0', mom: 12, txns: [
+    { m: 'CarrefourSA', s: 'Ataşehir',  d: '18 Haz', dn: 18, a: 902.70, card: 'tlcard' },
+    { m: 'Migros',      s: 'Ataşehir',  d: '15 Haz', dn: 15, a: 845.30, card: 'tlcard' },
+    { m: 'A101',        s: 'Kadıköy',   d: '11 Haz', dn: 11, a: 780.00, card: 'worldcard' },
+    { m: 'Getir',       s: '2 işlem',   d: '06 Haz', dn: 6,  a: 712.50, card: 'worldcard' },
+  ]},
+  { id: 'giyim', name: 'Giyim', emoji: '👕', color: '#2F6FED', mom: 18, txns: [
+    { m: 'Boyner',     s: 'Akasya AVM', d: '17 Haz', dn: 17, a: 1640.00, card: 'worldcard' },
+    { m: 'Zara',       s: 'Online',     d: '12 Haz', dn: 12, a: 780.00,  card: 'worldcard' },
+    { m: 'LC Waikiki', s: 'Kadıköy',    d: '08 Haz', dn: 8,  a: 520.00,  card: 'tlcard' },
+  ]},
+  { id: 'yeme', name: 'Yemek', emoji: '🍽️', color: '#F5883E', mom: 9, txns: [
+    { m: 'Big Chefs',     s: 'Restoran', d: '19 Haz', dn: 19, a: 720.00, card: 'worldcard' },
+    { m: 'Yemeksepeti',   s: '3 sipariş', d: '14 Haz', dn: 14, a: 640.00, card: 'worldcard' },
+    { m: 'Kahve Dünyası', s: '4 işlem',  d: '10 Haz', dn: 10, a: 440.00, card: 'tlcard' },
+    { m: 'Starbucks',     s: '2 işlem',  d: '07 Haz', dn: 7,  a: 380.00, card: 'worldcard' },
+  ]},
+  { id: 'fatura', name: 'Faturalar', emoji: '🧾', color: '#8B7FD6', mom: -6, txns: [
+    { m: 'Enerjisa',     s: 'Elektrik', d: '13 Haz', dn: 13, a: 720.30, card: 'worldcard' },
+    { m: 'İGDAŞ',        s: 'Doğalgaz', d: '13 Haz', dn: 13, a: 610.00, card: 'worldcard' },
+    { m: 'Türk Telekom', s: 'İnternet', d: '05 Haz', dn: 5,  a: 540.00, card: 'worldcard' },
+  ]},
+  { id: 'akaryakit', name: 'Akaryakıt', emoji: '⛽', color: '#4A6FA5', mom: -11, txns: [
+    { m: 'Opet',  s: 'Ataşehir', d: '16 Haz', dn: 16, a: 960.00, card: 'worldcard' },
+    { m: 'Shell', s: 'E-5',      d: '09 Haz', dn: 9,  a: 600.00, card: 'tlcard' },
+  ]},
+  { id: 'saglik', name: 'Sağlık & Bakım', emoji: '💊', color: '#E86AA6', mom: 7, txns: [
+    { m: 'Eczane Nur', s: 'Sağlık',        d: '15 Haz', dn: 15, a: 550.00, card: 'tlcard' },
+    { m: 'Watsons',    s: 'Kişisel bakım', d: '08 Haz', dn: 8,  a: 430.00, card: 'worldcard' },
+  ]},
+  { id: 'ulasim', name: 'Ulaşım', emoji: '🚕', color: '#7B61C9', mom: -14, txns: [
+    { m: 'Uber',         s: '5 yolculuk', d: '18 Haz', dn: 18, a: 400.00, card: 'worldcard' },
+    { m: 'İstanbulkart', s: 'Dolum',      d: '10 Haz', dn: 10, a: 240.00, card: 'tlcard' },
+  ]},
+  { id: 'eglence', name: 'Eğlence', emoji: '🎬', color: '#7C4DFF', mom: 22, txns: [
+    { m: 'Cinemaximum', s: 'Sinema',    d: '14 Haz', dn: 14, a: 510.00, card: 'worldcard' },
+    { m: 'Netflix',     s: 'Abonelik',  d: '03 Haz', dn: 3,  a: 150.00, card: 'worldcard' },
+    { m: 'Spotify',     s: 'Abonelik',  d: '03 Haz', dn: 3,  a: 60.00,  card: 'worldcard' },
+  ]},
+  { id: 'diger', name: 'Diğer', emoji: '🧩', color: '#8A8F98', mom: 3, txns: [
+    { m: 'Trendyol', s: 'Online', d: '11 Haz', dn: 11, a: 430.00, card: 'worldcard' },
+  ]},
+];
+
+/* ---- filtreli (Analiz) hesaplar ---- */
+function spCat(id) { return SPEND_CATS.find(c => c.id === id); }
+function spCatTxns(c) { return state.spendCard === 'all' ? c.txns : c.txns.filter(t => t.card === state.spendCard); }
+function spCatAmt(c) { return spCatTxns(c).reduce((s, t) => s + t.a, 0); }
+function spTotal() { return SPEND_CATS.reduce((s, c) => s + spCatAmt(c), 0); }
+function spActive() { return SPEND_CATS.filter(c => spCatAmt(c) > 0); }
+function spSorted() { return spActive().sort((a, b) => spCatAmt(b) - spCatAmt(a)); }
+function spAllTxns() { const a = []; SPEND_CATS.forEach(c => spCatTxns(c).forEach(t => a.push(t))); return a; }
+function spMerchants() { return new Set(spAllTxns().map(t => t.m)).size; }
+/* ---- tüm-kartlar (Limit) hesaplar — limit hesap geneli bir bütçedir ---- */
+function spCatAmtAll(c) { return c.txns.reduce((s, t) => s + t.a, 0); }
+function spTotalAll() { return SPEND_CATS.reduce((s, c) => s + spCatAmtAll(c), 0); }
+function spSortedAll() { return SPEND_CATS.filter(c => spCatAmtAll(c) > 0).sort((a, b) => spCatAmtAll(b) - spCatAmtAll(a)); }
+function spLimit(id) { return state.limits[id] || null; }
+function spLimitInfo(c) {
+  const lim = spLimit(c.id); if (!lim) return null;
+  const spent = spCatAmtAll(c);
+  const pct = Math.round(spent / lim * 100);
+  const proj = SPEND_DAY ? spent / SPEND_DAY * SPEND_DAYS : spent;
+  return { lim, spent, pct, remaining: lim - spent, over: spent > lim, near: pct >= 80 && spent <= lim, proj, projOver: proj > lim };
+}
+function fmtShortTL(n) { return Math.round(n).toLocaleString('tr-TR') + ' TL'; }
+function momTxt(n) { return (n >= 0 ? '+' : '−') + '%' + Math.abs(n); }
+
+/* ---- Donut ---- */
+function spDonutParts() {
+  const cats = spSorted(); const total = spTotal() || 1;
+  const parts = cats.slice(0, 4).map(c => ({ name: c.name, color: c.color, amt: spCatAmt(c) }));
+  const rest = cats.slice(4).reduce((s, c) => s + spCatAmt(c), 0);
+  if (rest > 0) parts.push({ name: 'Diğer', color: '#8A8F98', amt: rest });
+  return parts.map(p => ({ ...p, pct: Math.round(p.amt / total * 100) }));
+}
+function spDonut() {
+  const parts = spDonutParts();
+  const total = parts.reduce((s, p) => s + p.amt, 0) || 1;
+  let acc = 0; const stops = [];
+  parts.forEach(p => { const f = acc / total * 100; acc += p.amt; const to = acc / total * 100; stops.push(`${p.color} ${f.toFixed(2)}% ${to.toFixed(2)}%`); });
+  if (!stops.length) stops.push('#8A8F98 0% 100%');
+  return `
+    <div class="sp-donut" style="background:conic-gradient(${stops.join(',')})">
+      <div class="sp-donut-hole"><div class="sp-donut-amt">${fmtShortTL(spTotal())}</div><div class="sp-donut-lbl">Toplam</div></div>
+    </div>
+    <div class="sp-legend">${parts.map(p => `<div class="sp-leg"><span class="sp-leg-dot" style="background:${p.color}"></span><span class="sp-leg-pct">%${p.pct}</span><span class="sp-leg-n">${p.name}</span></div>`).join('')}</div>`;
+}
+
+/* ---- Kümülatif çizgi + geçen ay hayalet eğrisi ---- */
+function spLineChart() {
+  const txns = spAllTxns().slice().sort((a, b) => a.dn - b.dn);
+  const W = 300, H = 92;
+  let cum = 0; const pts = [[0, 0]];
+  txns.forEach(t => { cum += t.a; pts.push([t.dn, cum]); });
+  const curTotal = cum;
+  const prevTotal = curTotal / (1 + SPEND_CHANGE / 100);
+  const maxV = Math.max(curTotal, prevTotal, 1);
+  const X = d => d / SPEND_DAYS * W;
+  const Y = v => H - (v / maxV) * (H - 8);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${X(p[0]).toFixed(1)} ${Y(p[1]).toFixed(1)}`).join(' ');
+  const last = pts[pts.length - 1];
+  const area = `${line} L${X(last[0]).toFixed(1)} ${H} L0 ${H} Z`;
+  const gf = [0, .28, .52, .76, 1], gd = [0, 8, 15, 22, 30];
+  const ghost = gd.map((d, i) => `${i ? 'L' : 'M'}${X(d).toFixed(1)} ${Y(prevTotal * gf[i]).toFixed(1)}`).join(' ');
+  return `
+    <svg class="sp-line" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--primary)" stop-opacity=".22"/>
+        <stop offset="1" stop-color="var(--primary)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="${ghost}" fill="none" stroke="var(--text-faint)" stroke-width="1.6" stroke-dasharray="4 4" opacity=".75" vector-effect="non-scaling-stroke"/>
+      <path d="${area}" fill="url(#spg)"/>
+      <path d="${line}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      <line x1="${X(last[0]).toFixed(1)}" y1="0" x2="${X(last[0]).toFixed(1)}" y2="${H}" stroke="var(--primary)" stroke-width="1" stroke-dasharray="3 3" opacity=".45" vector-effect="non-scaling-stroke"/>
+    </svg>`;
+}
+
+/* ---- Ortak üst başlık: segment + filtreler (kart yalnız Analiz'de) ---- */
+function spHeader(active) {
+  const card = spCardObj();
+  const showCard = active === 'insights';
+  return `
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Harcamalarım</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="sp-top">
+      <div class="sp-seg">
+        <button class="sp-seg-b ${active === 'insights' ? 'on' : ''}" data-action="sp-seg" data-seg="insights">Analiz</button>
+        <button class="sp-seg-b ${active === 'limits' ? 'on' : ''}" data-action="sp-seg" data-seg="limits">Limit</button>
+      </div>
+      <div class="sp-filters ${showCard ? '' : 'solo'}">
+        <button class="sp-fpill" data-action="sp-period"><span class="sp-fp-ic">${I.calendar}</span><span>${SPEND_MONTH}</span>${I.chevDown}</button>
+        ${showCard ? `<button class="sp-fpill" data-action="sp-cardpick"><span class="sp-fp-ic">${I.card}</span><span>${card.name}</span>${I.chevDown}</button>` : ''}
+      </div>
+    </div>`;
+}
+
+/* =================== ANALİZ EKRANI =================== */
+function InsightsScreen() {
+  const total = spTotal();
+  const cats = spSorted();
+  const top = cats.slice(0, 4);
+  const rest = cats.slice(4);
+  const restSum = rest.reduce((s, c) => s + spCatAmt(c), 0);
+  const inc = SPEND_CHANGE >= 0;
+  return `
+  <div class="screen anim-right sp-screen">
+    ${spHeader('insights')}
+    <div class="screen-scroll">
+      <div class="sp-card">
+        <div class="sp-sum-label">Toplam Harcama</div>
+        <div class="sp-sum-amt">${fmtTL2(total)}</div>
+        <div class="sp-chg ${inc ? 'inc' : 'dec'}"><span class="sp-chg-ic">${I.trendUp}</span><b>${momTxt(SPEND_CHANGE)}</b> geçen aya göre</div>
+        <div class="sp-donut-wrap">${spDonut()}</div>
+        <div class="sp-line-wrap">
+          <span class="sp-today">Bugün</span>
+          ${spLineChart()}
+          <div class="sp-x"><span>1</span><span>8</span><span>15</span><span>22</span><span>30</span></div>
+          <div class="sp-line-legend"><span class="ll cur">Bu ay</span><span class="ll prev">Geçen ay</span></div>
+        </div>
+      </div>
+
+      <div class="sp-card pad0">
+        <div class="sp-card-h row"><span>Kategoriye göre harcamalar</span><button class="sp-link" data-action="sp-allcats">Tümü ${I.chevR}</button></div>
+        <div class="sp-cat-list">
+          ${top.map(c => spCatRow(c, total)).join('')}
+          ${rest.length ? `<div class="sp-cat" data-action="sp-allcats">
+            <span class="sp-cat-ico dots" style="background:#8A8F98">•••</span>
+            <div class="sp-cat-mid"><div class="sp-cat-n">Diğer kategoriler</div><div class="sp-cat-sub">${rest.length} kategori</div></div>
+            <span class="sp-cat-a">${fmtTL2(restSum)}</span>
+            <span class="sp-cat-chev">${I.chevR}</span>
+          </div>` : ''}
+        </div>
+      </div>
+
+      <div class="sp-hab-head"><span>Harcama Alışkanlıkların</span><button class="sp-link" data-action="toast" data-msg="Tüm içgörüler prototipte aktif değil">Tümü ${I.chevR}</button></div>
+      <div class="sp-hab-scroll">
+        ${spHabitDay()}
+        ${spHabitConc()}
+        ${spHabitBiggest()}
+        ${spHabitDaily()}
+        ${spHabitSubs()}
+        ${spHabitMerch()}
+      </div>
+
+      <div class="sp-foot-note">${I.lock} Veriler bu aya kadar günceldir.</div>
+    </div>
+  </div>`;
+}
+
+// Analiz kategori satırı — sade: ikon + isim + (%pay · geçen aya göre) + tutar
+function spCatRow(c, total) {
+  const amt = spCatAmt(c);
+  const pct = total ? Math.round(amt / total * 100) : 0;
+  return `
+    <div class="sp-cat" data-action="sp-cat" data-id="${c.id}">
+      <span class="sp-cat-ico" style="background:${c.color}">${c.emoji}</span>
+      <div class="sp-cat-mid"><div class="sp-cat-n">${c.name}</div><div class="sp-cat-sub">%${pct} · geçen aya göre ${momTxt(c.mom)}</div></div>
+      <span class="sp-cat-a">${fmtTL2(amt)}</span>
+      <span class="sp-cat-chev">${I.chevR}</span>
+    </div>`;
+}
+
+/* Tüm kategoriler (Tümü) */
+function AllCatsScreen() {
+  const total = spTotal();
+  const cats = spSorted();
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Kategoriler</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+      <div class="sp-card pad0" style="margin-top:14px"><div class="sp-cat-list">${cats.map(c => spCatRow(c, total)).join('')}</div></div>
+      <div class="sp-foot-note">${I.lock} ${state.spendCard !== 'all' ? spCardObj().name + ' harcamaları' : 'Tüm kartlar'} · ${SPEND_MONTH}</div>
+    </div>
+  </div>`;
+}
+
+/* Alışkanlık kartları — çeşitli, çoğu canlı veriden (yatay kaydırma) */
+const SP_WK_LBL = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cts', 'Paz'];
+function spWeekday() { const s = [0, 0, 0, 0, 0, 0, 0]; spAllTxns().forEach(t => { s[(t.dn - 1) % 7] += t.a; }); return s; }
+function spBiggest() { return spAllTxns().slice().sort((a, b) => b.a - a.a)[0]; }
+function spSubs() { const s = spAllTxns().filter(t => t.s === 'Abonelik'); return { sum: s.reduce((x, t) => x + t.a, 0), count: s.length }; }
+function spHabitDay() {
+  const w = spWeekday(); const max = Math.max(...w, 1); const mi = w.indexOf(Math.max(...w));
+  const full = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+  return `
+    <div class="sp-hab">
+      <div class="sp-hab-ico blue">${I.calendar}</div>
+      <div class="sp-hab-lbl">En çok harcadığın gün</div>
+      <div class="sp-hab-big">${full[mi]}</div>
+      <div class="sp-hab-sub">O gün ${fmtShortTL(w[mi])}</div>
+      <div class="sp-week">${w.map((v, i) => `<div class="sp-wk"><div class="sp-wk-track"><div class="sp-wk-bar ${i === mi ? 'on' : ''}" style="height:${Math.round(v / max * 100)}%"></div></div><div class="sp-wk-d ${i === mi ? 'on' : ''}">${SP_WK_LBL[i]}</div></div>`).join('')}</div>
+    </div>`;
+}
+function spHabitConc() {
+  const total = spTotal() || 1;
+  const pct = Math.round((spCatAmt(spCat('market')) + spCatAmt(spCat('yeme'))) / total * 100);
+  return `
+    <div class="sp-hab">
+      <div class="sp-hab-ico green">${I.pie}</div>
+      <div class="sp-hab-lbl">Harcamalarının</div>
+      <div class="sp-hab-big">%${pct}'i</div>
+      <div class="sp-hab-sub">market ve yemek kategorilerinde</div>
+      <button class="sp-hab-btn" data-action="toast" data-msg="Detay prototipte aktif değil">Detayları Gör</button>
+    </div>`;
+}
+function spHabitBiggest() {
+  const t = spBiggest();
+  return `
+    <div class="sp-hab">
+      <div class="sp-hab-ico amber">${I.receipt}</div>
+      <div class="sp-hab-lbl">En büyük tek harcama</div>
+      <div class="sp-hab-big">${fmtShortTL(t ? t.a : 0)}</div>
+      <div class="sp-hab-sub">${t ? t.m + ' · ' + t.d : '—'}</div>
+    </div>`;
+}
+function spHabitDaily() {
+  const avg = spTotal() / SPEND_DAY;
+  return `
+    <div class="sp-hab">
+      <div class="sp-hab-ico teal">${I.wallet2}</div>
+      <div class="sp-hab-lbl">Günlük ortalama</div>
+      <div class="sp-hab-big">${fmtShortTL(avg)}</div>
+      <div class="sp-hab-sub">bu ay · ${SPEND_DAY} gün</div>
+    </div>`;
+}
+function spHabitSubs() {
+  const s = spSubs();
+  return `
+    <div class="sp-hab">
+      <div class="sp-hab-ico purple">${I.refresh}</div>
+      <div class="sp-hab-lbl">Abonelikler</div>
+      <div class="sp-hab-big">${fmtShortTL(s.sum)}</div>
+      <div class="sp-hab-sub">${s.count} abonelik · aylık yenilenen</div>
+    </div>`;
+}
+function spHabitMerch() {
+  return `
+    <div class="sp-hab">
+      <div class="sp-hab-ico blue">${I.bank}</div>
+      <div class="sp-hab-lbl">Bu ay</div>
+      <div class="sp-hab-big">${spMerchants()}</div>
+      <div class="sp-hab-sub">farklı iş yeri ile alışveriş yaptın</div>
+      <button class="sp-hab-btn" data-action="toast" data-msg="İş yerleri prototipte aktif değil">İş Yerlerini Gör</button>
+    </div>`;
+}
+
+/* =================== KATEGORİ DETAY =================== */
+function InsightsCategoryScreen() {
+  const c = spCat(state.spendCat) || SPEND_CATS[0];
+  const amt = spCatAmt(c);
+  const li = spLimitInfo(c);
+  const txns = spCatTxns(c);
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">${c.name}</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+      <div class="sp-cat-hero">
+        <span class="sp-cat-ico big" style="background:${c.color}">${c.emoji}</span>
+        <div class="sp-cat-hero-amt">${fmtTL2(amt)}</div>
+        <div class="sp-cat-hero-sub">${SPEND_MONTH} · ${txns.length} işlem${state.spendCard !== 'all' ? ' · ' + spCardObj().name : ''}</div>
+      </div>
+
+      ${spCatLimitBlock(c, li)}
+
+      <div class="section-title">İşlemler</div>
+      <div class="sp-txns">${txns.length ? txns.map(t => `
+        <div class="sp-txn">
+          <span class="sp-txn-ico" style="background:${c.color}22;color:${c.color}">${initials(t.m)}</span>
+          <div class="sp-txn-mid"><div class="sp-txn-m">${t.m}</div><div class="sp-txn-s">${t.s}</div><div class="sp-txn-d">${t.d}</div></div>
+          <span class="sp-txn-a">${fmtTL2(t.a)}</span>
+        </div>`).join('') : '<div class="sp-empty">Bu kartta bu kategoride işlem yok.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+function spCatLimitBlock(c, li) {
+  if (!li) return `
+    <div class="sp-setlimit" data-action="sp-set-limit" data-id="${c.id}">
+      <span class="sp-sl-ico">${I.target}</span>
+      <div class="sp-sl-mid"><div class="sp-sl-t">Bu kategoriye limit koy</div><div class="sp-sl-s">Aylık harcamanı kontrol altında tut.</div></div>
+      <span class="sp-sl-cta">${I.plus} Ekle</span>
+    </div>`;
+  const cls = li.over ? 'over' : (li.near ? 'warn' : 'ok');
+  return `
+    <div class="sp-limit-card ${cls}">
+      <div class="sp-limit-head"><span>Aylık limit${state.spendCard !== 'all' ? ' · tüm kartlar' : ''}</span><b>${fmtShortTL(li.lim)}</b></div>
+      <div class="sp-lim-hero ${cls}">${li.over ? fmtShortTL(-li.remaining) + ' aşıldı' : fmtShortTL(li.remaining) + ' kaldı'}</div>
+      <div class="sp-limit-track"><div class="sp-limit-fill ${cls === 'ok' ? 'ok2' : cls}" style="width:${Math.min(100, li.pct)}%${cls === 'ok' ? ';background:' + c.color : ''}"></div></div>
+      <div class="sp-lim-meta"><span>${fmtShortTL(li.spent)} harcandı</span><span class="sp-lim-pct ${cls}">%${li.pct}</span></div>
+      <div class="sp-limit-proj">${I.trendUp} Bu hızla ay sonunda ~${fmtShortTL(li.proj)} ${li.projOver ? '· limiti aşabilirsin' : '· limit içinde'}</div>
+      <div class="sp-limit-actions">
+        <button class="sp-lim-btn" data-action="sp-set-limit" data-id="${c.id}">Limiti düzenle</button>
+        <button class="sp-lim-btn ghost" data-action="sp-remove-limit" data-id="${c.id}">Kaldır</button>
+      </div>
+    </div>`;
+}
+
+/* =================== LİMİT EKRANI (hesap geneli) =================== */
+function LimitsScreen() {
+  const used = spTotalAll();
+  const tl = state.totalLimit;
+  const rem = tl - used;
+  const pct = tl ? Math.round(used / tl * 100) : 0;
+  const limited = SPEND_CATS.filter(c => spLimit(c.id)).sort((a, b) => spLimitInfo(b).pct - spLimitInfo(a).pct);
+  const sugg = spSuggestion();
+  const tcls = pct >= 100 ? 'over' : (pct >= 80 ? 'warn' : 'ok2');
+  return `
+  <div class="screen anim-right sp-screen">
+    ${spHeader('limits')}
+    <div class="screen-scroll">
+      <div class="sp-card sp-sum-card" data-action="sp-edit-total">
+        <div class="sp-card-h row"><span>Aylık limit özeti</span><span class="sp-edit-link">Düzenle ${I.chevR}</span></div>
+        <div class="sp-sum3">
+          <div><div class="sp-s3-l">Toplam limit</div><div class="sp-s3-v">${fmtShortTL(tl)}</div></div>
+          <div class="mid"><div class="sp-s3-l">Kullanılan</div><div class="sp-s3-v">${fmtShortTL(used)}</div></div>
+          <div><div class="sp-s3-l">Kalan</div><div class="sp-s3-v ${rem < 0 ? 'over' : 'blue'}">${fmtShortTL(rem)}</div></div>
+        </div>
+        <div class="sp-limit-track big"><div class="sp-limit-fill ${tcls}" style="width:${Math.min(100, pct)}%"></div></div>
+        <div class="sp-sum-note">${I.trendUp} Genel aylık hedefinin <b>%${pct}</b>'i kullanıldı.</div>
+      </div>
+
+      <div class="sp-card pad0">
+        <div class="sp-card-h col"><span>Kategori limitlerin</span><span class="sp-card-sub">Kategori bütçelerin — genel hedeften bağımsız</span></div>
+        <div class="sp-lim-list">${limited.length ? limited.map(spLimRow).join('') : '<div class="sp-empty">Henüz kategori limiti yok. Aşağıdan ekleyebilirsin.</div>'}</div>
+      </div>
+
+      ${sugg ? `
+      <div class="sp-sugg">
+        <div class="sp-sugg-top"><span class="sp-sugg-ico">💡</span><span class="sp-sugg-t">Akıllı öneri</span></div>
+        <div class="sp-sugg-s">${sugg.text}</div>
+        <button class="sp-out-btn wide" data-action="sp-apply-sugg" data-id="${sugg.id}" data-val="${sugg.val}">${sugg.cta}</button>
+      </div>` : ''}
+
+      <div class="sp-foot-note">${I.lock} Limitler yalnızca bilgilendirme amaçlıdır, işlemleri engellemez.</div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-primary" data-action="sp-add-limit">Yeni kategori limiti ekle ${I.plus}</button>
+    </div>
+  </div>`;
+}
+function spLimRow(c) {
+  const li = spLimitInfo(c);
+  const cls = li.over ? 'over' : (li.near ? 'warn' : 'ok');
+  const badge = li.over ? '<span class="sp-badge over">Limit aşıldı</span>' : (li.near ? '<span class="sp-badge warn">Limite yakın</span>' : '');
+  return `
+    <div class="sp-lim" data-action="sp-set-limit" data-id="${c.id}">
+      <span class="sp-cat-ico" style="background:${c.color}">${c.emoji}</span>
+      <div class="sp-lim-mid">
+        <div class="sp-lim-top"><span class="sp-lim-n">${c.name}</span>${badge}<span class="sp-cat-chev">${I.chevR}</span></div>
+        <div class="sp-lim-hero ${cls}">${li.over ? fmtShortTL(-li.remaining) + ' aşıldı' : fmtShortTL(li.remaining) + ' kaldı'}</div>
+        <div class="sp-limit-track"><div class="sp-limit-fill ${cls === 'ok' ? 'ok2' : cls}" style="width:${Math.min(100, li.pct)}%${cls === 'ok' ? ';background:' + c.color : ''}"></div></div>
+        <div class="sp-lim-meta"><span>${fmtShortTL(li.spent)} harcandı</span><span>Limit ${fmtShortTL(li.lim)}</span></div>
+      </div>
+    </div>`;
+}
+// Akıllı öneri — bağlama göre değişir (aşımı artır / limitsiz büyük kategoriye ekle / az kullanılanı düşür)
+function spSuggestion() {
+  const over = SPEND_CATS.find(c => { const li = spLimitInfo(c); return li && li.over; });
+  if (over) { const v = Math.ceil(spCatAmtAll(over) / 500) * 500 + 1000; return { id: over.id, name: over.name, val: v, cta: 'Öneriyi uygula', text: `Geçen 3 ayın harcamalarına göre <b>${over.name}</b> limitini <b>${fmtShortTL(v)}</b> yapman daha uygun olabilir.` }; }
+  const big = spSortedAll().find(c => !spLimit(c.id) && spCatAmtAll(c) > 800);
+  if (big) { const v = Math.ceil(spCatAmtAll(big) * 1.15 / 500) * 500; return { id: big.id, name: big.name, val: v, cta: 'Limit ekle', text: `En çok harcadığın kategorilerden <b>${big.name}</b> için limit yok. <b>${fmtShortTL(v)}</b> ile başlayabilirsin.` }; }
+  const low = SPEND_CATS.find(c => { const li = spLimitInfo(c); return li && li.pct < 45; });
+  if (low) { const v = Math.ceil(spCatAmtAll(low) * 1.2 / 500) * 500; return { id: low.id, name: low.name, val: v, cta: 'Öneriyi uygula', text: `<b>${low.name}</b> limitinin çoğu boşta. <b>${fmtShortTL(v)}</b>'ye çekerek bütçeni sıkılaştırabilirsin.` }; }
+  return null;
+}
+
+/* =================== SHEET'LER =================== */
+const SP_PRESETS = [2000, 5000, 10000];
+function openLimitSheet(id) {
+  const c = spCat(id); if (!c) return;
+  const cur = spLimit(id);
+  const spent = spCatAmtAll(c);
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sp-sheet-head">
+      <span class="sp-cat-ico" style="background:${c.color}">${c.emoji}</span>
+      <div><div class="sp-sheet-t">${c.name} limiti</div><div class="sp-sheet-s">Bu ay harcanan: ${fmtShortTL(spent)}</div></div>
+    </div>
+    <div class="sp-amt-wrap"><input id="sp-limit-input" class="sp-amt-input" type="text" inputmode="numeric" placeholder="0" value="${cur || ''}" autocomplete="off" /><span class="sp-amt-cur">TL</span></div>
+    <div class="sp-preset-row">${SP_PRESETS.map(p => `<button class="sp-preset" data-action="sp-limit-preset" data-val="${p}">${p.toLocaleString('tr-TR')} TL</button>`).join('')}</div>
+    <div class="sp-sheet-hint">${I.info} Limite yaklaşınca (%80) ve aşınca bildirim gönderilir.</div>
+    <button class="sheet-btn" data-action="sp-save-limit" data-id="${id}">${cur ? 'Limiti Güncelle' : 'Limiti Kaydet'}</button>
+    ${cur ? `<button class="sheet-btn ghost danger-txt" data-action="sp-remove-limit" data-id="${id}">Limiti Kaldır</button>` : `<button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`}`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+  setTimeout(() => { const i = document.getElementById('sp-limit-input'); if (i) i.focus(); }, 250);
+}
+function openTotalLimitSheet() {
+  const cur = state.totalLimit; const used = spTotalAll();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sp-sheet-head">
+      <span class="sp-cat-ico" style="background:var(--navy)">${I.target}</span>
+      <div><div class="sp-sheet-t">Toplam aylık limit</div><div class="sp-sheet-s">Bu ay kullanılan: ${fmtShortTL(used)}</div></div>
+    </div>
+    <div class="sp-amt-wrap"><input id="sp-limit-input" class="sp-amt-input" type="text" inputmode="numeric" placeholder="0" value="${cur || ''}" autocomplete="off" /><span class="sp-amt-cur">TL</span></div>
+    <div class="sp-preset-row">${[10000, 20000, 30000].map(p => `<button class="sp-preset" data-action="sp-limit-preset" data-val="${p}">${p.toLocaleString('tr-TR')} TL</button>`).join('')}</div>
+    <div class="sp-sheet-hint">${I.info} Genel aylık harcama hedefin. Kategori limitlerinden bağımsızdır.</div>
+    <button class="sheet-btn" data-action="sp-save-total">Kaydet</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+  setTimeout(() => { const i = document.getElementById('sp-limit-input'); if (i) i.focus(); }, 250);
+}
+function spOpenCardPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Kart seç</div>
+    ${SP_CARDS.map(c => { const on = state.spendCard === c.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="sp-pick-card" data-val="${c.id}">
+        <span class="sp-pick-card">${I.card}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">${c.num ? c.num + ' · ' + c.kind : 'Tüm kartların toplamı'}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`; }).join('')}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+}
+function spOpenAddPick() {
+  const cats = spSortedAll().filter(c => !spLimit(c.id));
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Limit eklenecek kategori</div>
+    ${cats.length ? cats.map(c => `
+      <div class="ru-pick-row" data-action="sp-set-limit" data-id="${c.id}">
+        <span class="sp-cat-ico sm" style="background:${c.color}">${c.emoji}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">Bu ay ${fmtShortTL(spCatAmtAll(c))}</div></div>
+        ${I.chevR}
+      </div>`).join('') : '<div class="sp-empty">Tüm kategorilerde limit tanımlı.</div>'}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+}
+
+/* ---- akış mantığı ---- */
+function spSeg(seg) { const target = seg === 'limits' ? 'limits' : 'insights'; if (state.screen !== target) { state.screen = target; render(); } }
+function spLimitPreset(val) { const i = document.getElementById('sp-limit-input'); if (i) i.value = val; }
+function spSaveLimit(id) {
+  const i = document.getElementById('sp-limit-input');
+  const val = parseInt((i ? i.value : '').replace(/[^\d]/g, ''), 10);
+  if (!val || val <= 0) return toast('Geçerli bir tutar gir');
+  state.limits[id] = val; closeSheet(); render();
+  setTimeout(() => toast(`${spCat(id).name} limiti ${fmtShortTL(val)} olarak ayarlandı 🎯`), 150);
+}
+function spSaveTotal() {
+  const i = document.getElementById('sp-limit-input');
+  const val = parseInt((i ? i.value : '').replace(/[^\d]/g, ''), 10);
+  if (!val || val <= 0) return toast('Geçerli bir tutar gir');
+  state.totalLimit = val; closeSheet(); render();
+  setTimeout(() => toast(`Toplam aylık limit ${fmtShortTL(val)} olarak ayarlandı`), 150);
+}
+function spRemoveLimit(id) { delete state.limits[id]; closeSheet(); render(); setTimeout(() => toast('Limit kaldırıldı'), 150); }
+function spPickCard(id) { state.spendCard = id; closeSheet(); render(); }
+function spApplySugg(id, val) { state.limits[id] = val; render(); setTimeout(() => toast(`${spCat(id).name} limiti ${fmtShortTL(val)} yapıldı 💡`), 150); }
+function initials(name) { return name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase(); }
+
 function PlaceholderScreen(title) {
   return `
   <div class="screen anim-right">
@@ -1485,6 +2017,10 @@ function render() {
     case 'roundup-apply': html = RoundupApply(); break;
     case 'roundup-jar': html = RoundupJar(); break;
     case 'roundup-history': html = RoundupHistory(); break;
+    case 'insights': html = InsightsScreen(); break;
+    case 'insights-category': html = InsightsCategoryScreen(); break;
+    case 'insights-cats': html = AllCatsScreen(); break;
+    case 'limits': html = LimitsScreen(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
   app.innerHTML = html;
@@ -2576,6 +3112,23 @@ document.addEventListener('click', (e) => {
     case 'ru-stop': return ruStop();
     case 'ru-stop-confirm': return ruStopConfirm();
 
+    // Harcama analizi & limit
+    case 'sp-open': return go('insights');
+    case 'sp-seg': return spSeg(t.dataset.seg);
+    case 'sp-cat': state.spendCat = t.dataset.id; return go('insights-category');
+    case 'sp-allcats': return go('insights-cats');
+    case 'sp-cardpick': return spOpenCardPick();
+    case 'sp-pick-card': return spPickCard(t.dataset.val);
+    case 'sp-period': return toast('Dönem seçimi prototipte aktif değil');
+    case 'sp-set-limit': return openLimitSheet(t.dataset.id);
+    case 'sp-limit-preset': return spLimitPreset(t.dataset.val);
+    case 'sp-save-limit': return spSaveLimit(t.dataset.id);
+    case 'sp-remove-limit': return spRemoveLimit(t.dataset.id);
+    case 'sp-edit-total': return openTotalLimitSheet();
+    case 'sp-save-total': return spSaveTotal();
+    case 'sp-add-limit': return spOpenAddPick();
+    case 'sp-apply-sugg': return spApplySugg(t.dataset.id, +t.dataset.val);
+
     case 'menu-nav': {
       const id = t.dataset.id;
       if (id === 'home') return goHome();
@@ -2604,7 +3157,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'insights', 'insights-category', 'insights-cats', 'limits'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
