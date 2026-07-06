@@ -216,6 +216,7 @@ const SECTIONS = [
   { hash: 'roundup-history', icon: 'receipt', t: 'Yuvarla Biriktir — Hareketler', d: 'Aya göre gruplu tüm birikim hareketleri' },
   { hash: 'insights',   icon: 'pie',      t: 'Harcama Analizi',      d: 'Aylık toplam, kategori dağılımı, işyeri kırılımı' },
   { hash: 'limits',     icon: 'target',   t: 'Harcama Limitlerim',   d: 'Kategoriye tutar girerek aylık limit koy' },
+  { hash: 'kid',        icon: 'wallet2',  t: 'Çocuk Ek Kartı',       d: 'Limit, harçlık, birikim hedefi, veli eşleştirme, onaylar, rozetler' },
   { hash: 'search',    icon: 'search',   t: 'Arama',               d: 'Arama ekranı' },
   { hash: 'settings',  icon: 'gear',     t: 'Ayarlar',             d: 'Tema ve bildirimler' },
 ];
@@ -267,6 +268,35 @@ const state = {
     jar: 1842.35,            // toplam biriken (TL)
     monthChange: 15,         // geçen aya göre % değişim
     txns: [],                // {merchant, emoji, spent, add, date, month} — en yeni başta
+  },
+  // Çocuk Ek Kartı (ebeveyn kontrollü) — Harcamalarım içinden yönetilir
+  kid: {
+    name: 'Elif',
+    age: 12,
+    card: '5218 90** **** 4417',
+    frozen: false,           // kart donduruldu mu
+    balance: 640,            // karttaki harçlık bakiyesi (TL)
+    allowance: 500,          // haftalık düzenli harçlık (TL)
+    matchRate: 0.5,          // veli eşleştirme: çocuk 1 TL biriktirince veli +0,5 TL
+    monthLimit: 2000,        // aylık harcama limiti (TL)
+    // Bu ayki harcamalar (limit ilerlemesi bunlardan türetilir)
+    txns: [
+      { m: 'Kantin',        s: 'Okul',       d: '18 Haz', a: 85.00 },
+      { m: 'D&R',           s: 'Kitap',      d: '15 Haz', a: 240.00, img: 'assets/dr.jpg' },
+      { m: 'Spotify',       s: 'Abonelik',   d: '12 Haz', a: 60.00,  img: 'assets/spotify.png' },
+      { m: 'Migros',        s: 'Atıştırma',  d: '09 Haz', a: 130.00 },
+      { m: 'BiletAll',      s: 'Sinema',     d: '05 Haz', a: 220.00 },
+    ],
+    // Hedefli birikim — kidSaved: çocuğun biriktirdiği, matched: veli katkısı
+    goals: [
+      { id: 'bisiklet', emoji: '🚲', name: 'Bisiklet',   target: 6000, kidSaved: 2600, matched: 1300 },
+      { id: 'lego',     emoji: '🧩', name: 'Lego seti',  target: 2000, kidSaved: 900,  matched: 450  },
+    ],
+    // Ebeveyn onayı bekleyen istekler
+    pending: [
+      { id: 'p1', kind: 'harcama', merchant: 'App Store', note: 'Oyun içi satın alma', amount: 149.00, emoji: '🎮' },
+      { id: 'p2', kind: 'harclik', merchant: 'Ek harçlık', note: 'Elif ek harçlık istedi', amount: 100.00, emoji: '💸' },
+    ],
   },
 };
 
@@ -443,18 +473,35 @@ function HomeScreen() {
       </div>
 
       <div class="section-title">Kartlarım</div>
-      <div class="acard worldcard">
-        <div class="acard-top">
-          <div class="acard-cardimg">${imgOrFallback(WORLDCARD_IMG, '💳', 'wc-photo')}</div>
-          <div>
-            <div class="acard-name">Worldcard</div>
-            <div class="acard-sub">1234 56** **** 3333</div>
+      <div class="acard-scroll">
+        <div class="acard worldcard">
+          <div class="acard-top">
+            <div class="acard-cardimg">${imgOrFallback(WORLDCARD_IMG, '💳', 'wc-photo')}</div>
+            <div>
+              <div class="acard-name">Worldcard</div>
+              <div class="acard-sub">1234 56** **** 3333</div>
+            </div>
+            <div class="acard-more" data-action="toast" data-msg="Kart detayı prototipte aktif değil">⋮</div>
           </div>
-          <div class="acard-more" data-action="toast" data-msg="Kart detayı prototipte aktif değil">⋮</div>
+          <div class="acard-figs">
+            <div class="acard-fig"><div class="val">${money('1.000')}</div><div class="lbl">Güncel Borç</div></div>
+            <div class="acard-fig"><div class="val">${money('5.000')}</div><div class="lbl">Kullanılabilir Limit</div></div>
+          </div>
         </div>
-        <div class="acard-figs">
-          <div class="acard-fig"><div class="val">${money('1.000')}</div><div class="lbl">Güncel Borç</div></div>
-          <div class="acard-fig"><div class="val">${money('5.000')}</div><div class="lbl">Kullanılabilir Limit</div></div>
+
+        <div class="acard worldcard" data-action="kid-open">
+          <div class="acard-top">
+            <div class="acard-cardimg kid-cardimg">${kidCardArt()}</div>
+            <div>
+              <div class="acard-name">Çocuk Ek Kartı <span class="kid-tag">${state.kid.name}</span></div>
+              <div class="acard-sub">${state.kid.card}${state.kid.frozen ? ' · Donduruldu' : ''}</div>
+            </div>
+            <div class="acard-more">⋮</div>
+          </div>
+          <div class="acard-figs">
+            <div class="acard-fig"><div class="val">${money(Math.round(state.kid.balance).toLocaleString('tr-TR'))}</div><div class="lbl">Harçlık Bakiyesi</div></div>
+            <div class="acard-fig"><div class="val">${money(Math.max(0, state.kid.monthLimit - kidSpent()).toLocaleString('tr-TR'))}</div><div class="lbl">Kalan Aylık Limit</div></div>
+          </div>
         </div>
       </div>
 
@@ -1496,10 +1543,15 @@ const SPEND_CATS = [
     { m: 'Kahve Dünyası', s: '4 işlem',  d: '10 Haz', dn: 10, a: 440.00, card: 'tlcard' },
     { m: 'Starbucks',     s: '2 işlem',  d: '07 Haz', dn: 7,  a: 380.00, card: 'worldcard' },
   ]},
-  { id: 'fatura', name: 'Faturalar', emoji: '🧾', color: '#8B7FD6', mom: -6, txns: [
+  { id: 'fatura', name: 'Düzenli Ödemeler', emoji: '🧾', color: '#8B7FD6', mom: -6, txns: [
     { m: 'Enerjisa',     s: 'Elektrik', d: '13 Haz', dn: 13, a: 720.30, card: 'worldcard' },
     { m: 'İGDAŞ',        s: 'Doğalgaz', d: '13 Haz', dn: 13, a: 610.00, card: 'worldcard' },
     { m: 'Türk Telekom', s: 'İnternet', d: '05 Haz', dn: 5,  a: 540.00, card: 'worldcard' },
+  ]},
+  { id: 'sigorta', name: 'Sigorta & BES', emoji: '🛡️', color: '#34568B', mom: 4, txns: [
+    { m: 'Allianz',           s: 'Tamamlayıcı sağlık', d: '12 Haz', dn: 12, a: 1180.00, card: 'worldcard' },
+    { m: 'Allianz Emeklilik', s: 'BES katkı payı',     d: '05 Haz', dn: 5,  a: 750.00,  card: 'worldcard' },
+    { m: 'Anadolu Sigorta',   s: 'Kasko',              d: '04 Haz', dn: 4,  a: 640.00,  card: 'tlcard' },
   ]},
   { id: 'akaryakit', name: 'Akaryakıt', emoji: '⛽', color: '#4A6FA5', mom: -11, txns: [
     { m: 'Opet',  s: 'Ataşehir', d: '16 Haz', dn: 16, a: 960.00, card: 'worldcard' },
@@ -1555,6 +1607,7 @@ const CAT_ICO = {
   fatura:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3v18l2-1.4 2 1.4 2-1.4 2 1.4 2-1.4 2 1.4V3l-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M8.5 8.5h7M8.5 12.5h7"/></svg>',
   akaryakit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16M3.5 21h11M5.5 11h7M13.5 8l2.4 2.4V16a1.7 1.7 0 0 0 3.4 0V9.5L16.5 6.5"/></svg>',
   saglik:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5S4.5 16 4.5 10.6A3.7 3.7 0 0 1 12 8.2a3.7 3.7 0 0 1 7.5 2.4c0 5.4-7.5 9.9-7.5 9.9Z"/></svg>',
+  sigorta:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 5.5v5.2c0 4.4 3 7.6 7 9.3 4-1.7 7-4.9 7-9.3V5.5L12 3Z"/><path d="M9.2 12.2l2 2 3.6-3.9"/></svg>',
   ulasim:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5 4.8 8a2 2 0 0 1 1.9-1.3h10.6A2 2 0 0 1 19.2 8L21 13.5V18h-2.4M3 13.5V18h2.4M3 13.5h18"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>',
   eglence:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10.2 8.4v7.2l6-3.6z" fill="currentColor" stroke="none"/></svg>',
   diger:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>',
@@ -2010,6 +2063,268 @@ function spPickCard(id) { state.spendCard = id; closeSheet(); render(); }
 function spApplySugg(id, val) { state.limits[id] = val; render(); setTimeout(() => toast(`${spCat(id).name} limiti ${fmtShortTL(val)} yapıldı 💡`), 150); }
 function initials(name) { return name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase(); }
 
+/* =================== ÇOCUK EK KARTI =================== */
+function kid() { return state.kid; }
+// Çizili mini çocuk kartı — TLcard'ın ru-card-art kalıbının çocuk varyantı (turkuaz + isim)
+function kidCardArt() { return `<span class="ru-card-art kid"><i>ÇOCUK EK KART</i><b></b><u>${state.kid.name[0]}</u></span>`; }
+function kidSpent() { return kid().txns.reduce((s, t) => s + t.a, 0); }
+function kidGoalSaved(g) { return g.kidSaved + g.matched; }
+function kidGoalPct(g) { return Math.min(100, Math.round(kidGoalSaved(g) / g.target * 100)); }
+function kidGoal(id) { return kid().goals.find(g => g.id === id) || null; }
+
+function KidScreen() {
+  const k = kid();
+  const spent = kidSpent();
+  const lim = k.monthLimit;
+  const rem = lim - spent;
+  const pct = lim ? Math.min(100, Math.round(spent / lim * 100)) : 0;
+  const over = spent > lim;
+  return `
+  <div class="screen anim-right sp-screen kid-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Çocuk Ek Kartı</div>
+      <button class="icon-btn" data-action="toast" data-msg="Kart ayarları prototipte aktif değil">${I.gear}</button>
+    </div>
+    <div class="screen-scroll">
+
+      <!-- Kart özeti — Kartlarım kalıbında, sade -->
+      <div class="sp-card">
+        <div class="acard-top">
+          <div class="acard-cardimg kid-cardimg">${kidCardArt()}</div>
+          <div>
+            <div class="acard-name">Çocuk Ek Kartı <span class="kid-tag">${k.name}</span></div>
+            <div class="acard-sub">${k.card} · ${k.age} yaş</div>
+          </div>
+          ${k.frozen ? '<span class="kid-frozen-pill">Donduruldu</span>' : ''}
+        </div>
+        <div class="acard-figs">
+          <div class="acard-fig"><div class="val">${money(Math.round(k.balance).toLocaleString('tr-TR'))}</div><div class="lbl">Harçlık Bakiyesi</div></div>
+          <div class="acard-fig"><div class="val">${money(Math.max(0, rem).toLocaleString('tr-TR'))}</div><div class="lbl">Kalan Aylık Limit</div></div>
+        </div>
+        <div class="sp-limit-actions">
+          <button class="sp-lim-btn" data-action="kid-addmoney">Para Yükle</button>
+          <button class="sp-lim-btn ghost" data-action="kid-freeze">${k.frozen ? 'Dondurmayı Kaldır' : 'Kartı Dondur'}</button>
+        </div>
+      </div>
+
+      <!-- Onay bekleyen — satıra dokun, sheet'ten onayla/reddet (uygulama geneli kalıp) -->
+      ${k.pending.length ? `
+      <div class="sp-card pad0">
+        <div class="sp-card-h row"><span>Onay Bekleyen İşlemler</span><span class="kid-pill">${k.pending.length}</span></div>
+        <div class="kid-approve-list">
+          ${k.pending.map(p => `
+            <div class="kid-approve" data-action="kid-req" data-id="${p.id}">
+              <div class="kid-ap-mid">
+                <div class="kid-ap-t">${p.merchant}</div>
+                <div class="kid-ap-s">${p.note}</div>
+              </div>
+              <span class="kid-ap-amt">${fmtTL2(p.amount)}</span>
+              <span class="sp-cat-chev">${I.chevR}</span>
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
+
+      <!-- Aylık harcama limiti -->
+      <div class="sp-card">
+        <div class="sp-card-h row"><span>Aylık Harcama Limiti</span><button class="sp-link" data-action="kid-editlimit">Düzenle ${I.chevR}</button></div>
+        <div class="sp-lim-hero ${over ? 'over' : ''}">${over ? fmtShortTL(-rem) + ' aşıldı' : fmtShortTL(rem) + ' kaldı'}</div>
+        ${spBar(spent, lim)}
+        <div class="sp-lim-meta"><span>${fmtShortTL(spent)} harcandı</span><span class="sp-lim-pct ${over ? 'over' : ''}">%${pct} · limit ${fmtShortTL(lim)}</span></div>
+      </div>
+
+      <!-- Birikim hedefleri -->
+      <div class="sp-card pad0">
+        <div class="sp-card-h row"><span>Birikim Hedefleri</span><button class="sp-link" data-action="kid-addgoal">Yeni ${I.plus}</button></div>
+        <div class="kid-goal-list">
+          ${k.goals.map(kidGoalRow).join('')}
+        </div>
+        <div class="kid-match-row" data-action="kid-editmatch">
+          <div class="kid-ap-mid">
+            <div class="kid-ap-t">Veli eşleştirme</div>
+            <div class="kid-ap-s">${k.name} 10 TL biriktirince sen ${Math.round(k.matchRate * 10)} TL eklersin</div>
+          </div>
+          <span class="sp-cat-chev">${I.chevR}</span>
+        </div>
+      </div>
+
+      <!-- Son harcamalar — ilk 3, tümü sheet'te -->
+      <div class="sp-card pad0">
+        <div class="sp-card-h row"><span>Son Harcamalar</span><button class="sp-link" data-action="kid-alltxns">Tümü ${I.chevR}</button></div>
+        <div class="kid-txns">
+          ${k.txns.slice(0, 3).map(kidTxnRow).join('')}
+        </div>
+      </div>
+
+      <div class="sp-foot-note">${I.lock} Ek kart ${k.name} adına, senin hesabına bağlı çalışır. Limite yaklaşınca ikinize de bildirim gider.</div>
+    </div>
+  </div>`;
+}
+
+function kidGoalRow(g) {
+  const saved = kidGoalSaved(g);
+  const pct = kidGoalPct(g);
+  const done = saved >= g.target;
+  return `
+    <div class="kid-goal ${done ? 'done' : ''}">
+      <span class="kid-goal-emoji">${g.emoji}</span>
+      <div class="kid-goal-mid">
+        <div class="kid-goal-top"><span class="kid-goal-n">${g.name}</span><span class="kid-goal-a">${fmtShortTL(saved)} / ${fmtShortTL(g.target)}</span></div>
+        <div class="sp-limit-track"><div class="sp-limit-fill calm" style="width:${pct}%"></div></div>
+        <div class="kid-goal-meta">
+          <span>${done ? 'Hedefe ulaşıldı 🎉' : '%' + pct}</span>
+          <span>Senin katkın ${fmtShortTL(g.matched)}</span>
+        </div>
+      </div>
+      <button class="kid-goal-add" data-action="kid-contribute" data-id="${g.id}" ${done ? 'disabled' : ''}>${done ? I.check : I.plus}</button>
+    </div>`;
+}
+
+// İşlem satırı — Harcamalarım işlem kalıbı; logosu olan işyerinde logo, yoksa baş harfler
+function kidTxnRow(t) {
+  const ico = t.img
+    ? `<span class="sp-txn-ico kid-txn-ico logo">${imgOrFallback(t.img, initials(t.m), 'kid-txn-img')}</span>`
+    : `<span class="sp-txn-ico kid-txn-ico">${initials(t.m)}</span>`;
+  return `
+    <div class="sp-txn">
+      ${ico}
+      <div class="sp-txn-mid"><div class="sp-txn-m">${t.m}</div><div class="sp-txn-s">${t.s}</div><div class="sp-txn-d">${t.d}</div></div>
+      <span class="sp-txn-a">${fmtTL2(t.a)}</span>
+    </div>`;
+}
+
+/* Onay isteği sheet'i — detay + Onayla / Reddet */
+function kidOpenReq(id) {
+  const p = state.kid.pending.find(x => x.id === id); if (!p) return;
+  const isTopup = p.kind === 'harclik';
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>Onay Bekleyen İşlem</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="kid-req-amt">${fmtTL2(p.amount)}</div>
+    <div class="kid-req-sub">${p.merchant} · ${p.note}</div>
+    <div class="kid-req-rows">
+      <div class="r-row"><span class="r-l">İsteyen</span><span class="r-r">${state.kid.name} · Ek Kart</span></div>
+      <div class="r-row"><span class="r-l">İşlem</span><span class="r-r">${isTopup ? 'Harçlık talebi' : 'Kart harcaması'}</span></div>
+      <div class="r-row"><span class="r-l">${isTopup ? 'Yüklenecek hesap' : 'Ödenecek kart'}</span><span class="r-r">Ek Kart ${state.kid.card.slice(-4)}</span></div>
+    </div>
+    <button class="sheet-btn" data-action="kid-approve" data-id="${p.id}">Onayla</button>
+    <button class="sheet-btn ghost danger-txt" data-action="kid-deny" data-id="${p.id}">Reddet</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+}
+
+/* Tüm harcamalar sheet'i */
+function kidOpenAllTxns() {
+  const k = state.kid;
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>${k.name} · Tüm Harcamalar</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="kid-alltxns">${k.txns.map(kidTxnRow).join('')}</div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Kapat</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+}
+
+/* ---- Çocuk kartı akış mantığı ---- */
+function kidFreeze() {
+  state.kid.frozen = !state.kid.frozen;
+  render();
+  setTimeout(() => toast(state.kid.frozen ? 'Kart donduruldu ❄️ İşlem yapılamaz.' : 'Kart yeniden aktif 💳'), 150);
+}
+function kidApprove(id) {
+  const k = state.kid; const p = k.pending.find(x => x.id === id); if (!p) return;
+  k.pending = k.pending.filter(x => x.id !== id);
+  if (p.kind === 'harclik') { k.balance += p.amount; }
+  else { k.balance = Math.max(0, k.balance - p.amount); k.txns.unshift({ m: p.merchant, s: p.note, d: 'Bugün', a: p.amount }); }
+  closeSheet(); render();
+  setTimeout(() => toast(`${p.merchant} · ${fmtShortTL(p.amount)} onaylandı`), 150);
+}
+function kidDeny(id) {
+  const k = state.kid; const p = k.pending.find(x => x.id === id); if (!p) return;
+  k.pending = k.pending.filter(x => x.id !== id);
+  closeSheet(); render();
+  setTimeout(() => toast(`${p.merchant} isteği reddedildi`), 150);
+}
+function kidOpenAddMoney() {
+  kidAmountSheet({ title: `${state.kid.name}'e para yükle`, sub: `Bakiye: ${fmtShortTL(state.kid.balance)}`, ico: I.plus, presets: [100, 250, 500], save: 'kid-save-addmoney', cta: 'Yükle' });
+}
+function kidSaveAddMoney() {
+  const v = kidReadAmount(); if (!v) return;
+  state.kid.balance += v; closeSheet(); render();
+  setTimeout(() => toast(`${fmtShortTL(v)} yüklendi 💳 ${state.kid.name}'in bakiyesi ${fmtShortTL(state.kid.balance)}`), 150);
+}
+function kidOpenEditLimit() {
+  kidAmountSheet({ title: 'Aylık harcama limiti', sub: `${state.kid.name} · bu ay ${fmtShortTL(kidSpent())}`, ico: I.target, presets: [1000, 2000, 3000], save: 'kid-save-limit', cta: 'Kaydet', value: state.kid.monthLimit });
+}
+function kidSaveLimit() {
+  const v = kidReadAmount(); if (!v) return;
+  state.kid.monthLimit = v; closeSheet(); render();
+  setTimeout(() => toast(`Aylık limit ${fmtShortTL(v)} olarak ayarlandı 🎯`), 150);
+}
+function kidOpenContribute(id) {
+  const g = kidGoal(id); if (!g) return;
+  state.kidGoalPick = id;
+  kidAmountSheet({ title: `${g.name} hedefine katkı`, sub: `${fmtShortTL(kidGoalSaved(g))} / ${fmtShortTL(g.target)} · veli eşleştirme %${Math.round(state.kid.matchRate * 100)}`, ico: g.emoji, presets: [100, 250, 500], save: 'kid-save-contribute', cta: 'Katkı yap', emoji: true });
+}
+function kidSaveContribute() {
+  const v = kidReadAmount(); if (!v) return;
+  const g = kidGoal(state.kidGoalPick); if (!g) return;
+  const match = Math.round(v * state.kid.matchRate);
+  g.kidSaved += v;
+  g.matched += match;
+  const done = kidGoalSaved(g) >= g.target;
+  closeSheet(); render();
+  setTimeout(() => toast(done ? `${g.name} hedefi tamamlandı 🎉` : `${fmtShortTL(v)} + eşleştirme ${fmtShortTL(match)} eklendi`), 150);
+}
+function kidOpenAddGoal() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Yeni birikim hedefi</div>
+    ${RU_GOAL_PRESETS.map(g => `
+      <div class="ru-pick-row" data-action="kid-newgoal" data-id="${g.id}" data-emoji="${g.emoji}" data-name="${g.name}" data-amount="${g.amount}">
+        <span class="kid-goal-emoji">${g.emoji}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${g.name}</div><div class="ru-pick-s">Hedef ${fmtShortTL(g.amount)}</div></div>
+        ${I.plus}
+      </div>`).join('')}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+}
+function kidNewGoal(el) {
+  const id = el.dataset.id;
+  if (state.kid.goals.some(g => g.id === id)) { closeSheet(); return toast('Bu hedef zaten var'); }
+  state.kid.goals.push({ id, emoji: el.dataset.emoji, name: el.dataset.name, target: +el.dataset.amount, kidSaved: 0, matched: 0 });
+  closeSheet(); render();
+  setTimeout(() => toast(`${el.dataset.name} hedefi eklendi 🎯`), 150);
+}
+function kidEditMatch() {
+  kidAmountSheet({ title: 'Veli eşleştirme oranı', sub: 'Çocuk 10 TL biriktirince ekleyeceğin tutar', ico: '🤝', presets: [3, 5, 10], save: 'kid-save-match', cta: 'Kaydet', value: Math.round(state.kid.matchRate * 10), unit: 'TL / 10 TL' });
+}
+function kidSaveMatch() {
+  const v = kidReadAmount(); if (v === null) return;
+  state.kid.matchRate = Math.max(0, Math.min(1, v / 10)); closeSheet(); render();
+  setTimeout(() => toast(`Eşleştirme: her 10 TL'ye +${v} TL 🤝`), 150);
+}
+/* Ortak tutar sheet'i (çocuk kartı) */
+function kidAmountSheet(o) {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sp-sheet-head">
+      <span class="sp-ico" style="background:var(--navy)">${o.emoji ? `<span style="font-size:18px">${o.ico}</span>` : o.ico}</span>
+      <div><div class="sp-sheet-t">${o.title}</div><div class="sp-sheet-s">${o.sub}</div></div>
+    </div>
+    <div class="sp-amt-wrap"><input id="kid-amt-input" class="sp-amt-input" type="text" inputmode="numeric" placeholder="0" value="${o.value || ''}" autocomplete="off" /><span class="sp-amt-cur">${o.unit || 'TL'}</span></div>
+    <div class="sp-preset-row">${o.presets.map(p => `<button class="sp-preset" data-action="kid-amt-preset" data-val="${p}">${p.toLocaleString('tr-TR')}</button>`).join('')}</div>
+    <button class="sheet-btn" data-action="${o.save}">${o.cta}</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open'); sheetScrimEl.classList.add('open');
+  setTimeout(() => { const i = document.getElementById('kid-amt-input'); if (i) i.focus(); }, 250);
+}
+function kidAmtPreset(val) { const i = document.getElementById('kid-amt-input'); if (i) i.value = val; }
+function kidReadAmount() {
+  const i = document.getElementById('kid-amt-input');
+  const val = parseInt((i ? i.value : '').replace(/[^\d]/g, ''), 10);
+  if (isNaN(val) || val < 0) { toast('Geçerli bir tutar gir'); return null; }
+  return val;
+}
+
 function PlaceholderScreen(title) {
   return `
   <div class="screen anim-right">
@@ -2048,6 +2363,7 @@ function render() {
     case 'insights-category': html = InsightsCategoryScreen(); break;
     case 'insights-cats': html = AllCatsScreen(); break;
     case 'limits': html = LimitsScreen(); break;
+    case 'kid': html = KidScreen(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
   app.innerHTML = html;
@@ -3156,6 +3472,25 @@ document.addEventListener('click', (e) => {
     case 'sp-add-limit': return spOpenAddPick();
     case 'sp-apply-sugg': return spApplySugg(t.dataset.id, +t.dataset.val);
 
+    // Çocuk Ek Kartı
+    case 'kid-open': return go('kid');
+    case 'kid-freeze': return kidFreeze();
+    case 'kid-addmoney': return kidOpenAddMoney();
+    case 'kid-save-addmoney': return kidSaveAddMoney();
+    case 'kid-editlimit': return kidOpenEditLimit();
+    case 'kid-save-limit': return kidSaveLimit();
+    case 'kid-contribute': return kidOpenContribute(t.dataset.id);
+    case 'kid-save-contribute': return kidSaveContribute();
+    case 'kid-addgoal': return kidOpenAddGoal();
+    case 'kid-newgoal': return kidNewGoal(t);
+    case 'kid-req': return kidOpenReq(t.dataset.id);
+    case 'kid-alltxns': return kidOpenAllTxns();
+    case 'kid-approve': return kidApprove(t.dataset.id);
+    case 'kid-deny': return kidDeny(t.dataset.id);
+    case 'kid-editmatch': return kidEditMatch();
+    case 'kid-save-match': return kidSaveMatch();
+    case 'kid-amt-preset': return kidAmtPreset(t.dataset.val);
+
     case 'menu-nav': {
       const id = t.dataset.id;
       if (id === 'home') return goHome();
@@ -3184,7 +3519,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'insights', 'insights-category', 'insights-cats', 'limits'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
