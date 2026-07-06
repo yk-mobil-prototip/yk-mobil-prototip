@@ -52,6 +52,7 @@ const I = {
   bars: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="11" width="3.2" height="7" rx="1.6"/><rect x="10.4" y="7.3" width="3.2" height="10.7" rx="1.6"/><rect x="16.8" y="3.8" width="3.2" height="14.2" rx="1.6"/><rect x="3.4" y="20" width="17.2" height="2.2" rx="1.1"/></svg>',
   qr: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="8.5" height="8.5" rx="1.2"/><rect x="5" y="5" width="3.5" height="3.5" rx=".5" fill="currentColor" stroke="none"/><rect x="8.5" y="11.5" width="13" height="9" rx="1.5"/><circle cx="15" cy="16" r="2.1"/><path d="M11 11.5v9M19 11.5v9" stroke-width="1"/></svg>',
   guide: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a2.5 2.5 0 1 0-2.5-2.9"/></svg>',
+  ext: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>',
   sun: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>',
   moon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
   spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 14l.9 2.6L22.5 17l-2.6.9L19 20l-.9-2.6L15.5 17l2.6-.9z"/></svg>',
@@ -255,6 +256,7 @@ const state = {
   seturSeed: false,          // sohbeti Setur sonucuyla anında kur
   // Harcama analizi & limit
   spendCat: 'market',        // seçili kategori (detay ekranı)
+  subId: null,               // seçili abonelik (detay ekranı)
   spendCard: 'all',          // harcama/limit filtresi: 'all' | 'worldcard' | 'tlcard'
   totalLimit: 20000,         // ayrı, düzenlenebilir toplam aylık limit
   limits: { market: 4000, yeme: 2000, giyim: 3000, akaryakit: 2500, eglence: 1500 },   // kategori → aylık limit (TL)
@@ -1575,6 +1577,37 @@ const SPEND_CATS = [
   ]},
 ];
 
+/* =================== DİJİTAL ABONELİKLER ===================
+   Banka gerçek kart hareketinden yinelenen ödemeleri tespit eder — üçüncü
+   parti app'lerin aksine tahmin değil, kesin veri. day: ayın ödeme günü ·
+   dleft: sonraki ödemeye kalan gün · remind: hatırlatıcı açık mı */
+const SUBS = [
+  { id: 'netflix', name: 'Netflix',        plan: 'Standart · Reklamsız', cat: 'Dizi & Film', price: 249.99, cycle: 'Aylık', day: 3,  next: '3 Tem',  dleft: 2,  card: 'worldcard', since: 'Mart 2021', remind: true,  color: '#E50914', logo: 'assets/netflix.png', logoBg: '#000', logoFit: 'cover' },
+  { id: 'spotify', name: 'Spotify',        plan: 'Premium Bireysel',     cat: 'Müzik',       price: 59.99,  cycle: 'Aylık', day: 3,  next: '3 Tem',  dleft: 2,  card: 'worldcard', since: 'Eylül 2019', remind: true, color: '#1DB954', logo: 'assets/spotify.png', priceOld: 49.99 },
+  { id: 'youtube', name: 'YouTube Premium', plan: 'Bireysel',            cat: 'Video',       price: 79.99,  cycle: 'Aylık', day: 8,  next: '8 Tem',  dleft: 7,  card: 'tlcard',    since: 'Ocak 2023', remind: true,  color: '#FF0000', logo: 'assets/youtube.png' },
+  { id: 'chatgpt', name: 'ChatGPT Plus',   plan: 'Aylık üyelik',         cat: 'Yapay Zekâ',  price: 799.00, cycle: 'Aylık', day: 10, next: '10 Tem', dleft: 9,  card: 'worldcard', since: 'Kasım 2024', remind: false, color: '#0F9D77', logo: 'assets/chatgpt.png' },
+  { id: 'claude',  name: 'Claude Pro',     plan: 'Aylık üyelik',         cat: 'Yapay Zekâ',  price: 799.00, cycle: 'Aylık', day: 14, next: '14 Tem', dleft: 13, card: 'worldcard', since: 'Temmuz 2026', remind: false, color: '#D97757', logo: 'assets/claude.png', isNew: true },
+  { id: 'xbox',    name: 'Xbox Game Pass', plan: 'Ultimate',            cat: 'Oyun',        price: 349.00, cycle: 'Aylık', day: 20, next: '20 Tem', dleft: 19, card: 'tlcard',    since: 'Haziran 2022', remind: true, color: '#107C10', logo: 'assets/xbox.png' },
+];
+function subsActive() { return SUBS.filter(s => !s.canceled); }
+function subsMonthly() { return subsActive().reduce((s, x) => s + x.price, 0); }
+function subsYearly() { return subsMonthly() * 12; }
+function subsSorted() { return SUBS.slice().sort((a, b) => (a.canceled ? 99 : 0) - (b.canceled ? 99 : 0) || a.dleft - b.dleft); }
+function subsUpcoming() { return subsActive().filter(s => s.dleft <= 3).sort((a, b) => a.dleft - b.dleft); }
+function subById(id) { return SUBS.find(s => s.id === id); }
+function subStatus(s) {
+  if (s.canceled) return { cls: 'off', lbl: 'İptal edildi' };
+  return { cls: 'ok', lbl: 'Aktif' };
+}
+// Marka logosu — dosya varsa görsel, yoksa marka renginde baş harf rozeti
+function subLogo(s, size) {
+  const cls = 'sub-logo' + (size === 'big' ? ' big' : size === 'mini' ? ' mini' : '') + (s.canceled ? ' off' : '') + (s.logoFit === 'cover' ? ' cover' : '');
+  const bg = s.logoBg ? `;--logo-bg:${s.logoBg}` : '';
+  return `<span class="${cls}" style="--brand:${s.color}${bg}">
+    <img src="${s.logo}" alt="" loading="lazy" onerror="this.parentElement.classList.add('fb');this.remove();">
+    <i>${s.name[0]}</i></span>`;
+}
+
 /* ---- filtreli (Analiz) hesaplar ---- */
 function spCat(id) { return SPEND_CATS.find(c => c.id === id); }
 function spCatTxns(c) { return state.spendCard === 'all' ? c.txns : c.txns.filter(t => t.card === state.spendCard); }
@@ -1727,10 +1760,10 @@ function InsightsScreen() {
       <div class="sp-hab-head"><span>Harcama Alışkanlıkların</span><button class="sp-link" data-action="toast" data-msg="Tüm içgörüler prototipte aktif değil">Tümü ${I.chevR}</button></div>
       <div class="sp-hab-scroll">
         ${spHabitDay()}
+        ${spHabitSubs()}
         ${spHabitConc()}
         ${spHabitBiggest()}
         ${spHabitDaily()}
-        ${spHabitSubs()}
         ${spHabitMerch()}
       </div>
 
@@ -1820,13 +1853,13 @@ function spHabitDaily() {
     </div>`;
 }
 function spHabitSubs() {
-  const s = spSubs();
   return `
-    <div class="sp-hab">
+    <div class="sp-hab tap" data-action="subs-open">
       <div class="sp-hab-ico purple">${I.refresh}</div>
       <div class="sp-hab-lbl">Abonelikler</div>
-      <div class="sp-hab-big">${fmtShortTL(s.sum)}</div>
-      <div class="sp-hab-sub">${s.count} abonelik · aylık yenilenen</div>
+      <div class="sp-hab-big">${fmtShortTL(subsMonthly())}</div>
+      <div class="sp-hab-sub">${subsActive().length} dijital abonelik · aylık yenilenen</div>
+      <div class="sp-hab-cta">Yönet ${I.chevR}</div>
     </div>`;
 }
 function spHabitMerch() {
@@ -1838,6 +1871,241 @@ function spHabitMerch() {
       <div class="sp-hab-sub">farklı iş yeri ile alışveriş yaptın</div>
       <button class="sp-hab-btn" data-action="toast" data-msg="İş yerleri prototipte aktif değil">İş Yerlerini Gör</button>
     </div>`;
+}
+
+/* =================== ABONELİK EKRANI =================== */
+// Bankanın gerçek kart verisinden türeyen içgörüler
+function subsRaised() { return subsActive().find(s => s.priceOld); }              // ücreti artan abonelik
+function subsNew() { return subsActive().find(s => s.isNew); }                    // bu ay ilk çekimi yapılan
+function subsShare() { const t = spTotalAll(); return t ? Math.round(subsMonthly() / t * 100) : 0; }  // toplam harcamadaki pay
+function subsInsights() {
+  const out = [];
+  const z = subsRaised();
+  if (z) { const pct = Math.round((z.price - z.priceOld) / z.priceOld * 100);
+    out.push({ id: z.id, cls: 'up', ic: I.trendUp, t: `${z.name} ücreti bu ay %${pct} arttı`, s: `${fmtTL2(z.priceOld)} → ${fmtTL2(z.price)} · kart hareketinden tespit edildi` }); }
+  out.push({ cls: 'pie', ic: I.pie, t: `Abonelikler, kart harcamanın %${subsShare()}’i`, s: `Bu ay ${fmtTL2(subsMonthly())} · toplam harcaman ${fmtShortTL(spTotalAll())}` });
+  const n = subsNew();
+  if (n) out.push({ id: n.id, cls: 'new', ic: I.plus, t: `Yeni abonelik başladı: ${n.name}`, s: `Bu ay ilk çekim yapıldı · ${fmtTL2(n.price)}/ay` });
+  return out;
+}
+function SubsScreen() {
+  const up = subsUpcoming();
+  const list = subsSorted();
+  const ins = subsInsights();
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Aboneliklerim</div>
+      <button class="icon-btn" data-action="toast" data-msg="Abonelik ayarları prototipte aktif değil">${I.gear}</button>
+    </div>
+    <div class="sp-top">
+      <div class="sp-filters">
+        <button class="sp-fpill" data-action="toast" data-msg="Dönem seçimi prototipte aktif değil"><span class="sp-fp-ic">${I.calendar}</span><span>Bu ay</span>${I.chevDown}</button>
+        <button class="sp-fpill" data-action="toast" data-msg="Kart seçimi prototipte aktif değil"><span class="sp-fp-ic">${I.card}</span><span>Tüm kartlar</span>${I.chevDown}</button>
+      </div>
+    </div>
+    <div class="screen-scroll">
+
+      <!-- Özet -->
+      <div class="sp-card">
+        <div class="sp-sum-label">Bu ay aboneliklerin</div>
+        <div class="sp-sum-amt">${fmtTL2(subsMonthly())}</div>
+        <div class="sub-hero-meta"><b>${subsActive().length}</b> aktif abonelik</div>
+        <button class="sub-detect" data-action="toast" data-msg="Abonelikler World Pay ve kart hareketlerinden otomatik tespit edilir">Kart hareketlerinden tespit edildi ${I.info}</button>
+      </div>
+
+      ${up.length ? `
+      <!-- Yaklaşan ödeme — tek satır sade özet -->
+      <div class="sub-up">
+        <div class="sub-up-logos">${up.slice(0, 3).map(s => subLogo(s, 'mini')).join('')}</div>
+        <div class="sub-up-mid">
+          <div class="sub-up-t">Yaklaşan ödeme</div>
+          <div class="sub-up-s">${up.map(s => s.name).join(', ')} · ${up[0].next}</div>
+        </div>
+        <div class="sub-up-amt">${fmtTL2(up.reduce((a, s) => a + s.price, 0))}</div>
+      </div>` : ''}
+
+      <!-- Tüm abonelikler -->
+      <div class="sp-card pad0">
+        <div class="sp-card-h row"><span>Tüm aboneliklerin</span><button class="sp-link" data-action="toast" data-msg="Manuel abonelik ekleme prototipte aktif değil">Ekle ${I.plus}</button></div>
+        <div class="sub-list">${list.map(subRow).join('')}</div>
+      </div>
+
+      <!-- Akıllı içgörü -->
+      <div class="sub-insight-card">
+        <div class="sub-ic-head">${I.spark}<span>Akıllı içgörü</span></div>
+        <div class="sub-ins-list">
+          ${ins.map(x => `
+            <div class="sub-ins${x.id ? ' tap' : ''}"${x.id ? ` data-action="sub-open" data-id="${x.id}"` : ''}>
+              <span class="sub-ins-ic ${x.cls}">${x.ic}</span>
+              <div class="sub-ins-mid"><b>${x.t}</b><span>${x.s}</span></div>
+              ${x.id ? `<span class="sp-cat-chev">${I.chevR}</span>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="sp-foot-note">${I.lock} Abonelikler kart hareketlerinden otomatik tespit edilir. İptal ettiğin çekim World Pay tarafında da durur.</div>
+    </div>
+  </div>`;
+}
+
+// Abonelik satırı — logo · ad/paket · sonraki ödeme · tutar · durum rozeti
+function subRow(s) {
+  const st = subStatus(s);
+  return `
+    <div class="sub-row ${s.canceled ? 'off' : ''}" data-action="sub-open" data-id="${s.id}">
+      ${subLogo(s)}
+      <div class="sub-mid">
+        <div class="sub-n">${s.name}</div>
+        <div class="sub-s">${s.plan}</div>
+        <div class="sub-next">${s.canceled ? 'Yenileme durduruldu' : 'Sonraki ödeme · ' + s.next}</div>
+      </div>
+      <div class="sub-right">
+        <div class="sub-a">${fmtTL2(s.price)}</div>
+        <span class="sub-pill ${st.cls}">${st.lbl}</span>
+      </div>
+    </div>`;
+}
+
+/* =================== ABONELİK DETAY =================== */
+function SubDetailScreen() {
+  const s = subById(state.subId) || SUBS[0];
+  const st = subStatus(s);
+  const cardName = s.card === 'tlcard' ? 'TLcard' : 'Worldcard';
+  const cardMask = s.card === 'tlcard' ? 'TLcard •••• 8842' : 'Worldcard •••• 3333';
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">${s.name}</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+
+      <!-- Hero -->
+      <div class="sub-hero">
+        ${subLogo(s, 'big')}
+        <div class="sub-hero-name">${s.name}</div>
+        <div class="sub-hero-plan">${s.plan} · ${s.cat}</div>
+        <div class="sub-hero-price">${fmtTL2(s.price)}<span>/ay</span></div>
+        <span class="sub-pill ${st.cls} lg">${st.lbl}</span>
+      </div>
+
+      ${s.canceled ? `<div class="sub-cancelled-note">${I.check} Bu karttan yenileme durduruldu. Sonraki çekim reddedilecek.</div>` : ''}
+
+      <!-- Ödeme geçmişi -->
+      <div class="sp-card">
+        <div class="sp-card-h row" style="padding:0 0 12px"><span>Ödeme Geçmişi</span><span class="sub-card-sub">son 6 ay</span></div>
+        ${subHistory(s)}
+      </div>
+
+      <!-- Ödeme bilgileri -->
+      <div class="sp-card pad0">
+        <div class="sp-card-h">Ödeme bilgileri</div>
+        <div class="sub-info"><span>Sonraki ödeme</span><b>${s.canceled ? '—' : s.day + ' Temmuz 2026'}</b></div>
+        <div class="sub-info tap" data-action="toast" data-msg="Kart detayı prototipte aktif değil"><span>Ödeme kartı</span><b class="sub-info-link">${cardMask} ${I.chevR}</b></div>
+        <div class="sub-info"><span>Yenileme sıklığı</span><b>${s.cycle}</b></div>
+        <div class="sub-info"><span>Üyelik başlangıcı</span><b>${s.since}</b></div>
+      </div>
+
+      <!-- Bildirimler ve işlemler -->
+      <div class="sp-card pad0">
+        <div class="sp-card-h">Bildirimler ve işlemler</div>
+        ${s.canceled ? '' : `
+        <div class="sub-act" data-action="sub-remind" data-id="${s.id}">
+          <span class="sub-act-ic">${I.bell}</span>
+          <div class="sub-act-mid"><b>Bildirimler</b><span>Yenileme öncesi ve ödeme sonrası bilgilendir</span></div>
+          <span class="switch ${s.remind ? 'on' : ''}"><i></i></span>
+        </div>`}
+        <div class="sub-act" data-action="toast" data-msg="Kart değişikliği prototipte aktif değil">
+          <span class="sub-act-ic">${I.card}</span>
+          <div class="sub-act-mid"><b>Kartı değiştir</b><span>${cardName} ile ödeniyor</span></div>
+          <span class="sp-cat-chev">${I.chevR}</span>
+        </div>
+        <div class="sub-act" data-action="toast" data-msg="${s.name} platformuna yönlendirme prototipte aktif değil">
+          <span class="sub-act-ic">${I.ext}</span>
+          <div class="sub-act-mid"><b>Platformda yönet</b><span>${s.name} hesabına yönlendirilirsin</span></div>
+          <span class="sp-cat-chev">${I.chevR}</span>
+        </div>
+        ${s.canceled
+          ? `<div class="sub-act" data-action="sub-resume" data-id="${s.id}">
+              <span class="sub-act-ic green">${I.refresh}</span>
+              <div class="sub-act-mid"><b>Yenilemeyi tekrar başlat</b><span>Ödeme yeniden aktif olur</span></div>
+              <span class="sp-cat-chev">${I.chevR}</span>
+            </div>`
+          : `<div class="sub-act" data-action="sub-cancel" data-id="${s.id}">
+              <span class="sub-act-ic">${I.close}</span>
+              <div class="sub-act-mid"><b>İptal et</b><span>İptal adımları veya bu karttan ödemeyi durdur</span></div>
+              <span class="sp-cat-chev">${I.chevR}</span>
+            </div>`}
+      </div>
+
+      <div class="sp-foot-note">${I.lock} Ödeme bilgisi ${cardName} hareketlerinden alınır.</div>
+    </div>
+  </div>`;
+}
+
+// Ödeme geçmişi — son 6 ay. Ücret arttıysa basamaklı (eski→yeni), yoksa düz.
+function subHistory(s) {
+  const months = ['Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem'];
+  const raised = !!s.priceOld;
+  const last = months.length - 1;
+  const oldH = raised ? Math.round(82 * s.priceOld / s.price) : 82;
+  const pct = raised ? Math.round((s.price - s.priceOld) / s.priceOld * 100) : 0;
+  return `
+    <div class="sub-hist">
+      ${months.map((m, i) => `
+        <div class="sub-hist-col">
+          <div class="sub-hist-track"><div class="sub-hist-bar ${i === last ? 'on' : ''}" style="height:${i === last ? 82 : oldH}%;--brand:${s.color}"></div></div>
+          <span class="sub-hist-m">${m}</span>
+        </div>`).join('')}
+    </div>
+    <div class="sub-hist-note">${raised
+      ? `Bu ay <b>%${pct} arttı</b> · ${fmtTL2(s.priceOld)} → ${fmtTL2(s.price)}`
+      : `Her ay ${fmtTL2(s.price)} · değişiklik yok`}</div>`;
+}
+
+/* İptal sheet'i — iki yol: servis rehberi + bankaya özel "ödemeyi durdur" */
+function openSubCancelSheet(id) {
+  const s = subById(id); if (!s) return;
+  const cardName = s.card === 'tlcard' ? 'TLcard' : 'Worldcard';
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>${s.name} aboneliğini iptal et</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <p class="sub-sheet-lead">İki şekilde iptal edebilirsin. Bankadan durdurursan sonraki çekim ${cardName}’a hiç gelmez.</p>
+    <div class="sub-cancel-opt" data-action="toast" data-msg="${s.name} iptal rehberi prototipte aktif değil">
+      <span class="sub-act-ic">${I.guide}</span>
+      <div class="sub-act-mid"><b>${s.name} üzerinden iptal et</b><span>Servisin iptal adımlarına yönlendirir</span></div>
+      <span class="sp-cat-chev">${I.chevR}</span>
+    </div>
+    <div class="sub-cancel-opt danger" data-action="sub-cancel-confirm" data-id="${s.id}">
+      <span class="sub-act-ic red">${I.shield}</span>
+      <div class="sub-act-mid"><b>Bu karttan ödemeyi durdur</b><span>${cardName}’dan ${s.name}’e giden otomatik ödemeyi engelle</span></div>
+      <span class="sp-cat-chev">${I.chevR}</span>
+    </div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function subCancelConfirm(id) {
+  const s = subById(id); if (!s) return;
+  s.canceled = true;
+  closeSheet();
+  render();
+  setTimeout(() => toast(`${s.name} ödemesi durduruldu 🛡️`), 200);
+}
+function subResume(id) {
+  const s = subById(id); if (!s) return;
+  s.canceled = false;
+  render();
+  setTimeout(() => toast(`${s.name} yenilemesi tekrar başladı`), 150);
+}
+function subRemind(id) {
+  const s = subById(id); if (!s) return;
+  s.remind = !s.remind;
+  render();
+  setTimeout(() => toast(s.remind ? `${s.name} için hatırlatıcı açıldı 🔔` : `${s.name} hatırlatıcısı kapatıldı`), 150);
 }
 
 /* =================== KATEGORİ DETAY =================== */
@@ -2360,6 +2628,8 @@ function render() {
     case 'roundup-jar': html = RoundupJar(); break;
     case 'roundup-history': html = RoundupHistory(); break;
     case 'insights': html = InsightsScreen(); break;
+    case 'subs': html = SubsScreen(); break;
+    case 'sub-detail': html = SubDetailScreen(); break;
     case 'insights-category': html = InsightsCategoryScreen(); break;
     case 'insights-cats': html = AllCatsScreen(); break;
     case 'limits': html = LimitsScreen(); break;
@@ -3471,6 +3741,14 @@ document.addEventListener('click', (e) => {
     case 'sp-save-total': return spSaveTotal();
     case 'sp-add-limit': return spOpenAddPick();
     case 'sp-apply-sugg': return spApplySugg(t.dataset.id, +t.dataset.val);
+
+    // Dijital abonelikler
+    case 'subs-open': return go('subs');
+    case 'sub-open': state.subId = t.dataset.id; return go('sub-detail');
+    case 'sub-remind': return subRemind(t.dataset.id);
+    case 'sub-cancel': return openSubCancelSheet(t.dataset.id);
+    case 'sub-cancel-confirm': return subCancelConfirm(t.dataset.id);
+    case 'sub-resume': return subResume(t.dataset.id);
 
     // Çocuk Ek Kartı
     case 'kid-open': return go('kid');
