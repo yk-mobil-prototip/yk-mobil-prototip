@@ -2114,7 +2114,7 @@ function HomeMetalCard() {
       <span class="ru-logo mb-logo">${mbLogo(38)}</span>
       <div class="ru-home-promo-txt">
         <div class="ru-home-t">Maden Biriktir</div>
-        <div class="ru-home-s">Kartından her ay düzenli altın veya gümüş biriktir; otomatik alınsın.</div>
+        <div class="ru-home-s">Kartından her ay düzenli değerli maden biriktir; altın, gümüş, platin ya da paladyum otomatik alınsın.</div>
       </div>
       <span class="ru-home-cta">Başvur ${I.chevR}</span>
     </div>`;
@@ -2184,8 +2184,8 @@ function MetalApply() {
     <div class="screen-scroll ru-form">
       <div class="ru-hero">
         <div class="ru-hero-logo ru-logo mb-logo">${mbLogo(58)}</div>
-        <h1 class="ru-hero-title">Maden Biriktir ile<br>düzenli altın ve gümüş.</h1>
-        <p class="ru-hero-sub">Belirlediğin tutar her ay kartından alınıp o günkü fiyattan altın ya da gümüşe dönüşür. Küçük adımlarla düzenli biriktir.</p>
+        <h1 class="ru-hero-title">Maden Biriktir ile<br>düzenli değerli maden.</h1>
+        <p class="ru-hero-sub">Belirlediğin tutar her ay kartından alınıp seçtiğin değerli madene — altın, gümüş, platin ya da paladyum — o günkü fiyattan dönüşür. Küçük adımlarla düzenli biriktir.</p>
       </div>
 
       <div class="ru-sec">
