@@ -218,6 +218,9 @@ const SECTIONS = [
   { hash: 'spendup',    icon: 'bars',    t: 'Ekstreden Biriktir — Başvur', d: 'Kredi kartı, oran (%1/5/10/Özel), tavan, hesap, talimat onayı → Aktifleştir' },
   { hash: 'spendup-jar', icon: 'pie',    t: 'Ekstreden Biriktir — Yönet',  d: 'Toplam biriken, günlük faiz, aylık aktarım grafiği, kural (dolu)' },
   { hash: 'spendup-history', icon: 'receipt', t: 'Ekstreden Biriktir — Hareketler', d: 'Aya göre gruplu tüm ekstre aktarımları' },
+  { hash: 'metal',      icon: 'star',    t: 'Maden Biriktir — Başvur', d: 'Kart, maden (altın/gümüş/platin/paladyum), sabit tutar (TL ya da gram), talimat onayı → Aktifleştir' },
+  { hash: 'metal-jar',  icon: 'pie',     t: 'Maden Biriktir — Yönet',  d: 'Toplam XAU/XAG, güncel değer, kazanç, aylık alım grafiği (dolu)' },
+  { hash: 'metal-history', icon: 'receipt', t: 'Maden Biriktir — Hareketler', d: 'Aya göre gruplu tüm maden alımları' },
   { hash: 'insights',   icon: 'pie',      t: 'Harcama Analizi',      d: 'Aylık toplam, kategori dağılımı, işyeri kırılımı' },
   { hash: 'limits',     icon: 'target',   t: 'Harcama Limitlerim',   d: 'Kategoriye tutar girerek aylık limit koy' },
   { hash: 'kid',        icon: 'wallet2',  t: 'Çocuk Ek Kartı',       d: 'Limit, harçlık, birikim hedefi, veli eşleştirme, onaylar, rozetler' },
@@ -286,6 +289,18 @@ const state = {
     interest: 96.35,         // toplam kazanılan günlük faiz (round-up'ta olmayan fark)
     monthChange: 12,         // geçen aya göre % değişim
     txns: [],                // {label, statement, rate, add, interest, date, month} — en yeni başta
+  },
+  // Maden Biriktir (talimatlı değerli maden birikimi) — sabit tutarlı düzenli altın/gümüş alımı
+  metal: {
+    active: false,           // talimat kurulu mu
+    source: null,            // ödeme kartı: 'worldgold' (kredi) | 'tlcard' (banka) | null
+    kind: 'gold',            // seçili maden: 'gold' | 'silver'
+    unit: 'try',             // talimat cinsi: 'try' (sabit TL) | 'gram' (sabit gram)
+    tryAmt: 1000,            // sabit TL tutar (unit='try')
+    gram: 0.5,               // sabit gram (unit='gram')
+    agreed: false,           // Maden Biriktir Talimat Formu onayı
+    monthChange: 9,          // güncel değerin geçen aya göre % değişimi (mock)
+    txns: [],                // {gram, price, date, month} — en yeni başta (o ayki alım)
   },
   // Çocuk Ek Kartı (ebeveyn kontrollü) — Harcamalarım içinden yönetilir
   kid: {
@@ -562,13 +577,14 @@ function HomeScreen() {
 }
 
 // Home'daki Yuvarla Biriktir kartı — kural yoksa promo, varsa durum kartı
-// Ana ekran birikim hub'ı — "Otomatik Birikim" başlığı + yana kaydırmalı iki kart (Yuvarla + Harcadıkça)
+// Ana ekran birikim hub'ı — "Otomatik Birikim" başlığı + yana kaydırmalı kartlar (Yuvarla + Ekstreden + Maden)
 function HomeSavingsHub() {
   return `
-    <div class="section-title ru-hub-title">Otomatik Birikim <span class="ru-hub-hint">← kaydır →</span></div>
+    <div class="section-title">Otomatik Birikim</div>
     <div class="ru-carousel">
       ${HomeRoundupCard()}
       ${HomeSpendupCard()}
+      ${HomeMetalCard()}
     </div>`;
 }
 
@@ -2032,6 +2048,450 @@ function setupSuJar() {
 }
 
 /* ===================================================================
+   MADEN BİRİKTİR  (talimatlı değerli maden birikimi)
+   Gram cinsinden düzenli altın/gümüş alımı: her ödeme gününde
+   belirlenen gram kadar maden, karttan çekilip maden hesabına
+   gram olarak geçer. Nakit değil varlık → değer/kazanç gösterilir.
+   =================================================================== */
+// Maden logosu — istiflenmiş külçeler (Yapı Kredi altın hesabı ikonu diliyle)
+function mbLogo(size) {
+  return `<svg class="ru-logo-svg" width="${size}" height="${size}" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <path d="M10 37 L38 37 L34 31 L14 31 Z" fill="currentColor" opacity="0.5"/>
+    <path d="M13 30 L35 30 L31 24 L17 24 Z" fill="currentColor" opacity="0.78"/>
+    <path d="M16 23 L32 23 L28.5 17 L19.5 17 Z" fill="currentColor"/>
+  </svg>`;
+}
+// Madenler — anlık gram fiyatları (mock/örnek) + geçmiş fiyat serisi (maliyet ortalaması), YK birim kodu (XAU/XAG)
+const MB_METALS = {
+  gold:      { name: 'Altın',    code: 'XAU', price: 6850, series: [5900, 6150, 6380, 6560, 6720], change: 9 },
+  silver:    { name: 'Gümüş',   code: 'XAG', price: 111,  series: [92, 97, 101, 105, 108],        change: 6 },
+  platinum:  { name: 'Platin',   code: 'XPT', price: 2940, series: [2560, 2650, 2740, 2820, 2890], change: 5 },
+  palladium: { name: 'Paladyum', code: 'XPD', price: 2415, series: [2680, 2600, 2520, 2470, 2440], change: -4 },
+};
+const MB_CUR_MONTH = 'Mayıs 2026';
+const MB_SEED_DATES = ['14 Ara', '13 Oca', '15 Şub', '14 Mar', '13 Nis'];
+const MB_SEED_MONTHS = ['Aralık 2025', 'Ocak 2026', 'Şubat 2026', 'Mart 2026', 'Nisan 2026'];
+function mbMetal() { return MB_METALS[state.metal.kind]; }
+function mbCard() { return RU_CARDS.find(c => c.id === state.metal.source) || null; }
+function mbPrice() { return mbMetal().price; }
+// Maden miktarı biçimi — YK'daki gibi kod ekli (ör. "2,84 XAU")
+function mbFmtMetal(g) { return g.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' ' + mbMetal().code; }
+// Talimatın okunur özeti (unit'e göre: "1.000 TL" ya da "0,50 XAU")
+function mbInstrLabel() { return state.metal.unit === 'try' ? fmtTL(state.metal.tryAmt) : mbFmtMetal(state.metal.gram); }
+// Bir dönemki alım: TL tutarı ve alınan gram (talimat cinsine göre)
+function mbMonthlyTL() { return state.metal.unit === 'try' ? state.metal.tryAmt : state.metal.gram * mbPrice(); }
+function mbMonthlyGram() { return state.metal.unit === 'try' ? (mbPrice() ? state.metal.tryAmt / mbPrice() : 0) : state.metal.gram; }
+// Toplam biriken (gram/XAU) / maliyet / güncel değer / kazanç
+function mbGrams() { return state.metal.txns.reduce((s, t) => s + t.gram, 0); }
+function mbInvested() { return state.metal.txns.reduce((s, t) => s + t.gram * t.price, 0); }
+function mbValue() { return mbGrams() * mbPrice(); }
+function mbGain() { return mbValue() - mbInvested(); }
+function mbGainPct() { const inv = mbInvested(); return inv ? Math.round(mbGain() / inv * 100) : 0; }
+// Maden hesabı kurulunca dolu görünsün diye örnek alımlar (talimat cinsine göre her ay alınan gram)
+function mbSeedTxns() {
+  return mbMetal().series.map((price, i) => {
+    const gram = state.metal.unit === 'try' ? state.metal.tryAmt / price : state.metal.gram;
+    return { gram, price, date: MB_SEED_DATES[i], month: MB_SEED_MONTHS[i] };
+  }).reverse();
+}
+
+// Ana ekran hub kartı — Maden Biriktir (aktif/promo)
+function HomeMetalCard() {
+  const mt = state.metal;
+  if (mt.active) {
+    const m = mbMetal();
+    return `
+      <div class="ru-home-card active mb" data-action="mb-open">
+        <div class="ru-home-top"><span class="ru-logo mb-logo">${mbLogo(30)}</span>
+          <div><div class="ru-home-t">Maden Biriktir</div><div class="ru-home-s">Toplam ${m.name.toLowerCase()}</div></div>
+          <span class="chev-r">${I.chevR}</span></div>
+        <div class="ru-home-amt">${mbFmtMetal(mbGrams())}</div>
+        <div class="ru-home-mini"><span>≈ ${fmtTL(Math.round(mbValue()))}</span><span class="${mbGain() >= 0 ? 'up' : 'down'}">${mbGain() >= 0 ? '+' : ''}%${mbGainPct()}</span></div>
+      </div>`;
+  }
+  return `
+    <div class="ru-home-card promo mb" data-action="mb-open">
+      <span class="ru-logo mb-logo">${mbLogo(38)}</span>
+      <div class="ru-home-promo-txt">
+        <div class="ru-home-t">Maden Biriktir</div>
+        <div class="ru-home-s">Kartından her ay düzenli altın veya gümüş biriktir; otomatik alınsın.</div>
+      </div>
+      <span class="ru-home-cta">Başvur ${I.chevR}</span>
+    </div>`;
+}
+
+// Maden kodu rozeti (XAU/XAG) — mavi tema
+function mbBadge(kind) { return `<span class="mb-badge">${MB_METALS[kind].code}</span>`; }
+// Gram fiyatını ondalıksız, net biçimle (ör. "6.850 TL")
+function mbPriceStr(v) { return v.toLocaleString('tr-TR') + ' TL'; }
+// Maden seçimi — tek "seçili maden" alanı (dokununca bottom sheet açılır)
+function mbMetalField(action) {
+  const m = mbMetal();
+  return `<div class="ru-select-field filled" data-action="${action}">
+    <span class="mb-badge">${m.code}</span>
+    <div class="ru-sf-mid"><div class="ru-sf-name">${m.name}</div><div class="ru-sf-sub">Anlık gram fiyatı</div></div>
+    <div class="mb-price"><b>${mbPriceStr(m.price)}</b><i>/gram</i></div>
+    <span class="ru-sf-chev">${I.chevR}</span>
+  </div>`;
+}
+// Talimat cinsi — segmented control (TL / Gram)
+function mbUnitChips(action) {
+  const u = state.metal.unit;
+  return `<div class="mb-seg">
+    <button class="mb-seg-b ${u === 'try' ? 'on' : ''}" data-action="${action}" data-val="try">TL</button>
+    <button class="mb-seg-b ${u === 'gram' ? 'on' : ''}" data-action="${action}" data-val="gram">Gram</button>
+  </div>`;
+}
+// Tutar alanı (unit'e göre TL ya da gram) — büyük, sade
+function mbAmtInputVal() { return state.metal.unit === 'try' ? String(state.metal.tryAmt) : state.metal.gram.toLocaleString('tr-TR', { maximumFractionDigits: 2 }); }
+function mbAmtInputHTML(id) {
+  const u = state.metal.unit;
+  return `<div class="mb-amount">
+      <input id="${id}" type="text" inputmode="${u === 'try' ? 'numeric' : 'decimal'}" value="${mbAmtInputVal()}" placeholder="${u === 'try' ? '1.000' : '0,5'}" autocomplete="off" />
+      <span class="mb-amount-unit">${u === 'try' ? 'TL' : mbMetal().code}<i>/ ay</i></span>
+    </div>`;
+}
+// Tutar input'unu bağla — unit'e göre parse (sade, canlı örnek yok)
+function mbBindAmount(inputId) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  inp.addEventListener('input', () => {
+    if (state.metal.unit === 'try') {
+      const d = inp.value.replace(/[^\d]/g, '');
+      if (d !== inp.value) inp.value = d;
+      state.metal.tryAmt = d ? parseInt(d, 10) : 0;
+    } else {
+      const v = inp.value.replace(/[^\d.,]/g, '');
+      if (v !== inp.value) inp.value = v;
+      const n = parseFloat(v.replace(',', '.'));
+      state.metal.gram = isNaN(n) || n <= 0 ? 0.1 : n;
+    }
+  });
+}
+
+// Başvuru — kart, maden, sabit tutar (TL ya da gram), talimat (sıklık/gün yok)
+function MetalApply() {
+  const mt = state.metal;
+  const c = mbCard();
+  const ready = mt.source && mt.agreed;
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Maden Biriktir'e Başvur</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll ru-form">
+      <div class="ru-hero">
+        <div class="ru-hero-logo ru-logo mb-logo">${mbLogo(58)}</div>
+        <h1 class="ru-hero-title">Maden Biriktir ile<br>düzenli altın ve gümüş.</h1>
+        <p class="ru-hero-sub">Belirlediğin tutar her ay kartından alınıp o günkü fiyattan altın ya da gümüşe dönüşür. Küçük adımlarla düzenli biriktir.</p>
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">1</span> Ödeme Kartı Seçimi</div>
+        <div class="ru-select-field ${c ? 'filled' : 'empty'}" data-action="mb-open-cardpick">
+          ${c
+            ? `${ruCardArt(c)}<div class="ru-sf-mid"><div class="ru-sf-name">${c.name}</div><div class="ru-sf-sub">${c.num}</div></div><span class="ru-sf-tick">${I.check}</span>`
+            : `<span class="ru-sf-ico">${I.card}</span><span class="ru-sf-label">Banka veya kredi kartı seçiniz</span>`}
+          <span class="ru-sf-chev">${I.chevR}</span>
+        </div>
+        <div class="ru-lock-note">${I.info} Kredi kartı seçersen işlem tutarı kart ekstrene yansır.</div>
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">2</span> Maden</div>
+        ${mbMetalField('mb-open-metalpick')}
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">3</span> Aylık Tutar</div>
+        <div class="mb-amount-row">${mbUnitChips('mb-unit')}${mbAmtInputHTML('mb-amt-input')}</div>
+        <div class="ru-lock-note">${I.lock} Bu tutar her ay kartından çekilir; alınacak ${mbMetal().name.toLowerCase()} (${mbMetal().code}) miktarı işlem anındaki gram fiyatına göre belirlenir.</div>
+      </div>
+
+      <div class="ru-sec">
+        <label class="contract-row ru-agree ${mt.agreed ? 'on' : ''}" data-action="mb-agree">
+          <span class="cbx">${I.check}</span>
+          <span class="contract-txt"><a data-action="mb-open-form">Maden Biriktir Talimat Formu</a>'nu okudum, onaylıyorum.</span>
+        </label>
+      </div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-primary ${ready ? '' : 'disabled'}" id="mb-activate-btn" data-action="mb-activate">Aktifleştir</button>
+      <div class="ru-ssl">${I.lock} Bilgilerin 256 bit SSL ile korunmaktadır.</div>
+    </div>
+  </div>`;
+}
+function setupMetalApply() { mbBindAmount('mb-amt-input'); }
+
+// Yönet — toplam maden + güncel değer + kazanç + aylık grafik + kural + hareketler + durdur
+function MetalJar() {
+  const mt = state.metal;
+  const m = mbMetal();
+  const c = mbCard();
+  const gain = mbGain();
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head ru-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Maden Biriktir</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll">
+      <div class="ru-statcard">
+        <div class="ru-jar-label">Toplam ${m.name}</div>
+        <div class="ru-jar-amt mb-gram" id="mb-jar-amt" data-val="${mbGrams()}">${mbFmtMetal(mbGrams())}</div>
+        <div class="ru-statrow">
+          <div class="ru-stat"><div class="ru-stat-l">Yatırılan</div><div class="ru-stat-v">${fmtTL(Math.round(mbInvested()))}</div></div>
+          <div class="ru-stat mid"><div class="ru-stat-l">Güncel değer</div><div class="ru-stat-v">${fmtTL(Math.round(mbValue()))}</div></div>
+          <div class="ru-stat"><div class="ru-stat-l">Kazanç</div><div class="ru-stat-v ${gain >= 0 ? 'up' : 'down'}">${gain >= 0 ? '+' : ''}%${mbGainPct()}</div></div>
+        </div>
+      </div>
+
+      <div class="mb-rule-card">
+        <div class="mb-rule-h"><span>Talimatım</span><span class="mb-rule-edit" data-action="mb-open-rule">Değiştir ${I.chevR}</span></div>
+        <div class="mb-rule-row"><span>Maden</span><b>${m.name} (${m.code})</b></div>
+        <div class="mb-rule-row"><span>Her ay</span><b>${mbInstrLabel()}</b></div>
+        <div class="mb-rule-row tap" data-action="mb-open-cardpick"><span>Ödeme kartı</span><b>${c ? c.name : 'Seçilmedi'} <span class="mb-rule-chev">${I.chevR}</span></b></div>
+      </div>
+
+      <div class="ru-txn-title">Son alımlar</div>
+      <div class="ru-txns">${mbTxnRows()}</div>
+      <div class="ru-seeall" data-action="mb-history">Tüm hareketleri gör ${I.chevR}</div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-ghost-danger" data-action="mb-stop">Maden Biriktir'i durdur</button>
+    </div>
+  </div>`;
+}
+// Alım satırı — ödenen TL (title) + alınan maden (sağda, ana renk)
+function mbTxnRow(t) {
+  const idx = state.metal.txns.indexOf(t);
+  const m = mbMetal();
+  return `
+    <div class="ru-txn" data-action="mb-txn" data-idx="${idx}">
+      <span class="ru-txn-ico mb-ico">${mbBadge(state.metal.kind)}</span>
+      <div class="ru-txn-mid"><div class="ru-txn-m">${fmtTL(Math.round(t.gram * t.price))}</div><div class="ru-txn-s">~${fmtTL(t.price)}/${m.code}</div><div class="ru-txn-d">${t.date}</div></div>
+      <span class="ru-txn-add">+${mbFmtMetal(t.gram)}</span>
+      <span class="ru-txn-chev">${I.chevR}</span>
+    </div>`;
+}
+function mbTxnRows() {
+  const mt = state.metal;
+  if (!mt.txns.length) return `<div class="ru-txn-empty">Henüz alım yok. İlk alımda buraya düşecek.</div>`;
+  return mt.txns.slice(0, 3).map(mbTxnRow).join('');
+}
+function MetalHistory() {
+  const mt = state.metal;
+  const groups = [];
+  mt.txns.forEach(t => {
+    let g = groups.find(x => x.m === t.month);
+    if (!g) { g = { m: t.month, items: [], gram: 0 }; groups.push(g); }
+    g.items.push(t);
+    g.gram += t.gram;
+  });
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Alım Hareketleri</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+      ${groups.map(g => `
+        <div class="ru-month-h"><span>${g.m}</span><b>+${mbFmtMetal(g.gram)}</b></div>
+        <div class="ru-txns">${g.items.map(mbTxnRow).join('')}</div>`).join('')}
+      <div class="ru-hist-note">${I.info} Daha eski hareketler prototipte gösterilmiyor.</div>
+    </div>
+  </div>`;
+}
+
+/* ---- Maden Biriktir akış mantığı ---- */
+function mbSeedJar() {
+  const mt = state.metal;
+  mt.active = true;
+  if (!mt.source) mt.source = 'worldgold';
+  if (!mt.txns.length) mt.txns = mbSeedTxns();
+}
+function mbToggleAgree(el) {
+  const mt = state.metal;
+  mt.agreed = !mt.agreed;
+  el.classList.toggle('on', mt.agreed);
+  const btn = document.getElementById('mb-activate-btn');
+  if (btn) btn.classList.toggle('disabled', !(mt.source && mt.agreed));
+}
+function mbSetUnit(u) { state.metal.unit = u; render(); }
+// Maden seçim bottom sheet'i — apply ekranından ya da "Kuralı değiştir" sheet'inden açılır
+let mbRuleOpen = false;   // metalpick "Kuralı değiştir"den mi açıldı (dönüş bağlamı)
+function mbOpenMetalPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Maden seçiniz</div>
+    ${Object.keys(MB_METALS).map(k => {
+      const m = MB_METALS[k]; const on = state.metal.kind === k;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="mb-pick-metal" data-val="${k}">
+        <span class="mb-badge">${m.code}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${m.name}</div><div class="ru-pick-s">${m.code}</div></div>
+        <div class="mb-price"><b>${mbPriceStr(m.price)}</b><i>/gram</i></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    <button class="sheet-btn ghost" data-action="mb-metalpick-cancel">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function mbPickMetal(k) {
+  state.metal.kind = k;
+  state.metal.monthChange = MB_METALS[k].change;
+  if (mbRuleOpen) mbOpenRule(); else { closeSheet(); render(); }
+}
+function mbMetalpickCancel() { if (mbRuleOpen) mbOpenRule(); else closeSheet(); }
+function mbOpenForm() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Maden Biriktir Talimat Formu</div>
+    <div class="legal-scroll">
+      <h4>1. Talimatın Kapsamı</h4>
+      <p>Bu talimat ile her ay belirlediğiniz sabit tutar (<b>${mbInstrLabel()}</b>) o günkü gram satış fiyatı üzerinden seçtiğiniz karttan tahsil edilerek ${mbMetal().name.toLowerCase()} olarak maden hesabınıza (${mbMetal().code}) aktarılır.</p>
+      <h4>2. Fiyat ve Değer</h4>
+      <p>Alım anındaki gram fiyatı esas alınır; maden fiyatları piyasa koşullarına göre değişir, birikiminizin değeri artabilir veya azalabilir. İşçilik/saklama ücreti alınmaz.</p>
+      <h4>3. Koşullar ve Yönetim</h4>
+      <p>Alımın gerçekleşmesi için kartınızın limiti/bakiyesi yeterli olmalıdır. Tutar, cins, maden ve kart bilgilerini dilediğiniz an değiştirebilir, talimatı durdurabilirsiniz.</p>
+      <p><b>Bu metin prototip amaçlı örnek bir sözleşme özetidir.</b></p>
+    </div>
+    <button class="sheet-btn" data-action="close-sheet">Okudum</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function mbActivate() {
+  const mt = state.metal;
+  if (!mt.source) return toast('Önce bir kart seçmelisin');
+  if (!mt.agreed) return toast('Talimat Formu onayı gerekli');
+  const c = mbCard(), m = mbMetal();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Talimatı Onayla</div>
+    <div class="su-cf-rows">
+      <div class="su-cf-row"><span>KART</span><b>${c.num}</b></div>
+      <div class="su-cf-row"><span>MADEN</span><b>${m.name} (${m.code})</b></div>
+      <div class="su-cf-row"><span>AYLIK TALİMAT</span><b>${mbInstrLabel()} · ${mt.unit === 'try' ? 'sabit TL' : 'sabit gram'}</b></div>
+      <div class="su-cf-row"><span>BUGÜNKÜ KURLA</span><b>≈ ${mt.unit === 'try' ? mbFmtMetal(mbMonthlyGram()) : fmtTL(Math.round(mbMonthlyTL()))}</b></div>
+    </div>
+    <p class="su-cf-note">İşlemi onaylamanız ardından maden hesabınız açılır ve talimatınız her ay tekrarlanır. Alımın gerçekleşmesi için kartınızın limiti yeterli olmalıdır.</p>
+    <button class="sheet-btn" id="mb-confirm-btn" data-action="mb-confirm">${I.shield} Onayla</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Düzenle</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function mbConfirm() {
+  const btn = document.getElementById('mb-confirm-btn');
+  btn.innerHTML = `<span class="spinner"></span> Talimat oluşturuluyor…`;
+  btn.style.pointerEvents = 'none';
+  setTimeout(() => {
+    mbSeedJar();
+    sheetEl.innerHTML = `
+      <div class="sheet-handle"></div>
+      <div class="ru-done">
+        <div class="ru-done-ring">${I.checkBig}</div>
+        <div class="ru-done-t">Maden Biriktir aktif! 🎉</div>
+        <div class="ru-done-s">Talimatın hazır! Artık her ay otomatik olarak ${mbMetal().name.toLowerCase()} biriktireceksin.</div>
+      </div>
+      <button class="sheet-btn" data-action="mb-open-jar">Maden Hesabımı Gör</button>`;
+  }, 1400);
+}
+function mbOpenCardPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Banka veya kredi kartı seçiniz</div>
+    ${RU_CARDS.map(c => {
+      const on = state.metal.source === c.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="mb-pick-card" data-val="${c.id}">
+        ${ruCardArt(c)}
+        <div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">${c.num} · ${c.kind}</div><div class="ru-pick-s2">${c.detail}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    <div class="su-pick-note">${I.info} Kredi kartı seçersen işlem tutarı kart ekstrene yansır; banka kartında hesabından çekilir.</div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function mbPickCard(id) { state.metal.source = id; closeSheet(); render(); }
+// Kuralı değiştir sheet'i (yönet) — maden + talimat cinsi + tutar (sıklık/gün yok)
+function mbOpenRule() {
+  mbRuleOpen = true;
+  const mt = state.metal;
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Kuralı değiştir</div>
+    <div class="su-field sheet"><div class="su-field-l">Maden</div>${mbMetalField('mb-open-metalpick')}</div>
+    <div class="su-field sheet"><div class="su-field-l">Talimat cinsi</div>${mbUnitChips('mb-rule-unit')}</div>
+    <div class="su-field sheet"><div class="su-field-l">Aylık ${mt.unit === 'try' ? 'tutar' : 'miktar'}</div>${mbAmtInputHTML('mb-rule-amt-input')}</div>
+    <button class="sheet-btn" data-action="mb-rule-save">Kaydet</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+  mbBindAmount('mb-rule-amt-input');
+}
+function mbRuleSetUnit(u) { state.metal.unit = u; mbOpenRule(); }
+function mbRuleSave() { mbRuleOpen = false; closeSheet(); render(); }
+function mbOpenTxn(i) {
+  const t = state.metal.txns[i];
+  if (!t) return;
+  const m = mbMetal(), c = mbCard();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-td-head">
+      <span class="ru-txn-ico mb-ico big">${mbBadge(state.metal.kind)}</span>
+      <div class="ru-td-m">+${mbFmtMetal(t.gram)}</div>
+      <div class="ru-td-d">${t.date}</div>
+    </div>
+    <div class="ru-cf-rows">
+      <div class="ru-cf-row"><span>Ödenen tutar</span><b>${fmtTL(Math.round(t.gram * t.price))}</b></div>
+      <div class="ru-cf-row"><span>Alınan</span><b class="est">+${mbFmtMetal(t.gram)}</b></div>
+      <div class="ru-cf-row"><span>İşlem günü gram fiyatı</span><b>~${fmtTL(t.price)}</b></div>
+      ${c ? `<div class="ru-cf-row"><span>Kart</span><b>${c.name} ${c.num.slice(-4)}</b></div>` : ''}
+      <div class="ru-cf-row"><span>Güncel gram fiyatı</span><b>~${fmtTL(m.price)}</b></div>
+    </div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Kapat</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function mbStop() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Maden Biriktir'i durdur</div>
+    <p class="ru-stop-txt">Talimatın iptal edilir ve yeni alım yapılmaz. Biriken <b>${mbFmtMetal(mbGrams())}</b> ${mbMetal().name.toLowerCase()} maden hesabında kalır.</p>
+    <button class="sheet-btn" data-action="mb-stop-confirm">Durdur</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function mbStopConfirm() {
+  const mt = state.metal;
+  mt.active = false;
+  mt.agreed = false;
+  closeSheet();
+  goHome();
+  setTimeout(() => toast('Maden Biriktir durduruldu. Biriken madenin hesabında kalır.'), 300);
+}
+function setupMetalJar() {
+  const el = document.getElementById('mb-jar-amt');
+  if (!el) return;
+  const target = parseFloat(el.dataset.val);
+  const from = target * 0.55;
+  const dur = 650;
+  const t0 = performance.now();
+  const tick = (now) => {
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = mbFmtMetal(from + (target - from) * e);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/* ===================================================================
    HARCAMA ANALİZİ & LİMİT  (Harcamalarım)
    İki ekran: Analiz + Limit (üstte segment). Analiz'de dönem + kart filtresi.
    Limitler hesap geneli (tüm kartlar) hesaplanır; kart filtresi yalnız Analiz'de.
@@ -3152,6 +3612,9 @@ function render() {
     case 'spendup-apply': html = SpendupApply(); break;
     case 'spendup-jar': html = SpendupJar(); break;
     case 'spendup-history': html = SpendupHistory(); break;
+    case 'metal-apply': html = MetalApply(); break;
+    case 'metal-jar': html = MetalJar(); break;
+    case 'metal-history': html = MetalHistory(); break;
     case 'insights': html = InsightsScreen(); break;
     case 'subs': html = SubsScreen(); break;
     case 'sub-detail': html = SubDetailScreen(); break;
@@ -3169,6 +3632,8 @@ function render() {
   if (state.screen === 'roundup-jar') setupJar();
   if (state.screen === 'spendup-apply') setupSpendupApply();
   if (state.screen === 'spendup-jar') setupSuJar();
+  if (state.screen === 'metal-apply') setupMetalApply();
+  if (state.screen === 'metal-jar') setupMetalJar();
 }
 
 /* İleri navigasyon — mevcut ekranı geri yığınına ekler (gerçek uygulama gibi) */
@@ -4073,6 +4538,7 @@ function openConfirmSheet() {
 function closeSheet() {
   sheetEl.classList.remove('open');
   sheetScrimEl.classList.remove('open');
+  mbRuleOpen = false;   // maden "Kuralı değiştir" bağlamını sıfırla
 }
 function approvePayment() {
   const btn = document.getElementById('approve-btn');
@@ -4273,6 +4739,27 @@ document.addEventListener('click', (e) => {
     case 'su-stop-confirm': return suStopConfirm();
     case 'close-sheet-render': { closeSheet(); return render(); }
 
+    // Maden Biriktir
+    case 'mb-open': return go(state.metal.active ? 'metal-jar' : 'metal-apply');
+    case 'mb-agree': return mbToggleAgree(t);
+    case 'mb-open-form': return mbOpenForm();
+    case 'mb-open-metalpick': return mbOpenMetalPick();
+    case 'mb-pick-metal': return mbPickMetal(t.dataset.val);
+    case 'mb-metalpick-cancel': return mbMetalpickCancel();
+    case 'mb-unit': return mbSetUnit(t.dataset.val);
+    case 'mb-activate': return mbActivate();
+    case 'mb-confirm': return mbConfirm();
+    case 'mb-open-jar': { closeSheet(); return go('metal-jar'); }
+    case 'mb-open-cardpick': return mbOpenCardPick();
+    case 'mb-pick-card': return mbPickCard(t.dataset.val);
+    case 'mb-open-rule': return mbOpenRule();
+    case 'mb-rule-unit': return mbRuleSetUnit(t.dataset.val);
+    case 'mb-rule-save': return mbRuleSave();
+    case 'mb-txn': return mbOpenTxn(+t.dataset.idx);
+    case 'mb-history': return go('metal-history');
+    case 'mb-stop': return mbStop();
+    case 'mb-stop-confirm': return mbStopConfirm();
+
     // Harcama analizi & limit
     case 'sp-open': return go('insights');
     case 'sp-seg': return spSeg(t.dataset.seg);
@@ -4345,7 +4832,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -4392,6 +4879,17 @@ function routeTo(hash) {
   }
   if (h === 'spendup-jar' || h === 'spendup-history') { // dolu birikim/geçmiş — kural yoksa kurup göster (demo linki)
     if (!state.spendup.active) suSeedJar();
+    state.chatSeed = false;
+    state.screen = h;
+    return true;
+  }
+  if (h === 'metal') {               // #metal → aktifse yönet, değilse başvuru
+    state.chatSeed = false;
+    state.screen = state.metal.active ? 'metal-jar' : 'metal-apply';
+    return true;
+  }
+  if (h === 'metal-jar' || h === 'metal-history') { // dolu maden hesabı/geçmiş — kural yoksa kurup göster (demo linki)
+    if (!state.metal.active) mbSeedJar();
     state.chatSeed = false;
     state.screen = h;
     return true;

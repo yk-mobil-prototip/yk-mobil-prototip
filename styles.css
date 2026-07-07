@@ -1973,9 +1973,7 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
    yapı ve aynı YK mavisi tema. Home hub carousel dahil.
    =================================================================== */
 
-/* Home hub — "Otomatik Birikim" başlığı + yana kaydırmalı iki kart */
-.ru-hub-title { display: flex; align-items: baseline; justify-content: space-between; }
-.ru-hub-hint { font-size: 10.5px; font-weight: 600; color: var(--text-faint); letter-spacing: .3px; }
+/* Home hub — "Otomatik Birikim" başlığı + yana kaydırmalı kartlar */
 .ru-carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 16px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .ru-carousel::-webkit-scrollbar { display: none; }
 .ru-carousel > .ru-home-card { margin: 0; flex: 0 0 85%; scroll-snap-align: start; box-sizing: border-box; }
@@ -2026,6 +2024,55 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .su-cf-row span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--text-faint); text-transform: uppercase; }
 .su-cf-row b { display: block; margin-top: 5px; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.2px; }
 .su-cf-note { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 13px 2px 14px; }
+
+/* ===================================================================
+   MADEN BİRİKTİR — tamamen YK mavisi tema (logo/rozet dahil).
+   XAU/XAG kod rozeti, maden seçim kartları, segmented tutar girişi.
+   =================================================================== */
+.mb-logo { color: var(--primary); }
+
+/* Maden kodu rozeti (XAU/XAG) — mavi */
+.mb-badge { display: inline-grid; place-items: center; min-width: 38px; height: 22px; padding: 0 7px; border-radius: 7px; font-size: 11px; font-weight: 800; letter-spacing: .3px; background: rgba(0,152,203,.14); color: var(--primary); }
+
+/* Maden seçimi — tek "seçili maden" alanı; seçim bottom sheet'te (ru-pick-row) */
+.ru-select-field .mb-badge, .ru-pick-row .mb-badge { flex-shrink: 0; }
+/* Net gram fiyatı — sağda belirgin */
+.mb-price { flex-shrink: 0; text-align: right; line-height: 1.15; margin-left: auto; }
+.ru-pick-row .mb-price { margin-right: 10px; }
+.mb-price b { display: block; font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -.2px; font-variant-numeric: tabular-nums; }
+.mb-price i { font-size: 10.5px; font-style: normal; color: var(--text-faint); font-weight: 600; }
+
+/* Aylık tutar — segmented (TL/Gram) + büyük giriş alanı */
+.mb-amount-row { display: flex; flex-direction: column; gap: 10px; }
+.mb-seg { display: flex; gap: 3px; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 3px; }
+.mb-seg-b { flex: 1; border: none; background: transparent; color: var(--text-dim); font-family: inherit; font-size: 14px; font-weight: 700; padding: 9px; border-radius: 9px; cursor: pointer; transition: .15s; }
+.mb-seg-b.on { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(0,152,203,.28); }
+.mb-amount { display: flex; align-items: center; gap: 10px; padding: 6px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.mb-amount:focus-within { border-color: var(--primary); }
+.mb-amount input { flex: 1; min-width: 0; border: none; background: none; outline: none; font-family: inherit; font-size: 26px; font-weight: 800; color: var(--text); padding: 12px 0; letter-spacing: -.5px; }
+.mb-amount-unit { flex-shrink: 0; font-size: 15px; font-weight: 700; color: var(--primary); }
+.mb-amount-unit i { font-style: normal; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-left: 2px; }
+
+/* Yönet — sade talimat kartı */
+.ru-jar-amt.mb-gram { font-size: 32px; }
+.ru-statcard .ru-stat-v.down { color: #f1a08a; display: inline-flex; align-items: center; gap: 4px; }
+.ru-home-mini .up { color: var(--success); font-weight: 700; }
+.ru-home-mini .down { color: #e2725b; font-weight: 700; }
+.mb-rule-card { margin: 14px 16px; padding: 4px 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+.mb-rule-h { display: flex; align-items: center; justify-content: space-between; padding: 13px 0 11px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 700; color: var(--text); }
+.mb-rule-edit { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; color: var(--primary); cursor: pointer; }
+.mb-rule-edit svg { width: 15px; height: 15px; }
+.mb-rule-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.mb-rule-row:last-child { border-bottom: none; }
+.mb-rule-row > span { color: var(--text-dim); }
+.mb-rule-row b { color: var(--text); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+.mb-rule-chev { color: var(--text-faint); display: inline-flex; }
+.mb-rule-chev svg { width: 16px; height: 16px; }
+
+/* Hareket ikonunda XAU/XAG kod rozeti (daire yerine rozet) */
+.ru-txn-ico.mb-ico { background: none; }
+.ru-txn-ico.mb-ico .mb-badge { min-width: 40px; height: 40px; border-radius: 12px; font-size: 12px; }
+.ru-txn-ico.mb-ico.big .mb-badge { min-width: 54px; height: 54px; border-radius: 16px; font-size: 15px; }
 
 /* ===================================================================
    HARCAMA ANALİZİ & LİMİT  (Harcamalarım)

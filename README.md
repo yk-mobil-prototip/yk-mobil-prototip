@@ -40,9 +40,12 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Yuvarla & Biriktir — başvuru (kart, kural 10/50/100, talimat onayı) | `#roundup` |
 | Yuvarla & Biriktir — kumbara (grafik, hedef, duraklat/durdur) | `#roundup-jar` |
 | Yuvarla & Biriktir — tüm hareketler (aya göre gruplu) | `#roundup-history` |
-| Ekstreden Biriktir — başvuru (kart, oran %1/5/10/Özel, üst limit, talimat onayı) | `#spendup` |
+| Ekstreden Biriktir — başvuru (kart, oran %1/5/10/20, üst limit, talimat onayı) | `#spendup` |
 | Ekstreden Biriktir — yönet (toplam, günlük faiz, aylık aktarım grafiği) | `#spendup-jar` |
 | Ekstreden Biriktir — tüm aktarımlar (aya göre gruplu) | `#spendup-history` |
+| Maden Biriktir — başvuru (kart, altın/gümüş/platin/paladyum, sabit tutar TL/gram) | `#metal` |
+| Maden Biriktir — yönet (toplam XAU/XAG, güncel değer, kazanç, grafik) | `#metal-jar` |
+| Maden Biriktir — tüm alımlar (aya göre gruplu) | `#metal-history` |
 | Arama | `#search` |
 | Ayarlar | `#settings` |
 | Bölümler hub'ı | `#sections` |
