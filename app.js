@@ -215,6 +215,9 @@ const SECTIONS = [
   { hash: 'roundup',    icon: 'wallet2', t: 'Yuvarla Biriktir — Başvur', d: 'Kart, kural (10/50/100 TL), hesap, talimat onayı → Aktifleştir' },
   { hash: 'roundup-jar', icon: 'pie',    t: 'Yuvarla Biriktir — Yönet',  d: 'Kumbara, aylık grafik, hedef, duraklat/durdur (dolu)' },
   { hash: 'roundup-history', icon: 'receipt', t: 'Yuvarla Biriktir — Hareketler', d: 'Aya göre gruplu tüm birikim hareketleri' },
+  { hash: 'spendup',    icon: 'bars',    t: 'Ekstreden Biriktir — Başvur', d: 'Kredi kartı, oran (%1/5/10/Özel), tavan, hesap, talimat onayı → Aktifleştir' },
+  { hash: 'spendup-jar', icon: 'pie',    t: 'Ekstreden Biriktir — Yönet',  d: 'Toplam biriken, günlük faiz, aylık aktarım grafiği, kural (dolu)' },
+  { hash: 'spendup-history', icon: 'receipt', t: 'Ekstreden Biriktir — Hareketler', d: 'Aya göre gruplu tüm ekstre aktarımları' },
   { hash: 'insights',   icon: 'pie',      t: 'Harcama Analizi',      d: 'Aylık toplam, kategori dağılımı, işyeri kırılımı' },
   { hash: 'limits',     icon: 'target',   t: 'Harcama Limitlerim',   d: 'Kategoriye tutar girerek aylık limit koy' },
   { hash: 'kid',        icon: 'wallet2',  t: 'Çocuk Ek Kartı',       d: 'Limit, harçlık, birikim hedefi, veli eşleştirme, onaylar, rozetler' },
@@ -270,6 +273,19 @@ const state = {
     jar: 1842.35,            // toplam biriken (TL)
     monthChange: 15,         // geçen aya göre % değişim
     txns: [],                // {merchant, emoji, spent, add, date, month} — en yeni başta
+  },
+  // Ekstreden Biriktir (ekstre endeksli otomatik birikim) — Yuvarla Biriktir'in kardeşi
+  spendup: {
+    active: false,           // kural kurulu mu
+    source: null,            // seçili kaynak kredi kartı: 'worldgold' | 'tlcard' | null
+    account: null,           // seçili birikim hesabı: 'sav' | 'sav2' | null
+    rate: 10,                // ekstre yüzdesi (hazır: 1/5/10 ya da özel)
+    cap: 500,                // aylık aktarılacak maksimum tutar (TL) — null ise sınırsız
+    agreed: false,           // Ekstreden Biriktir Talimat Formu onayı
+    jar: 3184.60,            // toplam biriken (birikim + faiz)
+    interest: 96.35,         // toplam kazanılan günlük faiz (round-up'ta olmayan fark)
+    monthChange: 12,         // geçen aya göre % değişim
+    txns: [],                // {label, statement, rate, add, interest, date, month} — en yeni başta
   },
   // Çocuk Ek Kartı (ebeveyn kontrollü) — Harcamalarım içinden yönetilir
   kid: {
@@ -507,7 +523,7 @@ function HomeScreen() {
         </div>
       </div>
 
-      ${HomeRoundupCard()}
+      ${HomeSavingsHub()}
 
       <div class="home-lower">
         <div class="quick-row4">
@@ -546,13 +562,22 @@ function HomeScreen() {
 }
 
 // Home'daki Yuvarla Biriktir kartı — kural yoksa promo, varsa durum kartı
+// Ana ekran birikim hub'ı — "Otomatik Birikim" başlığı + yana kaydırmalı iki kart (Yuvarla + Harcadıkça)
+function HomeSavingsHub() {
+  return `
+    <div class="section-title ru-hub-title">Otomatik Birikim <span class="ru-hub-hint">← kaydır →</span></div>
+    <div class="ru-carousel">
+      ${HomeRoundupCard()}
+      ${HomeSpendupCard()}
+    </div>`;
+}
+
 function HomeRoundupCard() {
   const r = state.roundup;
   if (r.active) {
     const g = r.goal;
     const pct = g ? Math.min(100, Math.round(r.jar / g.amount * 100)) : 0;
     return `
-      <div class="section-title">Birikim</div>
       <div class="ru-home-card active" data-action="ru-open">
         <div class="ru-home-top"><span class="ru-logo">${ruLogo(30)}</span>
           <div><div class="ru-home-t">Yuvarla Biriktir</div><div class="ru-home-s">Toplam biriken</div></div>
@@ -564,7 +589,6 @@ function HomeRoundupCard() {
       </div>`;
   }
   return `
-    <div class="section-title">Birikim</div>
     <div class="ru-home-card promo" data-action="ru-open">
       <span class="ru-logo">${ruLogo(38)}</span>
       <div class="ru-home-promo-txt">
@@ -1503,6 +1527,504 @@ function setupJar() {
   const tick = (now) => {
     const p = Math.min(1, (now - t0) / dur);
     const e = 1 - Math.pow(1 - p, 3); // ease-out
+    el.textContent = fmtTL2(from + (target - from) * e);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/* ===================================================================
+   HARCADIKÇA BİRİKTİR  (ekstre endeksli otomatik birikim)
+   Kredi kartına tanımlanan kural: her hesap kesim döneminde ekstre
+   tutarının belirlenen %'si (tavan varsa aşılmadan) birikim hesabına
+   aktarılır ve günlük faizle değerlenir. Yuvarla Biriktir'in kardeşi.
+   =================================================================== */
+// Özelliğin logosu — yükselen çubuklar + ₺ jeton (Yuvarla Biriktir logosuyla aynı aile, farklı motif)
+function suLogo(size) {
+  return `<svg class="ru-logo-svg" width="${size}" height="${size}" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <rect x="8"  y="28" width="6.5" height="12" rx="2" fill="currentColor" opacity="0.55"/>
+    <rect x="18" y="22" width="6.5" height="18" rx="2" fill="currentColor" opacity="0.78"/>
+    <rect x="28" y="15" width="6.5" height="25" rx="2" fill="currentColor"/>
+    <circle cx="36" cy="12" r="8.4" fill="currentColor"/>
+    <text x="36" y="16.2" text-anchor="middle" font-size="11.5" font-weight="800" fill="#fff" font-family="Ubuntu, system-ui, sans-serif">₺</text>
+  </svg>`;
+}
+const SU_STATEMENT = 8620;                       // bu dönemki tahmini ekstre tutarı (canlı örnek/beklenen için)
+const SU_RATE_PRESETS = [1, 5, 10, 20];          // ekstre oranı çipleri (sabit)
+const SU_CUR_MONTH = 'Mayıs 2026';               // içinde bulunulan dönem (RU ile hizalı)
+const SU_NEXT_DATE = '10 Haziran';               // sıradaki aktarım (son ödeme) tarihi
+function suCard() { return RU_CARDS.find(c => c.id === state.spendup.source) || null; }
+function suAccount() { return RU_ACCOUNTS.find(a => a.id === state.spendup.account) || null; }
+function suCapLabel(v) { return v.toLocaleString('tr-TR') + ' TL'; }
+// Bir ekstre için ham (tavansız) ve aktarılacak (tavanlı) tutar
+function suRaw(statement, rate) { return statement * (rate / 100); }
+function suAmount(statement, rate, cap) {
+  const raw = suRaw(statement, rate);
+  return cap ? Math.min(raw, cap) : raw;
+}
+// Bu dönem beklenen aktarım (henüz kesilmemiş ekstre)
+function suExpected() { return suAmount(SU_STATEMENT, state.spendup.rate, state.spendup.cap); }
+function suExpectedRaw() { return suRaw(SU_STATEMENT, state.spendup.rate); }
+function suIsCapped() { return state.spendup.cap != null && suExpectedRaw() > state.spendup.cap; }
+// Toplam anapara (aktarılan birikimler) ve faizle birlikte toplam
+function suPrincipal() { return state.spendup.txns.reduce((s, t) => s + t.add, 0); }
+function suTotal() { return suPrincipal() + state.spendup.interest; }
+// Kumbara ilk açıldığında dolu görünsün diye örnek ekstre aktarımları (en yeni başta; ~500 TL tavana göre)
+const SU_SEED_TXNS = [
+  { label: 'Nisan ekstresi',  statement: 4500, rate: 10, add: 450, interest: 12.40, date: '10 May · son ödeme', month: 'Nisan 2026' },
+  { label: 'Mart ekstresi',   statement: 6200, rate: 10, add: 500, interest: 10.80, date: '10 Nis · son ödeme', month: 'Mart 2026'  },
+  { label: 'Şubat ekstresi',  statement: 3750, rate: 10, add: 375, interest:  8.15, date: '10 Mar · son ödeme', month: 'Şubat 2026' },
+  { label: 'Ocak ekstresi',   statement: 5000, rate: 10, add: 500, interest:  7.40, date: '10 Şub · son ödeme', month: 'Ocak 2026'  },
+  { label: 'Aralık ekstresi', statement: 4100, rate: 10, add: 410, interest:  6.05, date: '10 Oca · son ödeme', month: 'Aralık 2025'},
+];
+// Aylık grafik — geçmiş aktarımlar + bu dönem beklenen (canlı)
+const SU_MONTHS = [
+  { m: 'Ara', v: 410 }, { m: 'Oca', v: 500 }, { m: 'Şub', v: 375 },
+  { m: 'Mar', v: 500 }, { m: 'Nis', v: 450 },
+];
+
+// Ana ekran hub kartı — Ekstreden Biriktir (aktif/promo)
+function HomeSpendupCard() {
+  const s = state.spendup;
+  if (s.active) {
+    return `
+      <div class="ru-home-card active su" data-action="su-open">
+        <div class="ru-home-top"><span class="ru-logo su-logo">${suLogo(30)}</span>
+          <div><div class="ru-home-t">Ekstreden Biriktir</div><div class="ru-home-s">Toplam biriken</div></div>
+          <span class="chev-r">${I.chevR}</span></div>
+        <div class="ru-home-amt">${fmtTL2(suTotal())}</div>
+        <div class="ru-home-mini"><span>${I.trendUp} Ekstrenin <b>%${s.rate}</b>'i</span><span>faiz +${fmtTL2(s.interest).replace(',',',')}</span></div>
+      </div>`;
+  }
+  return `
+    <div class="ru-home-card promo su" data-action="su-open">
+      <span class="ru-logo su-logo">${suLogo(38)}</span>
+      <div class="ru-home-promo-txt">
+        <div class="ru-home-t">Ekstreden Biriktir</div>
+        <div class="ru-home-s">Ekstrenin belirlediğin %'si her ay birikim hesabına geçsin, günlük faiz kazan.</div>
+      </div>
+      <span class="ru-home-cta">Başvur ${I.chevR}</span>
+    </div>`;
+}
+
+// Başvuru ekranı — kart, oran (%1/5/10/Özel), tavan, birikim hesabı, talimat onayı
+function SpendupApply() {
+  const s = state.spendup;
+  const c = suCard();
+  const a = suAccount();
+  const ready = s.source && s.account && s.agreed;
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ekstreden Biriktir'e Başvur</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll ru-form">
+      <div class="ru-hero">
+        <div class="ru-hero-logo ru-logo su-logo">${suLogo(58)}</div>
+        <h1 class="ru-hero-title">Ekstreden Biriktir ile<br>ekstren kadar biriktir.</h1>
+        <p class="ru-hero-sub">Kredi kartına tanımlanan kuralla her hesap kesim döneminde ekstre tutarının belirlediğin %'si birikim hesabına aktarılır ve günlük faizle değerlenir.</p>
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">1</span> Kredi Kartı Seçimi</div>
+        <div class="ru-select-field ${c ? 'filled' : 'empty'}" data-action="su-open-cardpick">
+          ${c
+            ? `${ruCardArt(c)}<div class="ru-sf-mid"><div class="ru-sf-name">${c.name}</div><div class="ru-sf-sub">${c.num}</div></div><span class="ru-sf-tick">${I.check}</span>`
+            : `<span class="ru-sf-ico">${I.card}</span><span class="ru-sf-label">Kredi kartı seçiniz</span>`}
+          <span class="ru-sf-chev">${I.chevR}</span>
+        </div>
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">2</span> Birikim Kuralı</div>
+        ${suRuleBoxHTML()}
+      </div>
+
+      <div class="ru-sec">
+        <div class="ru-sec-h"><span class="ru-sec-n">3</span> Birikim Hesabı Seç</div>
+        <div class="ru-select-field ${a ? 'filled' : 'empty'}" data-action="su-open-acctpick">
+          ${a
+            ? `<span class="ru-sf-ico">${I.bank}</span><div class="ru-sf-mid"><div class="ru-sf-name">${a.name}</div><div class="ru-sf-sub">${a.iban} · ${a.detail}</div></div><span class="ru-sf-tick">${I.check}</span>`
+            : `<span class="ru-sf-ico">${I.bank}</span><span class="ru-sf-label">Birikim hesabı seçiniz</span>`}
+          <span class="ru-sf-chev">${I.chevR}</span>
+        </div>
+        <div class="ru-lock-note">${I.lock} Aktarılan tutar günlük faizle değerlenir, dilediğinde çekebilirsin.</div>
+      </div>
+
+      <div class="ru-sec">
+        <label class="contract-row ru-agree ${s.agreed ? 'on' : ''}" data-action="su-agree">
+          <span class="cbx">${I.check}</span>
+          <span class="contract-txt"><a data-action="su-open-form">Ekstreden Biriktir Talimat Formu</a>'nu okudum, onaylıyorum.</span>
+        </label>
+      </div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-primary ${ready ? '' : 'disabled'}" id="su-activate-btn" data-action="su-activate">Aktifleştir</button>
+      <div class="ru-ssl">${I.lock} Bilgilerin 256 bit SSL ile korunmaktadır.</div>
+    </div>
+  </div>`;
+}
+
+// Oran çip satırı — sabit oranlar %1 / %5 / %10 / %20
+function suRateChips() {
+  const s = state.spendup;
+  return `<div class="su-chips">
+    ${SU_RATE_PRESETS.map(r => `<button class="su-chip ${s.rate === r ? 'on' : ''}" data-action="su-rate" data-val="${r}">%${r}</button>`).join('')}
+  </div>`;
+}
+// Üst limit — kullanıcı elle girer (boş bırakılırsa sınırsız)
+function suCapInputHTML(id) {
+  const s = state.spendup;
+  return `<div class="su-cap-input">
+      <input id="${id}" type="text" inputmode="numeric" value="${s.cap != null ? s.cap : ''}" placeholder="Sınırsız" autocomplete="off" />
+      <span class="su-cap-suf">TL / ay</span>
+    </div>
+    <div class="su-cap-hint">Boş bırakırsan ekstrenin tamamına oran uygulanır.</div>`;
+}
+// Canlı örnek kartı — cap devredeyse "X yerine Y aktarılır" microcopy'siyle
+function suExampleHTML() {
+  const s = state.spendup;
+  const raw = suExpectedRaw();
+  return `
+    <div class="su-ex-card">
+      <div class="su-ex-main">
+        <span>Tahmini aylık birikim</span>
+        <b class="su-ex-amt">+${suCapLabel(Math.round(suExpected()))}</b>
+      </div>
+      ${suIsCapped()
+        ? `<div class="su-ex-note">%${s.rate} × ~${suCapLabel(SU_STATEMENT)} ekstre = ${suCapLabel(Math.round(raw))}, üst limit <b>${suCapLabel(s.cap)}</b>.</div>`
+        : `<div class="su-ex-note">Ekstrenin %${s.rate}'i · ~${suCapLabel(SU_STATEMENT)} tahmini ekstre üzerinden.</div>`}
+    </div>`;
+}
+// Kural bölümü — "ne kadarı biriksin" + "aylık üst limit" çip grupları + canlı örnek
+function suRuleBoxHTML() {
+  return `
+    <div class="su-field">
+      <div class="su-field-l">Ekstrenin ne kadarı biriksin?</div>
+      ${suRateChips()}
+    </div>
+    <div class="su-field">
+      <div class="su-field-l">Aylık üst limit</div>
+      ${suCapInputHTML('su-cap-input')}
+    </div>
+    <div id="su-ex-slot">${suExampleHTML()}</div>
+    <div class="ru-rule-note">${I.info} Aktarım, kartının <b>son ödeme tarihinde</b> gerçekleşir; işlem puan/mil kazandırmaz. En az 100 TL ekstre şartı vardır.</div>`;
+}
+// Üst limit input'unu bağla — yazıldıkça state.cap ve canlı örnek güncellenir (odak kaybı yok)
+function suBindCap(inputId, slotId) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  inp.addEventListener('input', () => {
+    const d = inp.value.replace(/[^\d]/g, '');
+    if (d !== inp.value) inp.value = d;
+    state.spendup.cap = d ? parseInt(d, 10) : null;
+    const slot = document.getElementById(slotId);
+    if (slot) slot.innerHTML = suExampleHTML();
+  });
+}
+function setupSpendupApply() { suBindCap('su-cap-input', 'su-ex-slot'); }
+
+// Yönet ekranı — toplam biriken + kazanılan faiz + aylık grafik + kural özeti + hareketler + durdur
+function SpendupJar() {
+  const s = state.spendup;
+  const c = suCard();
+  const a = suAccount();
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head ru-nav-accent su-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ekstreden Biriktir</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll">
+      <div class="ru-statcard su">
+        <div class="ru-jar-label">Toplam Biriken</div>
+        <div class="ru-jar-amt" id="su-jar-amt" data-val="${suTotal()}">${fmtTL2(suTotal())}</div>
+        <div class="ru-statrow">
+          <div class="ru-stat"><div class="ru-stat-l">Birikim</div><div class="ru-stat-v">${fmtTL2(suPrincipal())}</div></div>
+          <div class="ru-stat mid"><div class="ru-stat-l">Kazanılan faiz</div><div class="ru-stat-v up">+${fmtTL2(s.interest)}</div></div>
+          <div class="ru-stat"><div class="ru-stat-l">Geçen aya göre</div><div class="ru-stat-v up">${I.trendUp} %${s.monthChange}</div></div>
+        </div>
+      </div>
+
+      <div class="su-next-card">
+        <div class="su-next-head">
+          <div><div class="su-next-k">Bu dönem tahmini birikim</div><div class="su-next-amt">+${suCapLabel(Math.round(suExpected()))}</div></div>
+          <span class="su-next-rate">%${s.rate}</span>
+        </div>
+        ${suIsCapped()
+          ? `<div class="su-next-note">Üst limit nedeniyle ${suCapLabel(Math.round(suExpectedRaw()))} yerine <b>${suCapLabel(s.cap)}</b> aktarılacak.</div>`
+          : `<div class="su-next-note">${SU_CUR_MONTH} ekstresi (~${suCapLabel(SU_STATEMENT)}) üzerinden hesaplandı.</div>`}
+        <div class="su-next-row"><span>${I.info} Sıradaki aktarım</span><b>${SU_NEXT_DATE}</b></div>
+      </div>
+
+      <div class="ru-block">
+        <div class="ru-block-h">Aylık aktarım</div>
+        ${suChartHTML()}
+      </div>
+
+      <div class="ru-info-card">
+        <div class="ru-info-row tap" data-action="su-open-rule"><span class="ru-info-ico">${I.target}</span><span class="ru-info-k">Kural</span><span class="ru-info-v">Ekstrenin %${s.rate}'i${s.cap ? '<br><i>en çok ' + fmtTL2(s.cap).replace(',00','') + ' TL/ay</i>' : ''}</span>${I.chevR}</div>
+        <div class="ru-info-row tap" data-action="su-open-cardpick"><span class="ru-info-ico">${I.card}</span><span class="ru-info-k">Kredi kartı</span><span class="ru-info-v">${c ? c.name + '<br><i>' + c.num + '</i>' : 'Seçilmedi'}</span>${I.chevR}</div>
+        <div class="ru-info-row tap" data-action="su-open-acctpick"><span class="ru-info-ico">${I.bank}</span><span class="ru-info-k">Birikim hesabı</span><span class="ru-info-v">${a ? a.name + '<br><i>' + a.iban + '</i>' : 'Seçilmedi'}</span>${I.chevR}</div>
+      </div>
+
+      <div class="ru-txn-title">Son aktarımlar</div>
+      <div class="ru-txns">${suTxnRows()}</div>
+      <div class="ru-seeall" data-action="su-history">Tüm hareketleri gör ${I.chevR}</div>
+    </div>
+    <div class="screen-cta">
+      <button class="btn-ghost-danger" data-action="su-stop">Ekstreden Biriktir'i durdur</button>
+    </div>
+  </div>`;
+}
+
+// 6 aylık çubuk grafik — 5 ay geçmiş + bu dönem beklenen (canlı)
+function suChartHTML() {
+  const months = [...SU_MONTHS, { m: 'May', v: suExpected(), cur: true }];
+  const max = Math.max(...months.map(x => x.v), 1);
+  return `
+    <div class="ru-chart">
+      ${months.map(x => `
+        <div class="ru-bar-col">
+          <div class="ru-bar-v">${Math.round(x.v)}</div>
+          <div class="ru-bar-track"><div class="ru-bar su ${x.cur ? 'cur' : ''}" style="height:${Math.max(9, Math.round(x.v / max * 100))}%"></div></div>
+          <div class="ru-bar-m ${x.cur ? 'cur' : ''}">${x.m}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// Tek aktarım satırı — ekstre bazlı
+function suTxnRow(t) {
+  const idx = state.spendup.txns.indexOf(t);
+  return `
+    <div class="ru-txn" data-action="su-txn" data-idx="${idx}">
+      <span class="ru-txn-ico su-ico">${I.receipt}</span>
+      <div class="ru-txn-mid"><div class="ru-txn-m">${t.label}</div><div class="ru-txn-s">${fmtTL(t.statement).replace(',00 TL',' TL')} · %${t.rate}</div><div class="ru-txn-d">${t.date}</div></div>
+      <span class="ru-txn-add">+${fmtTL2(t.add).replace(',00','')}</span>
+      <span class="ru-txn-chev">${I.chevR}</span>
+    </div>`;
+}
+function suTxnRows() {
+  const s = state.spendup;
+  if (!s.txns.length) return `<div class="ru-txn-empty">Henüz aktarım yok. İlk ekstre kesildiğinde buraya düşecek.</div>`;
+  return s.txns.slice(0, 3).map(suTxnRow).join('');
+}
+
+// Tüm hareketler — aya göre gruplu
+function SpendupHistory() {
+  const s = state.spendup;
+  const groups = [];
+  s.txns.forEach(t => {
+    let g = groups.find(x => x.m === t.month);
+    if (!g) { g = { m: t.month, items: [], total: 0 }; groups.push(g); }
+    g.items.push(t);
+    g.total += t.add;
+  });
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Aktarım Hareketleri</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+      ${groups.map(g => `
+        <div class="ru-month-h"><span>${g.m}</span><b>+${fmtTL2(g.total)}</b></div>
+        <div class="ru-txns">${g.items.map(suTxnRow).join('')}</div>`).join('')}
+      <div class="ru-hist-note">${I.info} Daha eski hareketler prototipte gösterilmiyor.</div>
+    </div>
+  </div>`;
+}
+
+/* ---- Ekstreden Biriktir akış mantığı ---- */
+// Kumbarayı örnek geçmişle doldur (aktif değilse) — deeplink ve onay ortak kullanır
+function suSeedJar() {
+  const s = state.spendup;
+  s.active = true;
+  if (!s.source) s.source = 'worldgold';
+  if (!s.account) s.account = 'sav';
+  if (!s.txns.length) s.txns = SU_SEED_TXNS.map(t => ({ ...t }));
+}
+function suToggleAgree(el) {
+  const s = state.spendup;
+  s.agreed = !s.agreed;
+  el.classList.toggle('on', s.agreed);
+  const btn = document.getElementById('su-activate-btn');
+  if (btn) btn.classList.toggle('disabled', !(s.source && s.account && s.agreed));
+}
+function suSetRate(r) { state.spendup.rate = +r; render(); }
+// Talimat formu
+function suOpenForm() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Ekstreden Biriktir Talimat Formu</div>
+    <div class="legal-scroll">
+      <h4>1. Talimatın Kapsamı</h4>
+      <p>Bu talimat ile seçtiğiniz kredi kartının her hesap kesim döneminde oluşan ekstre tutarının belirlediğiniz <b>%${state.spendup.rate}</b>'i, tanımladığınız tavan aşılmadan, seçtiğiniz birikim hesabına aktarılır.</p>
+      <h4>2. Aktarım Zamanı ve Getiri</h4>
+      <p>Aktarım kartınızın son ödeme tarihinde gerçekleşir. Aktarılan tutar birikim hesabınızda günlük faizle değerlenir. Bu işlemlerden puan/mil/MR kazanılmaz.</p>
+      <h4>3. Koşullar</h4>
+      <p>Kuralın işlemesi için ilgili dönem ekstre tutarının en az 100 TL olması gerekir. Talimatı dilediğiniz an durdurabilir ya da oran/kart/hesap bilgilerini güncelleyebilirsiniz.</p>
+      <p><b>Bu metin prototip amaçlı örnek bir sözleşme özetidir.</b></p>
+    </div>
+    <button class="sheet-btn" data-action="close-sheet">Okudum</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+// Aktifleştir → özet onay sheet'i (Garanti ekran 2)
+function suActivate() {
+  const s = state.spendup;
+  if (!s.source) return toast('Önce bir kredi kartı seçmelisin');
+  if (!s.account) return toast('Birikim hesabı seçmelisin');
+  if (!s.agreed) return toast('Talimat Formu onayı gerekli');
+  const c = suCard(), a = suAccount();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Talimatı Onayla</div>
+    <div class="su-cf-rows">
+      <div class="su-cf-row"><span>KART</span><b>${c.num}</b></div>
+      <div class="su-cf-row"><span>BİRİKİM ORANI (%)</span><b>${s.rate}</b></div>
+      <div class="su-cf-row"><span>AYLIK AKTARILACAK MAKSİMUM TUTAR</span><b>${s.cap ? fmtTL2(s.cap) : 'Sınırsız'}</b></div>
+      <div class="su-cf-row"><span>İLİŞKİLİ BİRİKİM HESABI</span><b>${a.name} · ${a.iban}</b></div>
+    </div>
+    <p class="su-cf-note">İşlemi onaylamanız ardından kuralınız kartınızın her hesap kesim tarihinde tekrarlanacaktır. Kuralın gerçekleşmesi için hesap kesim tarihinde kartınızın limiti yeterli olmalıdır.</p>
+    <button class="sheet-btn" id="su-confirm-btn" data-action="su-confirm">${I.shield} Onayla</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Düzenle</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+// Onay → kısa bekleme → başarı
+function suConfirm() {
+  const btn = document.getElementById('su-confirm-btn');
+  btn.innerHTML = `<span class="spinner"></span> Talimat oluşturuluyor…`;
+  btn.style.pointerEvents = 'none';
+  setTimeout(() => {
+    suSeedJar();
+    sheetEl.innerHTML = `
+      <div class="sheet-handle"></div>
+      <div class="ru-done">
+        <div class="ru-done-ring su">${I.checkBig}</div>
+        <div class="ru-done-t">Ekstreden Biriktir aktif! 🎉</div>
+        <div class="ru-done-s">Artık ${suCard().name} ekstrenin %${state.spendup.rate}'i her ay birikim hesabına aktarılacak ve günlük faizle değerlenecek.</div>
+      </div>
+      <button class="sheet-btn" data-action="su-open-jar">Birikimimi Gör</button>`;
+  }, 1400);
+}
+function suOpenCardPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Kredi kartı seçiniz</div>
+    ${RU_CARDS.filter(c => c.kind === 'Kredi Kartı').map(c => {
+      const on = state.spendup.source === c.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="su-pick-card" data-val="${c.id}">
+        ${ruCardArt(c)}
+        <div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">${c.num} · ${c.kind}</div><div class="ru-pick-s2">${c.detail}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    <div class="su-pick-note">${I.info} Ekstreden Biriktir yalnızca kredi kartı ekstresi üzerinden çalışır.</div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function suPickCard(id) { state.spendup.source = id; closeSheet(); render(); }
+function suOpenAcctPick() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Birikim hesabı seçiniz</div>
+    ${RU_ACCOUNTS.map(a => {
+      const on = state.spendup.account === a.id;
+      return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="su-pick-acct" data-val="${a.id}">
+        <span class="ru-pick-ico">${I.bank}</span>
+        <div class="ru-pick-mid"><div class="ru-pick-n">${a.name}</div><div class="ru-pick-s">${a.iban} · ${a.detail}</div></div>
+        <span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+      </div>`;
+    }).join('')}
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function suPickAcct(id) { state.spendup.account = id; closeSheet(); render(); }
+// Kuralı değiştir sheet'i (yönet ekranından) — sabit oran çipleri + elle girilen limit
+function suOpenRule() {
+  const s = state.spendup;
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Kuralı değiştir</div>
+    <div class="su-field sheet">
+      <div class="su-field-l">Ekstrenin ne kadarı biriksin?</div>
+      <div class="su-chips">
+        ${SU_RATE_PRESETS.map(r => `<button class="su-chip ${s.rate === r ? 'on' : ''}" data-action="su-rule-rate" data-val="${r}">%${r}</button>`).join('')}
+      </div>
+    </div>
+    <div class="su-field sheet">
+      <div class="su-field-l">Aylık üst limit</div>
+      ${suCapInputHTML('su-rule-cap-input')}
+    </div>
+    <div id="su-rule-ex-slot">${suExampleHTML()}</div>
+    <button class="sheet-btn" data-action="su-rule-save">Kaydet</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+  suBindCap('su-rule-cap-input', 'su-rule-ex-slot');
+}
+function suRuleSetRate(v) { state.spendup.rate = +v; suOpenRule(); }
+function suRuleSave() { closeSheet(); render(); }
+function suOpenTxn(i) {
+  const t = state.spendup.txns[i];
+  if (!t) return;
+  const c = suCard();
+  const a = suAccount();
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-td-head">
+      <span class="ru-txn-ico su-ico big">${I.receipt}</span>
+      <div class="ru-td-m">${t.label}</div>
+      <div class="ru-td-d">${t.date}</div>
+    </div>
+    <div class="ru-cf-rows">
+      <div class="ru-cf-row"><span>Ekstre tutarı</span><b>${fmtTL(t.statement).replace(',00 TL',' TL')}</b></div>
+      <div class="ru-cf-row"><span>Oran</span><b>%${t.rate}</b></div>
+      <div class="ru-cf-row"><span>Birikime aktarılan</span><b class="est">+${fmtTL2(t.add)}</b></div>
+      <div class="ru-cf-row"><span>Kazanılan faiz</span><b class="est">+${fmtTL2(t.interest)}</b></div>
+      ${c ? `<div class="ru-cf-row"><span>Kart</span><b>${c.name} ${c.num.slice(-4)}</b></div>` : ''}
+      ${a ? `<div class="ru-cf-row"><span>Birikim hesabı</span><b>${a.name}</b></div>` : ''}
+    </div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Kapat</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function suStop() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">Ekstreden Biriktir'i durdur</div>
+    <p class="ru-stop-txt">Talimatın iptal edilir ve yeni ekstrelerde aktarım yapılmaz. Biriken <b>${fmtTL2(suTotal())}</b> hesabında kalır ve faizle değerlenmeye devam eder.</p>
+    <button class="sheet-btn" data-action="su-stop-confirm">Durdur</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function suStopConfirm() {
+  const s = state.spendup;
+  s.active = false;
+  s.agreed = false;
+  closeSheet();
+  goHome();
+  setTimeout(() => toast('Ekstreden Biriktir durduruldu. Biriken paran hesabında kalır.'), 300);
+}
+// Toplam biriken sayaç animasyonu (yönet ekranı)
+function setupSuJar() {
+  const el = document.getElementById('su-jar-amt');
+  if (!el) return;
+  const target = parseFloat(el.dataset.val);
+  const from = target * 0.55;
+  const dur = 650;
+  const t0 = performance.now();
+  const tick = (now) => {
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
     el.textContent = fmtTL2(from + (target - from) * e);
     if (p < 1) requestAnimationFrame(tick);
   };
@@ -2627,6 +3149,9 @@ function render() {
     case 'roundup-apply': html = RoundupApply(); break;
     case 'roundup-jar': html = RoundupJar(); break;
     case 'roundup-history': html = RoundupHistory(); break;
+    case 'spendup-apply': html = SpendupApply(); break;
+    case 'spendup-jar': html = SpendupJar(); break;
+    case 'spendup-history': html = SpendupHistory(); break;
     case 'insights': html = InsightsScreen(); break;
     case 'subs': html = SubsScreen(); break;
     case 'sub-detail': html = SubDetailScreen(); break;
@@ -2642,6 +3167,8 @@ function render() {
   if (state.screen === 'search') setupSearch();
   if (state.screen === 'chat') setupChat();
   if (state.screen === 'roundup-jar') setupJar();
+  if (state.screen === 'spendup-apply') setupSpendupApply();
+  if (state.screen === 'spendup-jar') setupSuJar();
 }
 
 /* İleri navigasyon — mevcut ekranı geri yığınına ekler (gerçek uygulama gibi) */
@@ -3725,6 +4252,27 @@ document.addEventListener('click', (e) => {
     case 'ru-stop': return ruStop();
     case 'ru-stop-confirm': return ruStopConfirm();
 
+    // Ekstreden Biriktir
+    case 'su-open': return go(state.spendup.active ? 'spendup-jar' : 'spendup-apply');
+    case 'su-agree': return suToggleAgree(t);
+    case 'su-open-form': return suOpenForm();
+    case 'su-rate': return suSetRate(t.dataset.val);
+    case 'su-activate': return suActivate();
+    case 'su-confirm': return suConfirm();
+    case 'su-open-jar': { closeSheet(); return go('spendup-jar'); }
+    case 'su-open-cardpick': return suOpenCardPick();
+    case 'su-pick-card': return suPickCard(t.dataset.val);
+    case 'su-open-acctpick': return suOpenAcctPick();
+    case 'su-pick-acct': return suPickAcct(t.dataset.val);
+    case 'su-open-rule': return suOpenRule();
+    case 'su-rule-rate': return suRuleSetRate(t.dataset.val);
+    case 'su-rule-save': return suRuleSave();
+    case 'su-txn': return suOpenTxn(+t.dataset.idx);
+    case 'su-history': return go('spendup-history');
+    case 'su-stop': return suStop();
+    case 'su-stop-confirm': return suStopConfirm();
+    case 'close-sheet-render': { closeSheet(); return render(); }
+
     // Harcama analizi & limit
     case 'sp-open': return go('insights');
     case 'sp-seg': return spSeg(t.dataset.seg);
@@ -3797,7 +4345,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -3833,6 +4381,17 @@ function routeTo(hash) {
   }
   if (h === 'roundup-jar' || h === 'roundup-history') { // dolu kumbara/geçmiş — kural yoksa kurup göster (demo linki)
     if (!state.roundup.active) ruSeedJar();
+    state.chatSeed = false;
+    state.screen = h;
+    return true;
+  }
+  if (h === 'spendup') {             // #spendup → aktifse yönet, değilse başvuru
+    state.chatSeed = false;
+    state.screen = state.spendup.active ? 'spendup-jar' : 'spendup-apply';
+    return true;
+  }
+  if (h === 'spendup-jar' || h === 'spendup-history') { // dolu birikim/geçmiş — kural yoksa kurup göster (demo linki)
+    if (!state.spendup.active) suSeedJar();
     state.chatSeed = false;
     state.screen = h;
     return true;

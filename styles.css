@@ -1969,6 +1969,65 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .puan-card.ru-succ .chev-r { color: var(--text-faint); display: flex; }
 
 /* ===================================================================
+   EKSTREDEN BİRİKTİR (ekstre endeksli) — Yuvarla Biriktir ile aynı
+   yapı ve aynı YK mavisi tema. Home hub carousel dahil.
+   =================================================================== */
+
+/* Home hub — "Otomatik Birikim" başlığı + yana kaydırmalı iki kart */
+.ru-hub-title { display: flex; align-items: baseline; justify-content: space-between; }
+.ru-hub-hint { font-size: 10.5px; font-weight: 600; color: var(--text-faint); letter-spacing: .3px; }
+.ru-carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 16px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.ru-carousel::-webkit-scrollbar { display: none; }
+.ru-carousel > .ru-home-card { margin: 0; flex: 0 0 85%; scroll-snap-align: start; box-sizing: border-box; }
+
+/* Home kartı — Ekstreden Biriktir (Yuvarla ile aynı mavi dil) */
+.su-logo { color: var(--primary); }
+
+/* Başvuru — kural formu (oran çipleri + elle girilen limit + canlı örnek) */
+.su-field { margin-bottom: 16px; }
+.su-field.sheet { margin: 4px 0 14px; }
+.su-field-l { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 9px; }
+.su-chips { display: flex; gap: 8px; }
+.su-chip { flex: 1; padding: 12px 2px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); font-size: 14px; font-weight: 800; color: var(--text-dim); cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap; }
+.su-chip.on { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 3px 10px rgba(0,152,203,.28); }
+.su-cap-input { display: flex; align-items: center; gap: 8px; padding: 4px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.su-cap-input:focus-within { border-color: var(--primary); }
+.su-cap-input input { flex: 1; border: none; background: none; outline: none; font-family: inherit; font-size: 17px; font-weight: 700; color: var(--text); padding: 12px 0; letter-spacing: -.2px; }
+.su-cap-input .su-cap-suf { font-size: 13px; color: var(--text-dim); font-weight: 600; flex-shrink: 0; }
+.su-cap-hint { font-size: 11.5px; color: var(--text-faint); margin: 7px 3px 0; }
+.su-ex-card { border: 1px solid rgba(0,152,203,.35); border-radius: 14px; background: rgba(0,152,203,.07); padding: 13px 15px; }
+.su-ex-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text); }
+.su-ex-main b { font-weight: 700; }
+.su-ex-amt { color: var(--primary); font-size: 18px; font-weight: 800; white-space: nowrap; letter-spacing: -.3px; }
+.su-ex-note { font-size: 12px; color: var(--text-dim); line-height: 1.45; margin-top: 8px; }
+.su-ex-note b { color: var(--primary); font-weight: 800; }
+.su-pick-note { font-size: 12px; color: var(--text-dim); line-height: 1.45; margin: 8px 3px 4px; display: flex; gap: 6px; }
+.su-pick-note svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* Yönet — sonraki dönem kartı (statcard/grafik/başlık Yuvarla ile ortak mavi stil) */
+.su-next-card { margin: 0 16px 14px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.su-next-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.su-next-k { font-size: 12px; color: var(--text-dim); }
+.su-next-amt { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -.4px; margin-top: 2px; }
+.su-next-rate { flex-shrink: 0; padding: 4px 10px; border-radius: 9px; background: rgba(0,152,203,.12); color: var(--primary); font-size: 13px; font-weight: 800; }
+.su-next-note { font-size: 12px; color: var(--text-dim); line-height: 1.45; margin-top: 8px; }
+.su-next-note b { color: var(--text); font-weight: 700; }
+.su-next-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-dim); }
+.su-next-row span { display: flex; align-items: center; gap: 6px; }
+.su-next-row svg { width: 14px; height: 14px; color: var(--primary); }
+.su-next-row b { color: var(--text); font-weight: 700; }
+.ru-txn-ico.su-ico { color: var(--primary); background: rgba(0,152,203,.10); }
+.ru-txn-ico.su-ico svg { width: 20px; height: 20px; }
+.ru-txn-ico.su-ico.big svg { width: 26px; height: 26px; }
+
+/* Onay sheet — Garanti tarzı büyük harfli etiketli özet */
+.su-cf-rows { margin: 6px 0 4px; }
+.su-cf-row { padding: 12px 2px; border-bottom: 1px solid var(--border); }
+.su-cf-row span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; color: var(--text-faint); text-transform: uppercase; }
+.su-cf-row b { display: block; margin-top: 5px; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.2px; }
+.su-cf-note { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 13px 2px 14px; }
+
+/* ===================================================================
    HARCAMA ANALİZİ & LİMİT  (Harcamalarım)
    =================================================================== */
 .sp-screen { display: flex; flex-direction: column; height: 100%; }
