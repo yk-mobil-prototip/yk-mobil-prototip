@@ -46,6 +46,10 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Maden Biriktir — başvuru (kart, altın/gümüş/platin/paladyum, sabit tutar TL/gram) | `#metal` |
 | Maden Biriktir — yönet (toplam XAU/XAG, güncel değer, kazanç, grafik) | `#metal-jar` |
 | Maden Biriktir — tüm alımlar (aya göre gruplu) | `#metal-history` |
+| Ödül Yolu — hub (Benim Dünyam; ödülünü seç) | `#fayda` |
+| Ödül Yolu — yolculuk (level haritası; Limit demo 2/5) | `#fayda-journey` |
+| Ödül Yolu — tam ekran ödül seçimi (3 ödülden biri) | `#fayda-reward` |
+| Ödüllerim — kazanılmış/aktif ödüller | `#fayda-wallet` |
 | Arama | `#search` |
 | Ayarlar | `#settings` |
 | Bölümler hub'ı | `#sections` |

@@ -221,6 +221,9 @@ const SECTIONS = [
   { hash: 'metal',      icon: 'star',    t: 'Maden Biriktir — Başvur', d: 'Kart, maden (altın/gümüş/platin/paladyum), sabit tutar (TL ya da gram), talimat onayı → Aktifleştir' },
   { hash: 'metal-jar',  icon: 'pie',     t: 'Maden Biriktir — Yönet',  d: 'Toplam XAU/XAG, güncel değer, kazanç, aylık alım grafiği (dolu)' },
   { hash: 'metal-history', icon: 'receipt', t: 'Maden Biriktir — Hareketler', d: 'Aya göre gruplu tüm maden alımları' },
+  { hash: 'fayda',        icon: 'world',   t: 'Ödül Yolu — Hub', d: 'Ödülünü seç, sıralı level\'ları geç, ödülünü kap (Benim Dünyam)' },
+  { hash: 'fayda-journey', icon: 'target', t: 'Ödül Yolu — Yolculuk', d: 'HUD + dikey level haritası + sonda ödül (Limit demo 2/5)' },
+  { hash: 'fayda-wallet', icon: 'star',    t: 'Ödüllerim', d: 'Kazanılmış ve aktif ödüller (kupon kartları)' },
   { hash: 'insights',   icon: 'pie',      t: 'Harcama Analizi',      d: 'Aylık toplam, kategori dağılımı, işyeri kırılımı' },
   { hash: 'limits',     icon: 'target',   t: 'Harcama Limitlerim',   d: 'Kategoriye tutar girerek aylık limit koy' },
   { hash: 'kid',        icon: 'wallet2',  t: 'Çocuk Ek Kartı',       d: 'Limit, harçlık, birikim hedefi, veli eşleştirme, onaylar, rozetler' },
@@ -301,6 +304,20 @@ const state = {
     agreed: false,           // Maden Biriktir Talimat Formu onayı
     monthChange: 9,          // güncel değerin geçen aya göre % değişimi (mock)
     txns: [],                // {gram, price, date, month} — en yeni başta (o ayki alım)
+  },
+  // Fayda Yolculukları (Benim Dünyam) — sıralı açılan level'lar; faydanı seç, adım adım kazan
+  fayda: {
+    view: null,              // görüntülenen fayda id
+    prog: {                  // fayda başına level ilerlemesi (level index → sayaç değeri)
+      limit: [1, 3, 0, 0, 0],           // L1 + L2 tamam (2/5) → Sıradaki: Level 3 (demo aktif yolculuk)
+      eft:   [1, 1, 1, 1, 1],           // tümü tamam → kazanıldı (cüzdanda)
+      faiz:  [1, 1, 1, 5000, 1],        // tümü tamam → kazanıldı (L4 bakiye hedefi dolu)
+    },
+    choice: { faiz: 'Tatil', worldpuan: '' },   // seçim gerektiren level'ların seçimi
+    wallet: [                // kazanılmış/aktif faydalar (en yeni başta)
+      { id: 'eft',  label: '10 ücretsiz EFT/FAST hakkı', meta: 'Kalan hak: 7 · 24 gün geçerli', status: 'active' },
+      { id: 'faiz', label: '30 gün ek faiz fırsatı',      meta: '18 gün geçerli',                status: 'active' },
+    ],
   },
   // Çocuk Ek Kartı (ebeveyn kontrollü) — Harcamalarım içinden yönetilir
   kid: {
@@ -2492,6 +2509,400 @@ function setupMetalJar() {
 }
 
 /* ===================================================================
+   FAYDA YOLCULUKLARI  (Benim Dünyam)
+   Kullanıcı önce ulaşmak istediği finansal faydayı seçer; banka o
+   faydaya götüren şeffaf, kişiselleştirilmiş görevleri verir. Kampanya
+   değil; kişisel finansal yolculuk. Dil güvenli: "artacak" yok,
+   "değerlendirme şansını güçlendir / uygun görülürse teklif açılır".
+   =================================================================== */
+const FAYDA_BENEFITS = [
+  {
+    id: 'limit', icon: 'card', title: 'Limitimi Güçlendir', dur: '5 level',
+    short: 'Bilgilerini güncelle, kartını aktif kullan; limitini güncel verilerle yeniden değerlendir.',
+    win: 'Limit değerlendirmesi',
+    reward: 'Limitin güncel bilgilerinle yeniden değerlendirilir ve sonucu 24 saat içinde sana bildirilir.',
+    wLabel: 'Limit değerlendirmen', wMeta: '24 saat içinde sonuçlanır', wStatus: 'pending',
+    done: 'Limitin yeniden değerlendirmeye alındı. Sonucu 24 saat içinde sana bildireceğiz.',
+    rewards: [
+      { label: 'Limit yeniden değerlendirmesi', meta: 'Güncel bilgilerinle; 24 saat içinde sonuçlanır', status: 'pending' },
+      { label: 'Alışverişe 3 taksit hakkı', meta: '3.000 TL üzeri tek harcamada geçerli', status: 'active' },
+      { label: 'Nakit avans faiz indirimi', meta: '1 ay boyunca avantajlı avans oranı', status: 'active' },
+    ],
+    levels: [
+      { t: 'Gelir ve meslek bilgilerini güncelle', cta: 'Bilgilerimi güncelle' },
+      { t: 'Worldcard ile 3 farklı kategoride alışveriş yap', cta: 'Alışveriş ekle', goal: 3, unit: 'kategori', step: 1 },
+      { t: 'Ekstre borcunu son ödeme tarihinden önce öde', cta: 'Ödememi yap' },
+      { t: 'Başka bankadaki hesabını açık bankacılıkla bağla', cta: 'Hesap bağla' },
+      { t: 'Limit değerlendirme talebini başlat', cta: 'Değerlendirmeyi başlat', final: true },
+    ],
+  },
+  {
+    id: 'kart', icon: 'undo', title: 'Kart Aidatını Worldpuan ile Öde', dur: '5 level',
+    short: 'Worldpuan biriktir; yıllık kart aidatını puanınla ödet.',
+    win: 'Kart aidatı muafiyeti',
+    reward: 'Yıllık kart aidatın birikmiş Worldpuan\'ınla ödenir; bu dönem aidat ödemezsin.',
+    wLabel: 'Kart aidatı muafiyeti', wMeta: 'Bu yıl için geçerli', wStatus: 'active',
+    done: 'Aidat ödemen Worldpuan\'a bağlandı. Bu yılki kart aidatın puanlarınla karşılanacak.',
+    rewards: [
+      { label: 'Aidatın Worldpuan\'la ödensin', meta: 'Bu yılki kart aidatı puanınla kapanır', status: 'active' },
+      { label: 'World Eko Kart\'a geçiş', meta: 'Aidatsız karta ücretsiz geç', status: 'active' },
+      { label: '500 Worldpuan hediye', meta: 'Hesabına hemen tanımlanır', status: 'active' },
+    ],
+    levels: [
+      { t: 'Kredi kartı ekstreni dijital ekstreye al', cta: 'Dijital ekstreye geç' },
+      { t: 'World Pay ile ödemeyi aç', cta: 'World Pay\'i aç' },
+      { t: 'Worldcard ile 5 alışveriş yaparak Worldpuan biriktir', cta: 'Alışveriş ekle', goal: 5, unit: 'alışveriş', step: 1 },
+      { t: '"Puan ile ödeme" talimatını tanımla', cta: 'Talimat ver' },
+      { t: 'Aidatını Worldpuan ile ödemeyi aktifleştir', cta: 'Aidatımı bağla', final: true },
+    ],
+  },
+  {
+    id: 'faiz', icon: 'invest', title: 'Birikimime Ek Faiz Ekle', dur: '5 level',
+    short: 'Birikim hesabını kur, hedef belirle ve bakiyeni büyüt; 30 gün ek faiz fırsatını aç.',
+    win: '30 gün ek faiz',
+    reward: '30 gün boyunca birikimin avantajlı oranla değerlendirilir.',
+    wLabel: '30 gün ek faiz fırsatı', wMeta: '18 gün kaldı', wStatus: 'active',
+    done: 'Ek faiz fırsatın aktif. Birikimin 30 gün boyunca avantajlı oranla değerlendirilecek.',
+    rewards: [
+      { label: '30 gün ek faiz fırsatı', meta: 'Sınırsız Hesap bakiyene 30 gün avantajlı oran', status: 'active' },
+      { label: 'Vadeli hesaba özel faiz', meta: 'İlk 32 gün vadede yüksek oran', status: 'active' },
+      { label: '250 Worldpuan hediye', meta: 'Hesabına hemen tanımlanır', status: 'active' },
+    ],
+    levels: [
+      { t: 'Sınırsız Hesap aç', cta: 'Hesap aç' },
+      { t: 'Birikim hedefini seç', cta: 'Hedef seç', options: ['Acil durum', 'Tatil', 'Eğitim', 'Ev / taşınma', 'Altın / maden', 'Serbest hedef'] },
+      { t: 'Kartopu ile otomatik birikim talimatı ver', cta: 'Talimat oluştur' },
+      { t: 'Hesabında 5.000 TL bakiyeye ulaş', cta: 'Bakiye ekle', goal: 5000, unit: 'TL', step: 1500, money: true },
+      { t: 'Ek faiz fırsatını aktifleştir', cta: 'Ek faizi aktifleştir', final: true },
+    ],
+  },
+  {
+    id: 'eft', icon: 'transfer', title: 'Ücretsiz Transfer Hakkı Kazan', dur: '5 level',
+    short: 'Dijital transfer alışkanlığını kur; 10 ücretsiz EFT/FAST hakkı kazan.',
+    win: '10 ücretsiz FAST',
+    reward: '1 ay boyunca 10 adet ücretsiz EFT/FAST hakkı kazanırsın.',
+    wLabel: '10 ücretsiz EFT/FAST hakkı', wMeta: '24 gün kaldı', wStatus: 'active',
+    done: 'Transfer paketin aktif. 10 ücretsiz EFT/FAST hakkın Ödüllerim\'e eklendi.',
+    rewards: [
+      { label: '10 ücretsiz FAST/EFT hakkı', meta: '1 ay boyunca kullanılır', status: 'active' },
+      { label: '3 ay transfer ücreti iadesi', meta: 'Ödediğin EFT/havale ücreti iade edilir', status: 'active' },
+      { label: 'Düzenli ödeme ücret muafiyeti', meta: 'Kayıtlı fatura ve talimatlarda ücret yok', status: 'active' },
+    ],
+    levels: [
+      { t: 'Sık işlem yaptığın kişiyi kayıtlı alıcı olarak ekle', cta: 'Alıcı ekle' },
+      { t: 'Yapı Kredi Mobil\'den ilk FAST transferini yap', cta: 'Para gönder' },
+      { t: 'QR ile para göndermeyi dene', cta: 'QR\'ı dene' },
+      { t: 'Bir düzenli ödeme (fatura/kira) talimatı tanımla', cta: 'Talimat oluştur' },
+      { t: 'Ücretsiz transfer paketini aktifleştir', cta: 'Paketimi aktifleştir', final: true },
+    ],
+  },
+  {
+    id: 'worldpuan', icon: 'star', title: 'Ekstra Worldpuan Kazan', dur: '5 level',
+    short: 'Kategorini seç, kampanyanı aç ve işlemlerini tamamla; ekstra Worldpuan kazan.',
+    win: 'Ekstra Worldpuan',
+    reward: 'Seçtiğin kategoride 1 ay boyunca ekstra Worldpuan kazanırsın.',
+    wLabel: 'Ekstra Worldpuan hakkı', wMeta: 'Bu dönem geçerli', wStatus: 'active',
+    done: 'Ekstra Worldpuan hakkın aktif. Seçili kategoride yapacağın işlemlerde avantaj kazanabilirsin.',
+    rewards: [
+      { label: 'Kategoride 3 kat Worldpuan', meta: 'Seçtiğin kategoride 1 ay boyunca', status: 'active' },
+      { label: '500 Worldpuan hediye', meta: 'Hesabına hemen tanımlanır', status: 'active' },
+      { label: 'World Pay ek puan avantajı', meta: 'World Pay ödemelerinde ekstra Worldpuan', status: 'active' },
+    ],
+    levels: [
+      { t: 'Worldpuan kazanmak istediğin kategoriyi seç', cta: 'Kategori seç', options: ['Market', 'Restoran', 'Giyim & kozmetik', 'Akaryakıt', 'Seyahat', 'E-ticaret'] },
+      { t: 'World Pay ile ödemeyi aç', cta: 'World Pay\'i aç' },
+      { t: 'Bu kategoride ilk alışverişini yap', cta: 'Alışveriş ekle', goal: 1, unit: 'alışveriş', step: 1 },
+      { t: 'Aynı kategoride 3 alışverişe ulaş', cta: 'Alışveriş ekle', goal: 3, unit: 'alışveriş', step: 1 },
+      { t: 'Ekstra Worldpuan kazanımını aktifleştir', cta: 'Aktifleştir', final: true },
+    ],
+  },
+];
+function faydaBenefit(id) { return FAYDA_BENEFITS.find(b => b.id === id) || null; }
+function faydaLevels(id) { return faydaBenefit(id).levels; }
+function faydaProg(id) { if (!state.fayda.prog[id]) state.fayda.prog[id] = faydaLevels(id).map(() => 0); return state.fayda.prog[id]; }
+function faydaGoal(lv) { return lv.goal || 1; }
+function faydaLevelDone(id, i) { return faydaProg(id)[i] >= faydaGoal(faydaLevels(id)[i]); }
+function faydaFirstOpen(id) { const lv = faydaLevels(id); for (let i = 0; i < lv.length; i++) if (!faydaLevelDone(id, i)) return i; return -1; }
+function faydaLevelStatus(id, i) { if (faydaLevelDone(id, i)) return 'done'; return i === faydaFirstOpen(id) ? 'active' : 'locked'; }
+function faydaDoneCount(id) { return faydaLevels(id).reduce((n, _, i) => n + (faydaLevelDone(id, i) ? 1 : 0), 0); }
+function faydaTotal(id) { return faydaLevels(id).length; }
+function faydaCompleted(id) { return faydaFirstOpen(id) === -1; }
+function faydaStarted(id) { return faydaDoneCount(id) > 0; }
+function faydaInWallet(id) { return state.fayda.wallet.some(w => w.id === id); }
+// Sayaç görev ilerleme metni (ör. "1 / 3 kategori" · "1.250 / 3.000 TL")
+function faydaLevelProg(id, i) {
+  const lv = faydaLevels(id)[i], cur = faydaProg(id)[i], goal = faydaGoal(lv);
+  const fmt = lv.money ? (n) => n.toLocaleString('tr-TR') : (n) => n;
+  return `${fmt(cur)} / ${fmt(goal)} ${lv.unit}`;
+}
+
+// Fayda türüne ince accent (yalnız ikon/ilerleme/çip; ekran gövdesi mavi)
+const FAYDA_ACC = { limit: '#0e63b3', kart: '#7a5af0', faiz: '#0f9d8e', eft: '#00a9e0', worldpuan: '#c99a2e' };
+
+// Hub — aktif yolculuk kartı + sade yolculuk listesi + Fayda Cüzdanım girişi
+function FaydaHub() {
+  const wc = state.fayda.wallet.length;
+  const active = FAYDA_BENEFITS.find(b => faydaStarted(b.id) && !faydaCompleted(b.id) && !faydaInWallet(b.id));
+  const activeCount = FAYDA_BENEFITS.filter(b => faydaStarted(b.id) && !faydaCompleted(b.id) && !faydaInWallet(b.id)).length;
+  const notStarted = FAYDA_BENEFITS.filter(b => !faydaStarted(b.id) && !faydaInWallet(b.id)).length;
+  const walletStack = state.fayda.wallet.slice(0, 3).map(w => {
+    const wb = faydaBenefit(w.id);
+    return `<span class="fy-we-chip" style="--fy-acc:${FAYDA_ACC[w.id] || 'var(--primary)'}">${wb ? I[wb.icon] : I.star}</span>`;
+  }).join('');
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ödül Yolu</div>
+      <button class="icon-btn" data-action="toast" data-msg="Bilgilendirme prototipte aktif değil">${I.info}</button>
+    </div>
+    <div class="screen-scroll">
+      <div class="fy-hero">
+        <div class="fy-hero-glow"></div>
+        <h1 class="fy-h1">Hedefini seç, ödülüne ulaş</h1>
+        <p class="fy-sub">Her yol 5 level. Level'ları geçtikçe yolun sonundaki ödüle yaklaşır, o ödülü kazanırsın.</p>
+        <div class="fy-stats">
+          <div class="fy-stat"><div class="fy-stat-top"><span class="fy-stat-ic">🏆</span><b>${wc}</b></div><span>Kazanılan ödül</span></div>
+          <div class="fy-stat"><div class="fy-stat-top"><span class="fy-stat-ic">🔥</span><b>${activeCount}</b></div><span>Devam eden</span></div>
+          <div class="fy-stat"><div class="fy-stat-top"><span class="fy-stat-ic">🧭</span><b>${notStarted}</b></div><span>Yeni yol</span></div>
+        </div>
+      </div>
+      <div class="fy-wallet-entry ${wc ? 'has' : ''}" data-action="fy-wallet">
+        <span class="fy-we-ico">${I.star}</span>
+        <div class="fy-we-mid"><div class="fy-we-t">Ödüllerim</div><div class="fy-we-s">${wc ? wc + ' ödül · kullanmaya hazır' : 'Kazandığın ödüller burada birikir'}</div></div>
+        ${walletStack ? `<div class="fy-we-stack">${walletStack}</div>` : `<span class="chev-r">${I.chevR}</span>`}
+      </div>
+      ${active ? `<div class="fy-sec-t">Devam eden yolun</div>${faydaActiveCardHTML(active)}` : ''}
+      <div class="fy-sec-t">${active ? 'Diğer ödül yolları' : 'Ödül yolları'}</div>
+      <div class="fy-cards">${FAYDA_BENEFITS.filter(b => !active || b.id !== active.id).map(faydaCardHTML).join('')}</div>
+    </div>
+  </div>`;
+}
+// Büyük aktif yolculuk kartı (ana ekranın üstünde: hemen devam et)
+function faydaActiveCardHTML(b) {
+  const done = faydaDoneCount(b.id), total = faydaTotal(b.id), pct = Math.round(done / total * 100);
+  const next = b.levels[done];
+  return `
+    <div class="fy-active-card" style="--fy-acc:${FAYDA_ACC[b.id]}" data-action="fy-open" data-id="${b.id}">
+      <div class="fy-ac-glow"></div>
+      <div class="fy-ac-top">
+        <span class="fy-card-ico">${I[b.icon]}</span>
+        <div class="fy-ac-h"><div class="fy-ac-t">${b.title}</div><div class="fy-ac-s">Level ${done + 1} / ${total}</div></div>
+        <span class="fy-ac-pct">%${pct}</span>
+      </div>
+      <div class="fy-lv-bar fy-ac-bar"><div class="fy-lv-fill" style="width:${pct}%"></div></div>
+      ${next ? `<div class="fy-ac-next"><span class="fy-ac-next-k">Sıradaki</span>${next.t}</div>` : ''}
+      <span class="fy-ac-cta">Kaldığın yerden devam et ${I.chevR}</span>
+    </div>`;
+}
+// Ödül yolu kartı (liste) — yolculuğun mini patika-haritası: düğüm + bağlantı + sonda ödül
+function faydaCardHTML(b) {
+  const done = faydaDoneCount(b.id), total = faydaTotal(b.id);
+  const earned = faydaInWallet(b.id);
+  const pct = Math.round(done / total * 100);
+  let track = '';
+  for (let i = 0; i < total; i++) {
+    const cls = i < done ? 'done' : (i === done && done < total && !earned ? 'active' : 'locked');
+    track += `<span class="fy-tn ${cls}"></span><span class="fy-tl ${i < done ? 'on' : ''}"></span>`;
+  }
+  track += `<span class="fy-tn reward ${earned ? 'done' : ''}">🎁</span>`;
+  return `
+    <div class="fy-card ${earned ? 'earned' : ''}" style="--fy-acc:${FAYDA_ACC[b.id]}" data-action="fy-open" data-id="${b.id}">
+      <div class="fy-card-top">
+        <span class="fy-card-ico">${I[b.icon]}</span>
+        <div class="fy-card-h">
+          <div class="fy-card-t">${b.title}</div>
+          <div class="fy-card-goal"><span class="fy-goal-gift">🎁</span>${b.win}</div>
+        </div>
+        <span class="fy-card-side">${earned
+          ? `<span class="fy-badge-earned">${I.check}</span>`
+          : `<span class="fy-card-pct">${done ? '%' + pct : 'Başla'}</span><span class="chev-r">${I.chevR}</span>`}</span>
+      </div>
+      <div class="fy-track">${track}</div>
+      <div class="fy-card-foot">${earned ? 'Ödülün kazanıldı ✓' : (done ? `${done}/${total} level tamamlandı` : `${total} level · yeni yol`)}</div>
+    </div>`;
+}
+
+// Yolculuk detayı — HUD + ödül hedefi + dikey ödül yolu (level haritası)
+function FaydaJourney() {
+  const b = faydaBenefit(state.fayda.view);
+  if (!b) return FaydaHub();
+  const done = faydaDoneCount(b.id), total = faydaTotal(b.id), pct = Math.round(done / total * 100);
+  const earned = faydaInWallet(b.id), completed = faydaCompleted(b.id);
+  return `
+  <div class="screen anim-right" style="--fy-acc:${FAYDA_ACC[b.id]}">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">${b.title}</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll fy-journey">
+      <div class="fy-hud">
+        <div class="fy-hud-lv">${completed ? 'Yol tamamlandı 🎉' : `Level ${Math.min(done + 1, total)} / ${total}`}</div>
+        <div class="fy-hud-bar"><div class="fy-hud-fill" style="width:${pct}%"></div></div>
+        <div class="fy-hud-pct">${pct}%</div>
+      </div>
+      <div class="fy-goal">
+        <span class="fy-goal-ico">🎁</span>
+        <div class="fy-goal-tx"><div class="fy-goal-k">Yolun sonundaki ödül</div><div class="fy-goal-v">3 ödülden birini seç</div></div>
+      </div>
+      ${faydaMapHTML(b)}
+    </div>
+    <div class="screen-cta">
+      ${earned
+        ? `<button class="btn-primary" data-action="fy-wallet">Ödüllerime git</button>`
+        : completed
+          ? `<button class="btn-primary" data-action="fy-reward">🎁 Ödülünü seç</button>`
+          : `<button class="btn-ghost" data-action="fy-change">Başka ödül seç</button>`}
+    </div>
+  </div>`;
+}
+// Dikey ödül yolu — büyük düğümler, bağlantı yolu, aktif level nabız + inline CTA, sonda ödül
+function faydaMapHTML(b) {
+  const rows = b.levels.map((lv, i) => {
+    const st = faydaLevelStatus(b.id, i), counter = faydaGoal(lv) > 1;
+    const node = st === 'done' ? `<span class="fy-mnode done">${I.check}</span>`
+      : st === 'active' ? `<span class="fy-mnode active">${i + 1}</span>`
+      : `<span class="fy-mnode locked">${I.lock}</span>`;
+    let body;
+    if (st === 'active') {
+      body = `${counter ? `<div class="fy-mprog"><div class="fy-lv-bar"><div class="fy-lv-fill" style="width:${Math.round(faydaProg(b.id)[i] / faydaGoal(lv) * 100)}%"></div></div><span class="fy-lv-ct">${faydaLevelProg(b.id, i)}</span></div>` : ''}<button class="fy-mcta" data-action="${lv.options ? 'fy-openlevel' : 'fy-step'}" data-b="${b.id}" data-i="${i}">${lv.cta} ${I.chevR}</button>`;
+    } else if (st === 'done') {
+      body = `<div class="fy-msub">${lv.options ? (state.fayda.choice[b.id] || 'Seçildi') : 'Tamamlandı'}</div>`;
+    } else {
+      body = `<div class="fy-msub">Level ${i} bitince açılır</div>`;
+    }
+    return `
+      <div class="fy-mrow ${st}">
+        <div class="fy-mrail">${node}<span class="fy-mline"></span></div>
+        <div class="fy-mbody"><div class="fy-mlv">Level ${i + 1}</div><div class="fy-mt">${lv.t}</div>${body}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="fy-map">
+      ${rows}
+      <div class="fy-mrow goal ${faydaCompleted(b.id) ? 'done' : ''}">
+        <div class="fy-mrail"><span class="fy-mnode goal">${I.star}</span></div>
+        <div class="fy-mbody"><div class="fy-mlv acc">Ödülün</div><div class="fy-mt">Ödülünü seç</div><div class="fy-msub reward">Yolu tamamlayınca ödülün burada açılır.</div></div>
+      </div>
+    </div>`;
+}
+
+// Fayda Cüzdanım — kupon kartları (Aktif / Değerlendirmedekiler)
+function FaydaWallet() {
+  const w = state.fayda.wallet;
+  const active = w.filter(x => x.status !== 'pending');
+  const pending = w.filter(x => x.status === 'pending');
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ödüllerim</div>
+      <span class="icon-btn" style="visibility:hidden">${I.info}</span>
+    </div>
+    <div class="screen-scroll">
+      ${w.length ? `
+        ${active.length ? `<div class="fy-sec-t">Aktif ödüller</div><div class="fy-coupons">${active.map(faydaCouponHTML).join('')}</div>` : ''}
+        ${pending.length ? `<div class="fy-sec-t">Sonucu beklenenler</div><div class="fy-coupons">${pending.map(faydaCouponHTML).join('')}</div>` : ''}
+        <div class="fy-wallet-note">${I.info} Ödüllerin kullanım koşulları ve süresi ürün detayında yer alır. Bu ekran prototip amaçlıdır.</div>
+      ` : `
+      <div class="fy-empty">
+        <div class="fy-empty-ico">${I.star}</div>
+        <h3>Henüz ödül kazanmadın</h3>
+        <p>Bir ödül yolu seç, level'ları tamamla; kazandığın ödüller burada birikir.</p>
+        <button class="btn-primary" style="max-width:240px" data-action="fy-change">Ödül yollarını keşfet</button>
+      </div>`}
+    </div>
+  </div>`;
+}
+function faydaCouponHTML(item) {
+  const b = faydaBenefit(item.id), acc = FAYDA_ACC[item.id] || '#0098cb';
+  const pending = item.status === 'pending';
+  return `
+    <div class="fy-coupon ${pending ? 'pending' : ''}" style="--fy-acc:${acc}" data-action="fy-open" data-id="${item.id}">
+      <div class="fy-cp-top">
+        <span class="fy-card-ico">${b ? I[b.icon] : I.star}</span>
+        <div class="fy-cp-h"><div class="fy-cp-t">${item.label}</div><div class="fy-cp-s">${item.meta}</div></div>
+        <span class="fy-wi-status ${item.status}">${pending ? 'Değerlendirmede' : 'Aktif'}</span>
+      </div>
+      <div class="fy-cp-cta">${pending ? 'Süreci takip et' : (item.id === 'eft' ? 'Kullan' : 'Detayı gör')} ${I.chevR}</div>
+    </div>`;
+}
+
+/* ---- Fayda Yolculukları akış mantığı ---- */
+function faydaOpen(id) { state.fayda.view = id; go('fayda-journey'); }
+// Aktif level'ı bir adım ilerlet (binary → tamam, sayaç → +step). Sadece aktif level.
+function faydaStep(bId, i) {
+  if (i !== faydaFirstOpen(bId)) return;
+  const lv = faydaLevels(bId)[i], goal = faydaGoal(lv), p = faydaProg(bId);
+  p[i] = Math.min(goal, p[i] + (lv.step || goal));
+  const doneNow = p[i] >= goal;
+  if (doneNow && lv.final) return faydaUnlock(bId);
+  render();
+  setTimeout(() => toast(doneNow ? 'Level tamamlandı ✓' : `Eklendi · ${faydaLevelProg(bId, i)}`), 120);
+}
+// Seçim gerektiren level (kategori/hedef) — bottom sheet'te chip seçimi
+function faydaOpenLevel(bId, i) {
+  const lv = faydaLevels(bId)[i];
+  if (!lv.options) return faydaStep(bId, i);
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="ru-pick-t">${lv.t}</div>
+    <div class="fy-opts">
+      ${lv.options.map(o => `<button class="fy-opt ${state.fayda.choice[bId] === o ? 'on' : ''}" data-action="fy-pick-opt" data-b="${bId}" data-i="${i}" data-opt="${o}">${o}</button>`).join('')}
+    </div>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function faydaPickOption(bId, i, opt) {
+  state.fayda.choice[bId] = opt;
+  if (i === faydaFirstOpen(bId)) faydaProg(bId)[i] = faydaGoal(faydaLevels(bId)[i]);   // aktifse level'ı tamamla
+  closeSheet();
+  render();
+  setTimeout(() => toast('Seçildi ✓'), 150);
+}
+// Yol tamamlandı → tam ekran ödül seçim ekranına git (3 ödülden biri)
+function faydaUnlock(bId) {
+  state.fayda.view = bId;
+  closeSheet();
+  go('fayda-reward');
+}
+// Tam ekran ödül seçimi — 3 ödül hediye paketinden biri
+function FaydaReward() {
+  const b = faydaBenefit(state.fayda.view);
+  if (!b) return FaydaHub();
+  return `
+  <div class="screen anim-up fy-rw" style="--fy-acc:${FAYDA_ACC[b.id]}">
+    <div class="fy-rw-scroll">
+      <div class="fy-rw-head">
+        <div class="fy-rw-burst">🎁</div>
+        <div class="fy-rw-h1">Yolu tamamladın!</div>
+        <p class="fy-rw-sub"><b>${b.title}</b> yolunu bitirdin. Sana özel <b>3 ödülden birini</b> seç — yalnızca birini kazanırsın.</p>
+      </div>
+      <div class="fy-rw-list">
+        ${b.rewards.map((r, i) => `
+          <button class="fy-rw-card" style="animation-delay:${90 + i * 120}ms" data-action="fy-pick-reward" data-b="${b.id}" data-r="${i}">
+            <span class="fy-rw-ico">${I.star}</span>
+            <div class="fy-rw-tx"><div class="fy-rw-t">${r.label}</div><div class="fy-rw-s">${r.meta}</div></div>
+            <span class="fy-rw-pick">Seç ${I.chevR}</span>
+          </button>`).join('')}
+      </div>
+      <button class="fy-rw-later" data-action="nav-back">Sonra seçerim</button>
+    </div>
+  </div>`;
+}
+function faydaPickReward(bId, i) {
+  const r = faydaBenefit(bId).rewards[i];
+  if (!faydaInWallet(bId)) state.fayda.wallet.unshift({ id: bId, label: r.label, meta: r.meta, status: r.status });
+  state.fayda.view = bId;
+  state.nav = [];
+  state.screen = 'fayda-wallet';
+  render();
+  setTimeout(() => toast('Ödülün kazanıldı 🎉'), 200);
+}
+
+/* ===================================================================
    HARCAMA ANALİZİ & LİMİT  (Harcamalarım)
    İki ekran: Analiz + Limit (üstte segment). Analiz'de dönem + kart filtresi.
    Limitler hesap geneli (tüm kartlar) hesaplanır; kart filtresi yalnız Analiz'de.
@@ -3615,6 +4026,10 @@ function render() {
     case 'metal-apply': html = MetalApply(); break;
     case 'metal-jar': html = MetalJar(); break;
     case 'metal-history': html = MetalHistory(); break;
+    case 'fayda': html = FaydaHub(); break;
+    case 'fayda-journey': html = FaydaJourney(); break;
+    case 'fayda-reward': html = FaydaReward(); break;
+    case 'fayda-wallet': html = FaydaWallet(); break;
     case 'insights': html = InsightsScreen(); break;
     case 'subs': html = SubsScreen(); break;
     case 'sub-detail': html = SubDetailScreen(); break;
@@ -4760,6 +5175,17 @@ document.addEventListener('click', (e) => {
     case 'mb-stop': return mbStop();
     case 'mb-stop-confirm': return mbStopConfirm();
 
+    // Fayda Yolculukları
+    case 'fy-open': return faydaOpen(t.dataset.id);
+    case 'fy-wallet': return go('fayda-wallet');
+    case 'fy-change': return go('fayda');
+    case 'fy-step': return faydaStep(t.dataset.b, +t.dataset.i);
+    case 'fy-openlevel': return faydaOpenLevel(t.dataset.b, +t.dataset.i);
+    case 'fy-pick-opt': return faydaPickOption(t.dataset.b, +t.dataset.i, t.dataset.opt);
+    case 'fy-reward': return go('fayda-reward');
+    case 'fy-pick-reward': return faydaPickReward(t.dataset.b, +t.dataset.r);
+    case 'fy-open-wallet': { closeSheet(); return go('fayda-wallet'); }
+
     // Harcama analizi & limit
     case 'sp-open': return go('insights');
     case 'sp-seg': return spSeg(t.dataset.seg);
@@ -4807,6 +5233,7 @@ document.addEventListener('click', (e) => {
     case 'menu-nav': {
       const id = t.dataset.id;
       if (id === 'home') return goHome();
+      if (id === 'world') { closeDrawer(); return go('fayda'); }   // Benim Dünyam → Fayda Yolculukları
       // Diğer menüler placeholder
       state.placeholderTitle = t.dataset.label;
       return go('placeholder');
@@ -4832,7 +5259,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -4890,6 +5317,12 @@ function routeTo(hash) {
   }
   if (h === 'metal-jar' || h === 'metal-history') { // dolu maden hesabı/geçmiş — kural yoksa kurup göster (demo linki)
     if (!state.metal.active) mbSeedJar();
+    state.chatSeed = false;
+    state.screen = h;
+    return true;
+  }
+  if (h === 'fayda-journey' || h === 'fayda-reward') {  // görüntülenen fayda yoksa demo (limit)
+    if (!state.fayda.view) state.fayda.view = 'limit';
     state.chatSeed = false;
     state.screen = h;
     return true;
