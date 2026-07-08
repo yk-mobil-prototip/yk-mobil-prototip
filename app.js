@@ -2975,13 +2975,20 @@ const SPEND_CATS = [
    parti app'lerin aksine tahmin değil, kesin veri. day: ayın ödeme günü ·
    dleft: sonraki ödemeye kalan gün · remind: hatırlatıcı açık mı */
 const SUBS = [
-  { id: 'netflix', name: 'Netflix',        plan: 'Standart · Reklamsız', cat: 'Dizi & Film', price: 249.99, cycle: 'Aylık', day: 3,  next: '3 Tem',  dleft: 2,  card: 'worldcard', since: 'Mart 2021', remind: true,  color: '#E50914', logo: 'assets/netflix.png', logoBg: '#000', logoFit: 'cover' },
-  { id: 'spotify', name: 'Spotify',        plan: 'Premium Bireysel',     cat: 'Müzik',       price: 59.99,  cycle: 'Aylık', day: 3,  next: '3 Tem',  dleft: 2,  card: 'worldcard', since: 'Eylül 2019', remind: true, color: '#1DB954', logo: 'assets/spotify.png', priceOld: 49.99 },
-  { id: 'youtube', name: 'YouTube Premium', plan: 'Bireysel',            cat: 'Video',       price: 79.99,  cycle: 'Aylık', day: 8,  next: '8 Tem',  dleft: 7,  card: 'tlcard',    since: 'Ocak 2023', remind: true,  color: '#FF0000', logo: 'assets/youtube.png' },
-  { id: 'chatgpt', name: 'ChatGPT Plus',   plan: 'Aylık üyelik',         cat: 'Yapay Zekâ',  price: 799.00, cycle: 'Aylık', day: 10, next: '10 Tem', dleft: 9,  card: 'worldcard', since: 'Kasım 2024', remind: false, color: '#0F9D77', logo: 'assets/chatgpt.png' },
-  { id: 'claude',  name: 'Claude Pro',     plan: 'Aylık üyelik',         cat: 'Yapay Zekâ',  price: 799.00, cycle: 'Aylık', day: 14, next: '14 Tem', dleft: 13, card: 'worldcard', since: 'Temmuz 2026', remind: false, color: '#D97757', logo: 'assets/claude.png', isNew: true },
-  { id: 'xbox',    name: 'Xbox Game Pass', plan: 'Ultimate',            cat: 'Oyun',        price: 349.00, cycle: 'Aylık', day: 20, next: '20 Tem', dleft: 19, card: 'tlcard',    since: 'Haziran 2022', remind: true, color: '#107C10', logo: 'assets/xbox.png' },
+  { id: 'netflix', name: 'Netflix',        plan: 'Standart · Reklamsız', cat: 'Dizi & Film', price: 249.99, cycle: 'Aylık', day: 3,  next: '3 Tem',  last: '3 Tem',  dleft: 2,  card: 'worldcard', since: 'Mart 2021', remind: true,  color: '#E50914', logo: 'assets/netflix.png', logoBg: '#000', logoFit: 'cover' },
+  { id: 'spotify', name: 'Spotify',        plan: 'Premium Bireysel',     cat: 'Müzik',       price: 59.99,  cycle: 'Aylık', day: 3,  next: '3 Tem',  last: '3 Tem',  dleft: 2,  card: 'worldcard', since: 'Eylül 2019', remind: true, color: '#1DB954', logo: 'assets/spotify.png', priceOld: 49.99 },
+  { id: 'youtube', name: 'YouTube Premium', plan: 'Bireysel',            cat: 'Video',       price: 79.99,  cycle: 'Aylık', day: 8,  next: '8 Tem',  last: '8 Tem',  dleft: 7,  card: 'tlcard',    since: 'Ocak 2023', remind: true,  color: '#FF0000', logo: 'assets/youtube.png' },
+  { id: 'chatgpt', name: 'ChatGPT Plus',   plan: 'Aylık üyelik',         cat: 'Yapay Zekâ',  price: 799.00, cycle: 'Aylık', day: 10, next: '10 Tem', last: '10 Haz', dleft: 9,  card: 'worldcard', since: 'Kasım 2024', remind: false, color: '#0F9D77', logo: 'assets/chatgpt.png' },
+  { id: 'claude',  name: 'Claude Pro',     plan: 'Aylık üyelik',         cat: 'Yapay Zekâ',  price: 799.00, cycle: 'Aylık', day: 14, next: '14 Tem', last: '2 Tem',  dleft: 13, card: 'worldcard', since: 'Temmuz 2026', remind: false, color: '#D97757', logo: 'assets/claude.png', isNew: true },
+  { id: 'xbox',    name: 'Xbox Game Pass', plan: 'Ultimate',            cat: 'Oyun',        price: 349.00, cycle: 'Aylık', day: 20, next: '20 Tem', last: '20 Haz', dleft: 19, card: 'tlcard',    since: 'Haziran 2022', remind: true, color: '#107C10', logo: 'assets/xbox.png' },
 ];
+// Kısa tarihi ("3 Tem") uzun forma çevirir ("3 Temmuz 2026") — detay ekranı için
+const SUB_MON_LONG = { Oca:'Ocak', Şub:'Şubat', Mar:'Mart', Nis:'Nisan', May:'Mayıs', Haz:'Haziran', Tem:'Temmuz', Ağu:'Ağustos', Eyl:'Eylül', Eki:'Ekim', Kas:'Kasım', Ara:'Aralık' };
+function subLastLong(s) {
+  if (!s.last) return '—';
+  const [d, mon] = s.last.split(' ');
+  return `${d} ${SUB_MON_LONG[mon] || mon} 2026`;
+}
 function subsActive() { return SUBS.filter(s => !s.canceled); }
 function subsMonthly() { return subsActive().reduce((s, x) => s + x.price, 0); }
 function subsYearly() { return subsMonthly() * 12; }
@@ -3343,7 +3350,7 @@ function SubsScreen() {
   </div>`;
 }
 
-// Abonelik satırı — logo · ad/paket · sonraki ödeme · tutar · durum rozeti
+// Abonelik satırı — logo · ad/paket · son ödeme · tutar · durum rozeti
 function subRow(s) {
   const st = subStatus(s);
   return `
@@ -3352,7 +3359,7 @@ function subRow(s) {
       <div class="sub-mid">
         <div class="sub-n">${s.name}</div>
         <div class="sub-s">${s.plan}</div>
-        <div class="sub-next">${s.canceled ? 'Yenileme durduruldu' : 'Sonraki ödeme · ' + s.next}</div>
+        <div class="sub-next">${s.canceled ? 'Yenileme durduruldu' : 'Son ödeme · ' + s.last}</div>
       </div>
       <div class="sub-right">
         <div class="sub-a">${fmtTL2(s.price)}</div>
@@ -3396,7 +3403,7 @@ function SubDetailScreen() {
       <!-- Ödeme bilgileri -->
       <div class="sp-card pad0">
         <div class="sp-card-h">Ödeme bilgileri</div>
-        <div class="sub-info"><span>Sonraki ödeme</span><b>${s.canceled ? '—' : s.day + ' Temmuz 2026'}</b></div>
+        <div class="sub-info"><span>Son ödeme</span><b>${s.canceled ? '—' : subLastLong(s)}</b></div>
         <div class="sub-info tap" data-action="toast" data-msg="Kart detayı prototipte aktif değil"><span>Ödeme kartı</span><b class="sub-info-link">${cardMask} ${I.chevR}</b></div>
         <div class="sub-info"><span>Yenileme sıklığı</span><b>${s.cycle}</b></div>
         <div class="sub-info"><span>Üyelik başlangıcı</span><b>${s.since}</b></div>
@@ -4606,7 +4613,7 @@ function seturGrant() {
   }, 900);
 }
 
-/* Kilit ekranı — "uygulamadan çıktık" hissi. Saat 2 saat ileriye akar,
+/* Kilit ekranı — "uygulamadan çıktık" hissi. Saat 5 dakika ileriye akar,
    sonra push bildirimi düşer (zaman geçtiğini görsel olarak anlatır). */
 function fmtClock(mins) {
   mins = ((Math.round(mins) % 1440) + 1440) % 1440;
@@ -4616,7 +4623,7 @@ function goToLockScreen() {
   const d = new Date();
   const dateStr = d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
   const startMin = d.getHours() * 60 + d.getMinutes();
-  const targetMin = startMin + 120;              // 2 saat sonrası
+  const targetMin = startMin + 5;                // 5 dakika sonrası
   lockEl.innerHTML = `
     <div class="lock-top">
       <div class="lock-lockico">${I.lock}</div>
@@ -4627,10 +4634,10 @@ function goToLockScreen() {
     <div class="lock-notif-slot" id="lock-notif-slot"></div>
     <div class="lock-bottom"><div class="lock-bar"></div></div>`;
   lockEl.classList.add('show');
-  // Saat akışı: 1 sn dur, sonra ~3.4 sn boyunca 2 saat ileri sar
+  // Saat akışı: 1 sn dur, sonra ~3.4 sn boyunca 5 dakika ileri sar
   setTimeout(() => animateClock(startMin, targetMin, 3400, () => {
     const el = document.getElementById('lock-elapsed');
-    if (el) { el.textContent = '⏳ 2 saat sonra'; el.classList.add('show'); }
+    if (el) { el.textContent = '⏳ 5 dakika sonra'; el.classList.add('show'); }
     setTimeout(fireSeturNotification, 750);
   }), 1000);
 }
