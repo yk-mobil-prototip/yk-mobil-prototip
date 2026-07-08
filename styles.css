@@ -2720,3 +2720,79 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sub-ins-mid { flex: 1; min-width: 0; }
 .sub-ins-mid b { font-size: 13.5px; font-weight: 600; display: block; }
 .sub-ins-mid span { font-size: 12px; color: var(--text-dim); margin-top: 1px; display: block; }
+
+/* ===================================================================
+   KART BİLGİLERİ + DİNAMİK GÜVENLİK KODU (dinamik CVV)
+   =================================================================== */
+.cd-cardart { display: grid; place-items: center; margin: 16px 16px 2px; }
+.cd-cardimg { width: 62%; max-width: 240px; border-radius: 12px; box-shadow: 0 8px 22px rgba(0,0,0,.28); }
+
+/* Bilgi listesi — İş Bankası kalıbı: etiket sol, değer sağ, ince ayraç */
+.cd-info { padding: 4px 16px; }
+.cd-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 15px 0; border-bottom: 1px solid var(--border);
+  background: none; text-align: left; font-family: inherit;
+}
+.cd-info .cd-row:last-child { border-bottom: none; }
+.cd-row.tap { border: none; border-bottom: 1px solid var(--border); cursor: pointer; }
+.cd-k { font-size: 15px; color: var(--text-dim); flex-shrink: 0; }
+.cd-v { margin-left: auto; font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: .2px; }
+.cd-row.tap .cd-v { margin-left: auto; }
+.cd-copyico { color: var(--primary); display: grid; place-items: center; flex-shrink: 0; }
+
+/* Dinamik Güvenlik Kodu kartı */
+.dcvv-card { text-align: center; }
+.dcvv-card.on { border-color: rgba(0,152,203,.35); }
+.dcvv-h {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+}
+.dcvv-sh { color: var(--primary); display: inline-flex; }
+.dcvv-info { font-size: 13.5px; line-height: 1.55; color: var(--text-dim); margin-bottom: 6px; text-align: left; }
+.dcvv-info.center { text-align: center; margin-bottom: 18px; }
+.dcvv-info.strong { font-size: 14.5px; line-height: 1.6; color: var(--text); padding: 4px 4px 0; }
+.dcvv-info b { color: var(--text); font-weight: 700; }
+.dcvv-info.strong b { color: var(--primary); }
+.dcvv-gen { max-width: 340px; margin: 10px auto 0; }
+
+/* Sayaç kadranı — kod öne çıkar, daralan halka çevrede (kompakt) */
+.dcvv-dial { position: relative; width: 140px; height: 140px; margin: 2px auto 12px; }
+.dcvv-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.dcvv-ring-bg { fill: none; stroke: var(--card-3); stroke-width: 7; }
+.dcvv-ring-fg {
+  fill: none; stroke: var(--primary); stroke-width: 7; stroke-linecap: round;
+  transition: stroke-dashoffset .25s linear, stroke .3s ease;
+}
+.dcvv-ring-fg.warn { stroke: var(--gold); }
+.dcvv-dial-mid { position: absolute; inset: 0; display: grid; place-content: center; gap: 3px; }
+.dcvv-code { font-size: 46px; font-weight: 700; letter-spacing: 5px; color: var(--text); padding-left: 5px; line-height: 1; }
+.dcvv-code.muted { font-size: 30px; letter-spacing: 4px; color: var(--text-faint); }
+.dcvv-clock { font-size: 12.5px; font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.dcvv-clock.warn { color: var(--gold); }
+
+/* Aktif durum — kodun altındaki ince yardımcı metin */
+.dcvv-hint { font-size: 12.5px; color: var(--text-faint); margin: 0 0 14px; }
+
+.dcvv-copy {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; max-width: 340px; margin: 0 auto;
+  background: var(--card-2); color: var(--primary); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.dcvv-copy:active { background: var(--card-3); }
+
+/* Aktif durum alt satırı — küçük not + ikincil "yeni kod" aksiyonu */
+.dcvv-foot { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.dcvv-subnote { font-size: 12px; line-height: 1.5; color: var(--text-faint); }
+.dcvv-subnote.center { text-align: center; margin: 0 0 16px; }
+.dcvv-regen {
+  background: none; border: none; color: var(--primary); font-family: inherit;
+  font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 6px;
+}
+.dcvv-regen:active { opacity: .6; }
+
+/* Süresi doldu durumu */
+.dcvv-dial.expired { margin-bottom: 10px; opacity: .8; }
+.dcvv-exp-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }

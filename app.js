@@ -259,6 +259,8 @@ const state = {
   usePuan: false,            // Worldpuan ile kısmi ödeme
   nav: [],                   // geri (back) yığını — gerçek uygulama gibi geri davranışı
   theme: localStorage.getItem('ykm-theme') || 'dark',
+  // Dinamik Güvenlik Kodu (dinamik CVV) — 5 dk geçerli, üretilince öncekini geçersiz kılar
+  dcvv: { code: null, expires: 0 },   // code: '660' | null · expires: epoch ms
   // Otonom Setur akışı
   seturOptionIdx: 0,         // gösterilen tatil seçeneği (0/1 arası dönüşümlü)
   seturAuthorized: false,    // agent'a yetki verildi mi
@@ -524,14 +526,14 @@ function HomeScreen() {
 
       <div class="section-title">Kartlarım</div>
       <div class="acard-scroll">
-        <div class="acard worldcard">
+        <div class="acard worldcard" data-action="card-open">
           <div class="acard-top">
             <div class="acard-cardimg">${imgOrFallback(WORLDCARD_IMG, '💳', 'wc-photo')}</div>
             <div>
               <div class="acard-name">Worldcard</div>
               <div class="acard-sub">1234 56** **** 3333</div>
             </div>
-            <div class="acard-more" data-action="toast" data-msg="Kart detayı prototipte aktif değil">⋮</div>
+            <div class="acard-more">⋮</div>
           </div>
           <div class="acard-figs">
             <div class="acard-fig"><div class="val">${money('1.000')}</div><div class="lbl">Güncel Borç</div></div>
@@ -3993,6 +3995,117 @@ function kidReadAmount() {
   return val;
 }
 
+/* ===================================================================
+   KART BİLGİLERİ + DİNAMİK GÜVENLİK KODU (dinamik CVV)
+   Ana ekrandaki Worldcard'a dokununca açılır. Kart bilgileri + 5 dk
+   geçerli tek kullanımlık güvenlik kodu üretimi (İş Bankası kalıbı).
+   =================================================================== */
+const CARD_IBAN = 'TR68 0006 7010 0000 0012 3456 78';
+
+function CardDetailScreen() {
+  const d = state.dcvv;
+  const active = d.code && Date.now() < d.expires;
+  const expired = d.code && Date.now() >= d.expires;   // üretilmiş ama süresi dolmuş
+
+  let dcvvBody;
+  if (active) {
+    // Aktif: kod öne çıkar, sayaç kodun hemen altında, kopyala yakında
+    dcvvBody = `
+      <div class="dcvv-dial">
+        <svg viewBox="0 0 120 120" class="dcvv-ring-svg" aria-hidden="true">
+          <circle class="dcvv-ring-bg" cx="60" cy="60" r="52"/>
+          <circle id="dcvv-ring" class="dcvv-ring-fg" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="dcvv-dial-mid">
+          <div class="dcvv-code">${d.code}</div>
+          <div class="dcvv-clock" id="dcvv-clock">05:00 kaldı</div>
+        </div>
+      </div>
+      <p class="dcvv-hint">Bu kodu online alışverişlerde CVV2 alanına girebilirsiniz.</p>
+      <button class="dcvv-copy" data-action="dcvv-copy" data-val="${d.code}" data-msg="Güvenlik kodu kopyalandı">${I.copy}<span>Kodu Kopyala</span></button>
+      <div class="dcvv-foot">
+        <span class="dcvv-subnote">Yeni kod oluşturulduğunda önceki kod geçersiz olur.</span>
+        <button class="dcvv-regen" data-action="dcvv-gen">Yeni kod oluştur</button>
+      </div>`;
+  } else if (expired) {
+    // Süre doldu: sönük kadran + net yönlendirme
+    dcvvBody = `
+      <div class="dcvv-dial expired">
+        <svg viewBox="0 0 120 120" class="dcvv-ring-svg" aria-hidden="true">
+          <circle class="dcvv-ring-bg" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="dcvv-dial-mid"><div class="dcvv-code muted">• • •</div></div>
+      </div>
+      <div class="dcvv-exp-title">Kodun süresi doldu</div>
+      <p class="dcvv-info center">Yeni bir güvenlik kodu oluşturarak alışverişinize devam edebilirsiniz.</p>
+      <button class="btn-primary dcvv-gen" data-action="dcvv-gen">Yeni Kod Oluştur</button>`;
+  } else {
+    // Boş: net ve güçlü — sabit CVV2 yerine anlık, tek kullanımlık kod
+    dcvvBody = `
+      <p class="dcvv-info center strong">Kartınızın arkasındaki sabit CVV2 yerine; <b>anlık üretilen, 5 dakika geçerli tek kullanımlık</b> güvenlik koduyla online alışveriş yapın.</p>
+      <button class="btn-primary dcvv-gen" data-action="dcvv-gen">Güvenlik Kodu Oluştur</button>`;
+  }
+
+  return `
+  <div class="screen anim-right cd-screen">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Kart Bilgileri</div>
+      <button class="icon-btn" data-action="toast" data-msg="Kart ayarları prototipte aktif değil">${I.gear}</button>
+    </div>
+    <div class="screen-scroll">
+
+      <div class="cd-cardart">${imgOrFallback(WORLDCARD_IMG, '💳', 'cd-cardimg')}</div>
+
+      <div class="sp-card cd-info">
+        <button class="cd-row tap" data-action="cd-copy" data-val="${CARD_IBAN.replace(/\s/g, '')}" data-msg="IBAN kopyalandı">
+          <span class="cd-k">IBAN</span>
+          <span class="cd-v">${CARD_IBAN}</span>
+          <span class="cd-copyico">${I.copy}</span>
+        </button>
+        <div class="cd-row"><span class="cd-k">Kart Numarası</span><span class="cd-v">1234 56** **** 3333</span></div>
+        <div class="cd-row"><span class="cd-k">Son Kullanma Tarihi</span><span class="cd-v">09/29</span></div>
+      </div>
+
+      <div class="sp-card dcvv-card ${active ? 'on' : ''}">
+        <div class="dcvv-h"><span class="dcvv-sh">${I.lock || ''}</span>Dinamik Güvenlik Kodu</div>
+        ${dcvvBody}
+      </div>
+
+    </div>
+  </div>`;
+}
+
+let dcvvTimer = null;
+function setupDcvv() {
+  clearInterval(dcvvTimer);
+  if (!document.getElementById('dcvv-ring')) return;   // aktif kod yok / ekran değişti
+  const C = 2 * Math.PI * 52;
+  const TOTAL = 5 * 60 * 1000;
+  const tick = () => {
+    const ring = document.getElementById('dcvv-ring');
+    if (!ring) { clearInterval(dcvvTimer); return; }    // ekrandan çıkıldı
+    const rem = state.dcvv.expires - Date.now();
+    if (rem <= 0) { clearInterval(dcvvTimer); if (state.screen === 'card-detail') render(); return; }
+    const frac = Math.max(0, Math.min(1, rem / TOTAL));
+    ring.style.strokeDasharray = C;
+    ring.style.strokeDashoffset = C * (1 - frac);
+    const s = Math.ceil(rem / 1000);
+    const clock = document.getElementById('dcvv-clock');
+    if (clock) clock.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')} kaldı`;
+    const warn = rem <= 60000;   // son 1 dk
+    ring.classList.toggle('warn', warn);
+    if (clock) clock.classList.toggle('warn', warn);
+  };
+  tick();
+  dcvvTimer = setInterval(tick, 250);
+}
+function dcvvGenerate() {
+  state.dcvv = { code: String(Math.floor(100 + Math.random() * 900)), expires: Date.now() + 5 * 60 * 1000 };
+  render();
+  toast('Dinamik güvenlik kodu oluşturuldu');
+}
+
 function PlaceholderScreen(title) {
   return `
   <div class="screen anim-right">
@@ -4044,6 +4157,7 @@ function render() {
     case 'insights-cats': html = AllCatsScreen(); break;
     case 'limits': html = LimitsScreen(); break;
     case 'kid': html = KidScreen(); break;
+    case 'card-detail': html = CardDetailScreen(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
   app.innerHTML = html;
@@ -4056,6 +4170,7 @@ function render() {
   if (state.screen === 'spendup-jar') setupSuJar();
   if (state.screen === 'metal-apply') setupMetalApply();
   if (state.screen === 'metal-jar') setupMetalJar();
+  if (state.screen === 'card-detail') setupDcvv();
 }
 
 /* İleri navigasyon — mevcut ekranı geri yığınına ekler (gerçek uygulama gibi) */
@@ -5217,6 +5332,18 @@ document.addEventListener('click', (e) => {
     case 'sub-cancel': return openSubCancelSheet(t.dataset.id);
     case 'sub-cancel-confirm': return subCancelConfirm(t.dataset.id);
     case 'sub-resume': return subResume(t.dataset.id);
+
+    // Kart Bilgileri + Dinamik Güvenlik Kodu
+    case 'card-open': return go('card-detail');
+    case 'dcvv-gen': return dcvvGenerate();
+    case 'dcvv-copy':
+    case 'cd-copy': {
+      const val = t.dataset.val || '';
+      const msg = t.dataset.msg || 'Kopyalandı';
+      if (val && navigator.clipboard) navigator.clipboard.writeText(val).then(() => toast(msg), () => toast(msg));
+      else toast(msg);
+      return;
+    }
 
     // Çocuk Ek Kartı
     case 'kid-open': return go('kid');
