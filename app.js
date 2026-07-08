@@ -2566,7 +2566,7 @@ const FAYDA_BENEFITS = [
     rewards: [
       { label: '30 gün ek faiz fırsatı', meta: 'Sınırsız Hesap bakiyene 30 gün avantajlı oran', status: 'active' },
       { label: 'Vadeli hesaba özel faiz', meta: 'İlk 32 gün vadede yüksek oran', status: 'active' },
-      { label: '250 Worldpuan hediye', meta: 'Hesabına hemen tanımlanır', status: 'active' },
+      { label: 'Birikimine 250 TL başlangıç bonusu', meta: 'Hesabına hemen yatırılır', status: 'active' },
     ],
     levels: [
       { t: 'Sınırsız Hesap aç', cta: 'Hesap aç' },
