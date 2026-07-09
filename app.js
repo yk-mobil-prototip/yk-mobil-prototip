@@ -4286,7 +4286,7 @@ function SplitHub() {
     </div>
     <div class="screen-scroll">
       ${tab === 'in' ? splInList() : splOutList()}
-      <div class="sp-foot-note">${I.lock} Ödeme istekleri FAST altyapısıyla saniyeler içinde iletilir; karşı tarafın bankası fark etmez.</div>
+      <div class="sp-foot-note">${I.lock} Ödeme istekleri FAST altyapısıyla 7/24 anında ve güvenle iletilir.</div>
     </div>
     <div class="spl-footbar">
       <button class="spl-cta" data-action="spl-create">${I.plus} Ödeme İsteği Oluştur</button>
@@ -4407,7 +4407,7 @@ function SplitAmount() {
       <div class="spl-amt-wrap">
         <div class="spl-amt-lbl">İstenecek tutar</div>
         <div class="spl-amt-field"><input id="spl-amt-input" inputmode="decimal" placeholder="0,00" value="${s.amount ? s.amount : ''}"><span>TL</span></div>
-        <div class="spl-amt-hint">Girdiğin tutarı bir ya da birden fazla kişiye bölüştürerek istersin.</div>
+        <div class="spl-amt-hint">Girdiğin tutarı bir ya da birden fazla kişiyle bölüşebilirsin.</div>
       </div>
       <div class="spl-field"><label>Açıklama <i>(opsiyonel)</i></label><input id="spl-amt-note" placeholder="Örn. Akşam yemeği" value="${s.note || ''}"></div>
     </div>
@@ -4440,7 +4440,7 @@ function SplitPeople() {
         const on = splPeopleSel(c.id);
         return `<div class="spl-pickrow ${on ? 'on' : ''}" data-action="spl-toggle-person" data-id="${c.id}">
           ${splAvatar(c.name)}
-          <div class="spl-pickrow-mid"><div class="spl-pickrow-n">${c.name}</div><div class="spl-pickrow-s">${c.bank}</div></div>
+          <div class="spl-pickrow-mid"><div class="spl-pickrow-n">${c.name}</div>${c.id.startsWith('new') ? `<div class="spl-pickrow-s">${c.bank}</div>` : ''}</div>
           <span class="spl-check ${on ? 'on' : ''}">${on ? I.check : ''}</span>
         </div>`;
       }).join('')}</div>` : `<div class="spl-picklist">${SPLIT_GROUPS.map(g => `
@@ -4531,7 +4531,7 @@ function SplitForm() {
 
       <div class="sp-card pad0">
         <div class="sp-card-h">İstek gönderilecek kişiler</div>
-        <div class="spl-formppl">${s.people.map(p => `<div class="spl-pp"><div class="spl-pp-l">${splAvatar(p.name, 'sm')}<div class="spl-pp-mid"><b>${p.name}</b><span>${p.bank}</span></div></div><div class="spl-pp-a">${fmtTL2(per)}</div></div>`).join('')}</div>
+        <div class="spl-formppl">${s.people.map(p => `<div class="spl-pp"><div class="spl-pp-l">${splAvatar(p.name, 'sm')}<div class="spl-pp-mid"><b>${p.name}</b></div></div><div class="spl-pp-a">${fmtTL2(per)}</div></div>`).join('')}</div>
       </div>
 
       <div class="sp-card pad0">
