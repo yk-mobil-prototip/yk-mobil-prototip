@@ -4285,13 +4285,11 @@ function SplitHub() {
       </div>
     </div>
     <div class="screen-scroll">
-      <button class="spl-create" data-action="spl-create">
-        <span class="spl-create-ic">${I.plus}</span>
-        <span class="spl-create-t">Ödeme isteği oluştur</span>
-        <span class="spl-create-chev">${I.chevR}</span>
-      </button>
       ${tab === 'in' ? splInList() : splOutList()}
       <div class="sp-foot-note">${I.lock} Ödeme istekleri FAST altyapısıyla saniyeler içinde iletilir; karşı tarafın bankası fark etmez.</div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" data-action="spl-create">${I.plus} Ödeme İsteği Oluştur</button>
     </div>
   </div>`;
 }
