@@ -224,6 +224,14 @@ const SECTIONS = [
   { hash: 'fayda',        icon: 'world',   t: 'Ödül Yolu — Hub', d: 'Ödülünü seç, sıralı level\'ları geç, ödülünü kap (Benim Dünyam)' },
   { hash: 'fayda-journey', icon: 'target', t: 'Ödül Yolu — Yolculuk', d: 'HUD + dikey level haritası + sonda ödül (Limit demo 2/5)' },
   { hash: 'fayda-wallet', icon: 'star',    t: 'Ödüllerim', d: 'Kazanılmış ve aktif ödüller (kupon kartları)' },
+  { hash: 'split',      icon: 'transfer', t: 'Harcama Bölüştür — Hub', d: 'Gelen/Gönderilen ödeme istekleri, istek oluştur (Ödeme İste)' },
+  { hash: 'split-pick', icon: 'receipt',  t: 'Harcama Bölüştür — Harcama seç', d: 'Kart hareketi/fatura/abonelik seçip böl' },
+  { hash: 'split-form', icon: 'wallet2',  t: 'Harcama Bölüştür — Form',  d: 'Kişi başı, payım var, süreler, kısmi ödeme (dolu)' },
+  { hash: 'split-pay',  icon: 'card',     t: 'Harcama Bölüştür — Gelen isteği öde', d: 'FAST ile tek dokunuş ödeme (ödeyen taraf)' },
+  { hash: 'reward-goal', icon: 'world',   t: 'Birlikte Kazan — Hub', d: 'Grup harcama hedefi → Worldpuan iadesi → kişi başı bölüşüm' },
+  { hash: 'reward-goal-new', icon: 'target', t: 'Birlikte Kazan — Yeni hedef', d: 'Grup, hedef tutar, dönem, eşit/katkı paylaşımı' },
+  { hash: 'reward-goal-track', icon: 'pie', t: 'Birlikte Kazan — İlerleme', d: 'Kolektif ilerleme, üye katkıları, ödül havuzu (dolu)' },
+  { hash: 'reward-goal-win', icon: 'star', t: 'Birlikte Kazan — Kutlama', d: 'Hedefe ulaşıldı, havuz kişi başı paylaşıldı, Ödüllerim' },
   { hash: 'insights',   icon: 'pie',      t: 'Harcama Analizi',      d: 'Aylık toplam, kategori dağılımı, işyeri kırılımı' },
   { hash: 'limits',     icon: 'target',   t: 'Harcama Limitlerim',   d: 'Kategoriye tutar girerek aylık limit koy' },
   { hash: 'kid',        icon: 'wallet2',  t: 'Çocuk Ek Kartı',       d: 'Limit, harçlık, birikim hedefi, veli eşleştirme, onaylar, rozetler' },
@@ -350,7 +358,74 @@ const state = {
       { id: 'p2', kind: 'harclik', merchant: 'Ek harçlık', note: 'Elif ek harçlık istedi', amount: 100.00, emoji: '💸' },
     ],
   },
+  // Harcama Bölüştür / Ödeme İste — ortak harcamayı kişilere bölüp ödeme isteği gönderme
+  split: {
+    tab: 'in',            // hub sekmesi: 'in' (gelen) | 'out' (gönderilen)
+    mode: 'pick',         // istek yolu: 'pick' (harcama seç) | 'amount' (tutar gir)
+    pickTab: 'subs',      // harcama seç sekmesi: 'card' | 'bill' | 'subs'
+    picked: [],           // seçili harcamalar: {id, name, sub, date, amount}
+    amount: 0,            // tutar girerek modunda toplam
+    peopleTab: 'people',  // 'people' | 'groups'
+    people: [],           // seçili kişiler: {id, name, bank}
+    myShare: true,        // "Harcamada payım var" — kişi başı hesaba beni de kat
+    account: 'main',      // isteğin toplanacağı alıcı hesap
+    purpose: 'Bireysel ödeme',
+    note: '',
+    valid: '1 ay',        // istek geçerlilik süresi
+    due: 'Son ödeme gününü seç',  // son ödeme süresi
+    partial: false,       // kısmi ödeme açık mı
+    payId: null,          // #split-pay'de ödenen gelen istek id'si
+  },
+  // Birlikte Kazan — grup harcama hedefine ulaşınca kazanılan Worldpuan iadesini
+  // katılımcılara bölüştürme. "Yeni hedef" sihirbazının taslağı (sade: süre/kategori yok).
+  bk: {
+    viewId: 'g-market',   // track/win'de görüntülenen hedef
+    name: '',             // yeni hedef adı
+    target: 30000,        // yeni hedef tutarı (TL)
+    people: [],           // katılımcılar {id,name}
+    share: 'equal',       // paylaşım modeli: 'equal' | 'contrib'
+  },
 };
+
+/* Grup hedefleri — hub bunları listeler, track/win seçileni gösterir.
+   Ödül = hedef tutarın %5'i Worldpuan (TL değeriyle gösterilir). */
+const BK_RATE = 5;
+const bkGoals = [
+  { id: 'g-market', name: 'Market Alışverişi', icon: '🛒', target: 30000, spent: 18450, daysLeft: 12, rate: BK_RATE, share: 'equal', status: 'active', claimed: false,
+    members: [
+      { id: 'me', name: 'Selçuk İmre', contrib: 6200, me: true },
+      { id: 'k8', name: 'Ayşe Yıldız', contrib: 5800 },
+      { id: 'k3', name: 'Mert Demir',  contrib: 4000 },
+      { id: 'k9', name: 'Ece Kaya',    contrib: 2450 },
+    ] },
+  { id: 'g-resto', name: 'Restoran Haftası', icon: '🍽️', target: 10000, spent: 6750, daysLeft: 5, rate: BK_RATE, share: 'equal', status: 'active', claimed: false,
+    members: [
+      { id: 'me', name: 'Selçuk İmre', contrib: 2600, me: true },
+      { id: 'k2', name: 'Burak Ünal',  contrib: 2400 },
+      { id: 'k4', name: 'Deniz Şahin', contrib: 1750 },
+    ] },
+  { id: 'g-yaz', name: 'Yaz Tatili', icon: '🏖️', target: 20000, spent: 20000, daysLeft: 0, rate: BK_RATE, share: 'equal', status: 'done', claimed: true,
+    members: [
+      { id: 'me', name: 'Selçuk İmre', contrib: 7000, me: true },
+      { id: 'k8', name: 'Ayşe Yıldız', contrib: 6000 },
+      { id: 'k3', name: 'Mert Demir',  contrib: 4500 },
+      { id: 'k9', name: 'Ece Kaya',    contrib: 2500 },
+    ] },
+];
+
+/* Örnek ödeme istekleri — gelen (ben öderim) ve gönderilen (ben istedim).
+   Ödeme yapılınca durumları güncellenir; hub bunlardan beslenir. */
+const splitIn = [
+  { id: 'in1', from: 'Burak Ünal',       note: 'Konser bileti (2 kişi)', amount: 900.00, date: '6 Tem', status: 'pending' },
+  { id: 'in2', from: 'Melih Söbücovalı', note: 'Hafta sonu villa', amount: 1450.00, date: '3 Tem', status: 'pending' },
+];
+const splitOut = [
+  { id: 'out1', title: 'YouTube Premium', note: 'Aile aboneliği', total: 159.99, per: 53.33, date: '1 Tem',
+    people: [
+      { name: 'Burak Ünal',       status: 'paid' },
+      { name: 'Melih Söbücovalı', status: 'pending' },
+    ] },
+];
 
 /* ---------- Mock teslimat adresleri (kişisel veri yok, tamamen örnek) ---------- */
 const ADDRESSES = [
@@ -564,7 +639,7 @@ function HomeScreen() {
           <div class="quick4" data-action="sp-open"><div class="q4-ico">${I.bars}</div><span>Harcamalarım</span></div>
           <div class="quick4" data-action="toast" data-msg="Para Çek/Yatır prototipte aktif değil"><div class="q4-ico">${I.qr}</div><span>Para Çek/<br>Yatır</span></div>
           <div class="quick4" data-action="toast" data-msg="Son Hareketler prototipte aktif değil"><div class="q4-ico">${I.transfer}</div><span>Son<br>Hareketler</span></div>
-          <div class="quick4" data-action="toast" data-msg="Aylık Ödeme Planım prototipte aktif değil"><div class="q4-ico">${I.calendar}</div><span>Aylık Ödeme<br>Planım</span></div>
+          <div class="quick4" data-action="route" data-hash="reward-goal"><div class="q4-ico">${I.world}</div><span>Birlikte<br>Kazan</span></div>
         </div>
 
         <div class="limit-banner" data-action="toast" data-msg="Hazır Limit prototipte aktif değil">
@@ -2674,6 +2749,11 @@ function FaydaHub() {
         <div class="fy-we-mid"><div class="fy-we-t">Ödüllerim</div><div class="fy-we-s">${wc ? wc + ' ödül · kullanmaya hazır' : 'Kazandığın ödüller burada birikir'}</div></div>
         ${walletStack ? `<div class="fy-we-stack">${walletStack}</div>` : `<span class="chev-r">${I.chevR}</span>`}
       </div>
+      <div class="fy-wallet-entry" data-action="route" data-hash="reward-goal">
+        <span class="fy-we-ico">${I.world}</span>
+        <div class="fy-we-mid"><div class="fy-we-t">Birlikte Kazan</div><div class="fy-we-s">Grup hedefine ulaş, Worldpuan iadesini bölüş</div></div>
+        <span class="chev-r">${I.chevR}</span>
+      </div>
       ${active ? `<div class="fy-sec-t">Devam eden yolun</div>${faydaActiveCardHTML(active)}` : ''}
       <div class="fy-sec-t">${active ? 'Diğer ödül yolları' : 'Ödül yolları'}</div>
       <div class="fy-cards">${FAYDA_BENEFITS.filter(b => !active || b.id !== active.id).map(faydaCardHTML).join('')}</div>
@@ -4126,6 +4206,761 @@ function PlaceholderScreen(title) {
    RENDER & NAVİGASYON
    =================================================================== */
 
+/* ======================================================================
+   HARCAMA BÖLÜŞTÜR / ÖDEME İSTE
+   Ortak bir harcamayı kişi sayısına bölüp (IBAN/telefon/TCKN/karekod ile)
+   ödeme isteği gönderme. İki yol: harcama seçerek ya da tutar girerek.
+   ====================================================================== */
+
+// Rehber kişileri — banka rozetli (gerçek uygulamadaki gibi farklı bankalar)
+const SPLIT_CONTACTS = [
+  { id: 'k1', name: 'Elif Yılmaz', bank: 'Yapı Kredi',   yk: true },
+  { id: 'k2', name: 'Burak Ünal',  bank: 'Papara' },
+  { id: 'k3', name: 'Mert Demir',  bank: 'Garanti BBVA' },
+  { id: 'k4', name: 'Zeynep Kaya', bank: 'İş Bankası' },
+  { id: 'k5', name: 'Can Aksoy',   bank: 'Enpara' },
+  { id: 'k6', name: 'Deniz Şahin', bank: 'VakıfBank' },
+  { id: 'k7', name: 'Ada Korkmaz', bank: 'Yapı Kredi',   yk: true },
+  { id: 'k8', name: 'Ayşe Yıldız', bank: 'Yapı Kredi',   yk: true },
+  { id: 'k9', name: 'Ece Kaya',    bank: 'Akbank' },
+];
+// Gruplar — seçilince tüm üyeleri toplu eklenir
+const SPLIT_GROUPS = [
+  { id: 'g1', name: 'Ev Arkadaşları', members: ['k2', 'k4', 'k6'] },
+  { id: 'g2', name: 'Antalya Tatili', members: ['k1', 'k3', 'k5', 'k7'] },
+];
+// İsteğin toplanacağı hesaplar
+const SPLIT_ACCTS = [
+  { id: 'main', name: 'Vadesiz TL Hesabım', iban: 'TR•••• 4521', detail: 'Ana hesap · Bakiye 10.000 TL' },
+  { id: 'sav',  name: 'Birikim Hesabım',    iban: 'TR•••• 1234', detail: 'Vadesiz TL · günlük getirili' },
+];
+const SPLIT_PURPOSES = ['Konut kirası', 'İşyeri kirası', 'Diğer kiralar', 'E-Ticaret ödemeleri', 'Çalışan ödemesi', 'Ticari ödeme', 'Bireysel ödeme'];
+const SPLIT_VALIDS = ['7 gün', '14 gün', '1 ay', '2 ay', '3 ay', '6 ay'];
+const SPLIT_DUES = ['Hemen öde', '7 gün', '14 gün', '1 ay', '2 ay', '3 ay', '6 ay'];
+
+function splAcct() { return SPLIT_ACCTS.find(a => a.id === state.split.account) || SPLIT_ACCTS[0]; }
+function splContact(id) { return SPLIT_CONTACTS.find(c => c.id === id); }
+function splInitials(name) { const p = name.trim().split(/\s+/); return ((p[0]?.[0] || '') + (p[1]?.[0] || '')).toLocaleUpperCase('tr'); }
+const SPL_COLORS = ['#0098cb', '#0a3d7a', '#7C4DFF', '#F5883E', '#14A5A0', '#E86AA6', '#2F6FED', '#8B7FD6'];
+function splColor(name) { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return SPL_COLORS[h % SPL_COLORS.length]; }
+function splAvatar(name, cls) { return `<span class="spl-av ${cls || ''}" style="background:${splColor(name)}">${splInitials(name)}</span>`; }
+function splTotal() { const s = state.split; return s.mode === 'amount' ? s.amount : s.picked.reduce((a, p) => a + p.amount, 0); }
+function splHeads() { return state.split.people.length + (state.split.myShare ? 1 : 0); }
+function splPer() { const h = splHeads(); return h ? splTotal() / h : splTotal(); }
+function splPicked(id) { return state.split.picked.some(p => p.id === id); }
+function splPeopleSel(id) { return state.split.people.some(p => p.id === id); }
+
+// Harcama seç — sekmeye göre gerçek prototip verisinden liste (abonelik/fatura/kart hareketi)
+function splPickItems() {
+  const tab = state.split.pickTab;
+  if (tab === 'subs') {
+    return subsActive().map(s => ({ id: 'sub:' + s.id, name: s.name, sub: s.plan, date: '01.07.2026', amount: s.price }));
+  }
+  if (tab === 'bill') {
+    const c = SPEND_CATS.find(x => x.id === 'fatura');
+    return c.txns.map((t, i) => ({ id: 'bill:' + i, name: t.m, sub: t.s, date: t.d, amount: t.a }));
+  }
+  const out = [];
+  ['yeme', 'market', 'ulasim', 'eglence'].forEach(cid => {
+    const c = SPEND_CATS.find(x => x.id === cid);
+    c.txns.forEach((t, i) => out.push({ id: 'txn:' + cid + ':' + i, name: t.m, sub: t.s, date: t.d, amount: t.a }));
+  });
+  return out;
+}
+
+/* -------------------- Hub: Gelen / Gönderilen -------------------- */
+function SplitHub() {
+  const tab = state.split.tab;
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ödeme İste</div>
+      <button class="icon-btn" data-action="toast" data-msg="Ödeme iste ayarları prototipte aktif değil">${I.gear}</button>
+    </div>
+    <div class="sp-top">
+      <div class="sp-seg">
+        <button class="sp-seg-b ${tab === 'in' ? 'on' : ''}" data-action="spl-tab" data-tab="in">Gelen istekler</button>
+        <button class="sp-seg-b ${tab === 'out' ? 'on' : ''}" data-action="spl-tab" data-tab="out">Gönderilen istekler</button>
+      </div>
+    </div>
+    <div class="screen-scroll">
+      <button class="spl-create" data-action="spl-create">
+        <span class="spl-create-ic">${I.plus}</span>
+        <span class="spl-create-t">Ödeme isteği oluştur</span>
+        <span class="spl-create-chev">${I.chevR}</span>
+      </button>
+      ${tab === 'in' ? splInList() : splOutList()}
+      <div class="sp-foot-note">${I.lock} Ödeme istekleri FAST altyapısıyla saniyeler içinde iletilir; karşı tarafın bankası fark etmez.</div>
+    </div>
+  </div>`;
+}
+function splEmpty(t, s) {
+  return `<div class="spl-empty"><div class="spl-empty-ic">${I.receipt}</div><div class="spl-empty-t">${t}</div><div class="spl-empty-s">${s}</div></div>`;
+}
+function splInList() {
+  if (!splitIn.length) return splEmpty('Henüz gelen bir ödeme isteğin yok.', 'Sana gelen ödeme istekleri burada gösterilecek.');
+  return `<div class="spl-list">${splitIn.map(r => {
+    const paid = r.status === 'paid';
+    return `<div class="spl-req">
+      <div class="spl-req-top">
+        ${splAvatar(r.from)}
+        <div class="spl-req-mid"><div class="spl-req-n">${r.from}</div><div class="spl-req-s">${r.date}</div></div>
+        <div class="spl-req-amt">${fmtTL2(r.amount)}</div>
+      </div>
+      <div class="spl-req-note">${r.note}</div>
+      ${paid
+        ? `<div class="spl-req-paid">${I.check} Ödendi</div>`
+        : `<button class="spl-cta sm" data-action="spl-pay-open" data-id="${r.id}">${I.transfer} FAST ile Öde</button>`}
+    </div>`;
+  }).join('')}</div>`;
+}
+function splOutList() {
+  if (!splitOut.length) return splEmpty('Henüz gönderdiğin bir istek yok.', 'Oluşturduğun ödeme istekleri burada listelenir.');
+  return `<div class="spl-list">${splitOut.map(r => {
+    const paid = r.people.filter(p => p.status === 'paid').length;
+    const done = paid === r.people.length;
+    return `<div class="spl-req">
+      <div class="spl-req-top">
+        <span class="spl-req-ico">${I.receipt}</span>
+        <div class="spl-req-mid"><div class="spl-req-n">${r.title}</div><div class="spl-req-s">${r.note} · ${r.date}</div></div>
+        <div class="spl-req-amt">${fmtTL2(r.total)}</div>
+      </div>
+      <div class="spl-prog"><div class="spl-prog-bar"><i style="width:${paid / r.people.length * 100}%"></i></div>
+        <span>${paid}/${r.people.length} ödendi · kişi başı ${fmtTL2(r.per)}</span></div>
+      <div class="spl-ppl">${r.people.map(p => `
+        <div class="spl-pp">
+          <div class="spl-pp-l">${splAvatar(p.name, 'sm')}<div class="spl-pp-mid"><b>${p.name}</b></div></div>
+          <span class="spl-pp-st ${p.status}">${p.status === 'paid' ? I.check + ' Ödedi' : 'Bekliyor'}</span>
+        </div>`).join('')}</div>
+      ${done ? '' : `<button class="spl-cta ghost sm" data-action="toast" data-msg="Hatırlatma gönderildi 🔔">Ödemeyenlere hatırlat</button>`}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* İstek oluştur — iki yol */
+function splCreateSheet() {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>İstek oluştur</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="spl-opt" data-action="spl-start" data-mode="amount">
+      <span class="spl-opt-ic">${I.bars}</span>
+      <div class="spl-opt-mid"><b>Tutar girerek ödeme isteği gönder</b><span>Tutar girerek bir ya da birden fazla kişiye istek gönder</span></div>
+      <span class="spl-opt-chev">${I.chevR}</span>
+    </div>
+    <div class="spl-opt" data-action="spl-start" data-mode="pick">
+      <span class="spl-opt-ic">${I.receipt}</span>
+      <div class="spl-opt-mid"><b>Seçtiğin harcamayı bölüştür</b><span>Yaptığın ya da yaklaşan harcamaların için bir ya da birden fazla kişiye istek gönder</span></div>
+      <span class="spl-opt-chev">${I.chevR}</span>
+    </div>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function splStart(mode) {
+  closeSheet();
+  const s = state.split;
+  s.mode = mode; s.picked = []; s.amount = 0; s.people = []; s.note = '';
+  s.myShare = true; s.purpose = 'Bireysel ödeme'; s.valid = '1 ay';
+  s.due = 'Son ödeme gününü seç'; s.partial = false; s.account = 'main';
+  go(mode === 'amount' ? 'split-amount' : 'split-pick');
+}
+
+/* -------------------- Harcama seç -------------------- */
+function SplitPick() {
+  const items = splPickItems();
+  const total = state.split.picked.reduce((a, p) => a + p.amount, 0);
+  const n = state.split.picked.length;
+  const tabs = [['card', 'Kart hareketleri'], ['bill', 'Faturalar'], ['subs', 'Abonelikler']];
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Harcama Bölüştür</div><div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="spl-sec-lbl">YAPILAN HARCAMALAR</div>
+      <div class="spl-chips">${tabs.map(([k, l]) => `<button class="spl-chip ${state.split.pickTab === k ? 'on' : ''}" data-action="spl-picktab" data-tab="${k}">${l}</button>`).join('')}</div>
+      ${n ? `<div class="spl-added"><span class="spl-added-ic">${I.transfer}</span><div class="spl-added-mid"><b>Eklenen harcamalar</b><span>${n} harcama seçili · ${fmtTL2(total)}</span></div></div>` : ''}
+      <div class="spl-picklist">${items.map(it => {
+        const on = splPicked(it.id);
+        return `<div class="spl-pickrow ${on ? 'on' : ''}" data-action="spl-pick-item" data-id="${it.id}">
+          <div class="spl-pickrow-mid"><div class="spl-pickrow-n">${it.name}</div><div class="spl-pickrow-s">${it.sub} · ${it.date}</div></div>
+          <div class="spl-pickrow-a">${fmtTL2(it.amount)}</div>
+          <span class="spl-check ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+        </div>`;
+      }).join('')}</div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" ${n ? '' : 'disabled'} data-action="spl-pick-next">Devam${n ? ` · ${fmtTL2(total)}` : ''}</button>
+    </div>
+  </div>`;
+}
+
+/* -------------------- Tutar girerek -------------------- */
+function SplitAmount() {
+  const s = state.split;
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ödeme İste</div><div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="spl-amt-wrap">
+        <div class="spl-amt-lbl">İstenecek tutar</div>
+        <div class="spl-amt-field"><input id="spl-amt-input" inputmode="decimal" placeholder="0,00" value="${s.amount ? s.amount : ''}"><span>TL</span></div>
+        <div class="spl-amt-hint">Girdiğin tutarı bir ya da birden fazla kişiye bölüştürerek istersin.</div>
+      </div>
+      <div class="spl-field"><label>Açıklama <i>(opsiyonel)</i></label><input id="spl-amt-note" placeholder="Örn. Akşam yemeği" value="${s.note || ''}"></div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" data-action="spl-amount-next">Devam</button>
+    </div>
+  </div>`;
+}
+
+/* -------------------- Kişi seç -------------------- */
+function SplitPeople() {
+  const s = state.split;
+  const n = s.people.length;
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Ödeme İste</div>
+      <button class="icon-btn" data-action="toast" data-msg="Kişi arama prototipte aktif değil">${I.search}</button>
+    </div>
+    <div class="screen-scroll">
+      <button class="spl-create" data-action="spl-newcontact">
+        <span class="spl-create-ic">${I.plus}</span><span class="spl-create-t">Yeni kişiye istek gönder</span><span class="spl-create-chev">${I.chevR}</span>
+      </button>
+      <div class="spl-ptabs">
+        <button class="spl-ptab ${s.peopleTab === 'people' ? 'on' : ''}" data-action="spl-peopletab" data-tab="people">Kişiler</button>
+        <button class="spl-ptab ${s.peopleTab === 'groups' ? 'on' : ''}" data-action="spl-peopletab" data-tab="groups">Gruplar</button>
+      </div>
+      ${s.peopleTab === 'people' ? `<div class="spl-picklist">${SPLIT_CONTACTS.map(c => {
+        const on = splPeopleSel(c.id);
+        return `<div class="spl-pickrow ${on ? 'on' : ''}" data-action="spl-toggle-person" data-id="${c.id}">
+          ${splAvatar(c.name)}
+          <div class="spl-pickrow-mid"><div class="spl-pickrow-n">${c.name}</div><div class="spl-pickrow-s">${c.bank}</div></div>
+          <span class="spl-check ${on ? 'on' : ''}">${on ? I.check : ''}</span>
+        </div>`;
+      }).join('')}</div>` : `<div class="spl-picklist">${SPLIT_GROUPS.map(g => `
+        <div class="spl-pickrow" data-action="spl-pick-group" data-id="${g.id}">
+          <span class="spl-group-ic">${I.world}</span>
+          <div class="spl-pickrow-mid"><div class="spl-pickrow-n">${g.name}</div><div class="spl-pickrow-s">${g.members.length} kişi · dokun, hepsini ekle</div></div>
+          <span class="spl-create-chev">${I.chevR}</span>
+        </div>`).join('')}</div>`}
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" ${n ? '' : 'disabled'} data-action="spl-people-next">Devam${n ? ` · ${n} kişi` : ''}</button>
+    </div>
+  </div>`;
+}
+function splMethodSheet() {
+  const methods = [['iban', 'IBAN ile', I.card], ['phone', 'Telefon no ile', I.transfer], ['qr', 'TR karekod ile', I.qr], ['tckn', 'TCKN/Pasaport/VKN ile', I.user]];
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>Yeni alıcıya istek</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    ${methods.map(([k, l, ic]) => `<div class="spl-method" data-action="spl-method" data-m="${k}"><span class="spl-method-ic">${ic}</span><b>${l}</b><span class="spl-opt-chev">${I.chevR}</span></div>`).join('')}`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function splMethodInput(m) {
+  if (m === 'qr') { closeSheet(); return toast('TR karekod okuyucu prototipte aktif değil'); }
+  const cfg = {
+    iban:  { t: 'IBAN ile', lbl: 'IBAN', ph: 'TR__ ____ ____ ____ ____ __', mode: 'text' },
+    phone: { t: 'Telefon no ile', lbl: 'Telefon numarası', ph: '5__ ___ __ __', mode: 'tel' },
+    tckn:  { t: 'TCKN / Pasaport / VKN ile', lbl: 'Kimlik numarası', ph: '___________', mode: 'numeric' },
+  }[m];
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>${cfg.t}</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="spl-field sheet"><label>${cfg.lbl}</label><input id="spl-new-input" inputmode="${cfg.mode}" placeholder="${cfg.ph}"></div>
+    <button class="spl-cta" data-action="spl-add-newcontact" data-m="${m}">Kişiyi ekle</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+  setTimeout(() => { const i = document.getElementById('spl-new-input'); i && i.focus(); }, 250);
+}
+function splAddNewContact(m) {
+  const el = document.getElementById('spl-new-input');
+  const v = (el && el.value.trim()) || '';
+  if (!v) { toast('Lütfen bilgi girin'); return; }
+  const label = { iban: 'IBAN', phone: 'Telefon', tckn: 'TCKN' }[m] || 'Alıcı';
+  const mask = v.length > 6 ? v.slice(0, 4) + '••••' + v.slice(-2) : v;
+  const id = 'new' + Date.now();
+  const c = { id, name: 'Yeni alıcı', bank: label + ' · ' + mask };
+  SPLIT_CONTACTS.push(c);
+  state.split.people.push({ id, name: c.name, bank: c.bank });
+  closeSheet();
+  toast('Kişi eklendi');
+  render();
+}
+
+/* -------------------- Bölüştür formu -------------------- */
+function splCaptureNote() {
+  const el = document.getElementById('spl-form-note') || document.getElementById('spl-amt-note');
+  if (el) state.split.note = el.value;
+}
+function SplitForm() {
+  const s = state.split;
+  const total = splTotal();
+  const per = splPer();
+  const acct = splAcct();
+  const items = s.mode === 'pick' ? s.picked : [{ name: s.note || 'Tutar girerek istek', sub: 'Elle girilen tutar', date: '', amount: s.amount }];
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-head-titles"><div class="nav-title">Harcama Bölüştür</div><div class="nav-sub">${s.people.length} kişi</div></div>
+      <div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="sp-card">
+        ${items.map(it => `<div class="spl-sumrow"><div class="spl-sumrow-mid"><b>${it.name}</b><span>${it.date || it.sub}</span></div><div class="spl-sumrow-a">${fmtTL2(it.amount)}</div></div>`).join('')}
+        <div class="spl-sumtot"><span>Toplam tutar</span><b>${fmtTL2(total)}</b></div>
+        <div class="spl-switch">
+          <div class="spl-switch-mid"><b>Harcamada payım var</b><span>Kişi başı hesaplanırken sen de sayılırsın; yalnızca diğerlerinden istenir.</span></div>
+          <button class="spl-toggle ${s.myShare ? 'on' : ''}" data-action="spl-toggle-myshare"><i></i></button>
+        </div>
+      </div>
+
+      <div class="spl-perhead">
+        <div class="spl-perhead-l">Kişi başı düşen</div>
+        <div class="spl-perhead-a">${fmtTL2(per)}</div>
+        <div class="spl-perhead-s">${splHeads()} kişiye bölündü${s.myShare ? ' (sen dahil)' : ''} · ${s.people.length} kişiye istek</div>
+      </div>
+
+      <div class="sp-card pad0">
+        <div class="sp-card-h">İstek gönderilecek kişiler</div>
+        <div class="spl-formppl">${s.people.map(p => `<div class="spl-pp"><div class="spl-pp-l">${splAvatar(p.name, 'sm')}<div class="spl-pp-mid"><b>${p.name}</b><span>${p.bank}</span></div></div><div class="spl-pp-a">${fmtTL2(per)}</div></div>`).join('')}</div>
+      </div>
+
+      <div class="sp-card pad0">
+        <div class="spl-formrow" data-action="spl-pick-acct"><div class="spl-formrow-l"><span class="spl-formrow-lbl">Alıcı hesap</span><span class="spl-formrow-val">${acct.name} · ${acct.iban}</span></div><span class="spl-formrow-chev">${I.chevDown}</span></div>
+        <div class="spl-formrow" data-action="spl-pick-purpose"><div class="spl-formrow-l"><span class="spl-formrow-lbl">İşlem amacı</span><span class="spl-formrow-val">${s.purpose}</span></div><span class="spl-formrow-chev">${I.chevDown}</span></div>
+        <div class="spl-formrow noarrow"><div class="spl-formrow-l"><span class="spl-formrow-lbl">Açıklama</span></div><input class="spl-inline-input" id="spl-form-note" placeholder="Opsiyonel" value="${s.note || ''}"></div>
+      </div>
+
+      <div class="spl-sec-lbl">ÖDEME ZAMANI</div>
+      <div class="sp-card pad0">
+        <div class="spl-formrow" data-action="spl-pick-valid"><div class="spl-formrow-l"><span class="spl-formrow-lbl">İstek geçerlilik süresi</span><span class="spl-formrow-val">${s.valid}</span></div><span class="spl-formrow-chev">${I.chevDown}</span></div>
+        <div class="spl-formrow" data-action="spl-pick-due"><div class="spl-formrow-l"><span class="spl-formrow-lbl">Son ödeme süresi</span><span class="spl-formrow-val ${s.due.includes('seç') ? 'dim' : ''}">${s.due}</span></div><span class="spl-formrow-chev">${I.chevDown}</span></div>
+      </div>
+
+      <div class="sp-card">
+        <div class="spl-switch">
+          <div class="spl-switch-mid"><b>Kısmi Ödeme</b><span>Tutarın belirlenen bir kısmının ödenmesine izin ver.</span></div>
+          <button class="spl-toggle ${s.partial ? 'on' : ''}" data-action="spl-toggle-partial"><i></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" data-action="spl-send">Devam et</button>
+    </div>
+  </div>`;
+}
+function splChoiceSheet(title, opts, action) {
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>${title}</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="spl-choicelist">${opts.map(o => `<div class="spl-choice ${o.on ? 'on' : ''}" data-action="${action}" data-val="${o.val}"><span>${o.label}</span>${o.on ? `<span class="spl-choice-ck">${I.check}</span>` : ''}</div>`).join('')}</div>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+
+/* -------------------- Başarı -------------------- */
+function splSend() {
+  splCaptureNote();
+  const s = state.split;
+  const per = splPer();
+  const title = s.mode === 'pick'
+    ? (s.picked.length === 1 ? s.picked[0].name : s.picked.length + ' harcama')
+    : (s.note || 'Ödeme isteği');
+  const req = {
+    id: 'out' + Date.now(),
+    title,
+    note: s.note || (s.mode === 'pick' ? 'Harcama bölüşümü' : 'Tutar isteği'),
+    total: splTotal(),
+    per,
+    date: 'Bugün',
+    people: s.people.map(p => ({ name: p.name, bank: p.bank, status: 'pending' })),
+  };
+  splitOut.unshift(req);
+  state.split.lastReq = req;
+  go('split-success');
+}
+function SplitSuccess() {
+  const r = state.split.lastReq;
+  if (!r) { state.split.tab = 'out'; state.screen = 'split'; return SplitHub(); }
+  const asked = r.per * r.people.length;
+  return `
+  <div class="screen anim-right spl-success">
+    <div class="spl-suc-check">${I.checkBig}</div>
+    <div class="spl-suc-t">İstek gönderildi</div>
+    <div class="spl-suc-s">${r.people.length} kişiye toplam ${fmtTL2(asked)} tutarında ödeme isteği iletildi.</div>
+    <div class="sp-card">
+      <div class="spl-suc-row"><span>Kişi başı</span><b>${fmtTL2(r.per)}</b></div>
+      <div class="spl-suc-row"><span>Kişi sayısı</span><b>${r.people.length}</b></div>
+      <div class="spl-suc-row"><span>Toplam istenen</span><b>${fmtTL2(asked)}</b></div>
+      <div class="spl-suc-ppl">${r.people.map(p => splAvatar(p.name, 'sm')).join('')}</div>
+    </div>
+    <div class="spl-suc-hint">${I.info} Yapı Kredi kullanmayan kişilere istek, ödeme bağlantısı olarak SMS/WhatsApp ile iletilir.</div>
+    <div class="spl-suc-btns">
+      <button class="spl-cta ghost" data-action="toast" data-msg="WhatsApp paylaşımı prototipte aktif değil">WhatsApp ile paylaş</button>
+      <button class="spl-cta" data-action="spl-go-out">Gönderilen isteklere git</button>
+    </div>
+  </div>`;
+}
+
+/* -------------------- Gelen isteği öde (FAST) -------------------- */
+function SplitPay() {
+  const r = splitIn.find(x => x.id === state.split.payId);
+  if (!r) { state.screen = 'split'; return SplitHub(); }
+  const acct = splAcct();
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">İsteği Öde</div><div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="spl-pay-hero">
+        ${splAvatar(r.from, 'big')}
+        <div class="spl-pay-from">${r.from}</div>
+        <div class="spl-pay-note">${r.note}</div>
+        <div class="spl-pay-amt">${fmtTL2(r.amount)}</div>
+        <span class="spl-fast">${I.transfer} FAST · anında</span>
+      </div>
+      <div class="sp-card pad0">
+        <div class="spl-formrow noarrow"><div class="spl-formrow-l"><span class="spl-formrow-lbl">Gönderen</span><span class="spl-formrow-val">${r.from}</span></div></div>
+        <div class="spl-formrow" data-action="spl-pick-acct"><div class="spl-formrow-l"><span class="spl-formrow-lbl">Ödenecek hesap</span><span class="spl-formrow-val">${acct.name} · ${acct.iban}</span></div><span class="spl-formrow-chev">${I.chevDown}</span></div>
+        <div class="spl-formrow noarrow"><div class="spl-formrow-l"><span class="spl-formrow-lbl">Tutar</span><span class="spl-formrow-val">${fmtTL2(r.amount)}</span></div></div>
+      </div>
+      <div class="sp-foot-note">${I.lock} FAST ile 7/24 anında transfer. Onaylayınca tutar hesabından çekilir.</div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" id="spl-pay-btn" data-action="spl-pay-confirm" data-id="${r.id}">FAST ile Öde · ${fmtTL2(r.amount)}</button>
+    </div>
+  </div>`;
+}
+function splPayConfirm(id) {
+  const btn = document.getElementById('spl-pay-btn');
+  if (btn) { btn.innerHTML = `<span class="spinner"></span> Ödeniyor…`; btn.style.pointerEvents = 'none'; }
+  const r = splitIn.find(x => x.id === id);
+  setTimeout(() => {
+    if (r) r.status = 'paid';
+    state.split.tab = 'in';
+    navBack();
+    toast('Ödeme başarılı · ' + (r ? fmtTL2(r.amount) : ''));
+  }, 1400);
+}
+
+/* -------------------- Split etkileşimleri -------------------- */
+function splToggleItem(id) {
+  const s = state.split;
+  const i = s.picked.findIndex(p => p.id === id);
+  if (i >= 0) s.picked.splice(i, 1);
+  else { const it = splPickItems().find(x => x.id === id); if (it) s.picked.push({ id: it.id, name: it.name, sub: it.sub, date: it.date, amount: it.amount }); }
+  render();
+}
+function splTogglePerson(id) {
+  const s = state.split;
+  const i = s.people.findIndex(p => p.id === id);
+  if (i >= 0) s.people.splice(i, 1);
+  else { const c = splContact(id); if (c) s.people.push({ id: c.id, name: c.name, bank: c.bank }); }
+  render();
+}
+function splPickGroup(id) {
+  const g = SPLIT_GROUPS.find(x => x.id === id); if (!g) return;
+  const s = state.split;
+  g.members.forEach(mid => { if (!s.people.some(p => p.id === mid)) { const c = splContact(mid); if (c) s.people.push({ id: c.id, name: c.name, bank: c.bank }); } });
+  s.peopleTab = 'people';
+  render();
+}
+function splAmountNext() {
+  const el = document.getElementById('spl-amt-input');
+  const noteEl = document.getElementById('spl-amt-note');
+  const v = el ? parseFloat(String(el.value).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')) : 0;
+  if (!v || v <= 0) { toast('Lütfen tutar girin'); return; }
+  state.split.amount = v;
+  if (noteEl) state.split.note = noteEl.value;
+  go('split-people');
+}
+
+/* ======================================================================
+   BİRLİKTE KAZAN — grup harcama hedefi → Worldpuan iadesi → kişi başı bölüşüm
+   ====================================================================== */
+function bkTL(n) { return n.toLocaleString('tr-TR') + ' TL'; }
+function bkById(id) { return bkGoals.find(g => g.id === id); }
+function bkView() { return bkById(state.bk.viewId) || bkGoals[0]; }
+function bkReward(g) { return Math.round(g.target * g.rate / 100); }   // ödül havuzu (TL)
+function bkTotalContrib(g) { return g.members.reduce((a, m) => a + m.contrib, 0); }
+function bkPct(g) { return Math.min(100, Math.round(g.spent / g.target * 100)); }
+function bkRemain(g) { return Math.max(0, g.target - g.spent); }
+function bkShareFor(g, m) {                     // kişi payı (TL)
+  const pool = bkReward(g);
+  if (g.share === 'contrib') { const t = bkTotalContrib(g) || 1; return Math.round(pool * m.contrib / t); }
+  return Math.round(pool / g.members.length);
+}
+function bkFirstName(n) { return n.split(' ')[0]; }
+function bkMkPerson(id) { const c = splContact(id); return c ? { id: c.id, name: c.name } : null; }
+
+/* -------------------- Hub (çoklu hedef) -------------------- */
+function BkHub() {
+  const featured = bkGoals.find(g => g.status === 'active') || bkGoals[0];
+  const others = bkGoals.filter(g => g.id !== featured.id);
+  const pct = bkPct(featured);
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Birlikte Kazan</div><div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="bk-hero2">
+        <div class="bk-hero2-txt">
+          <div class="bk-hero2-t">Birlikte harca, birlikte kazan</div>
+          <div class="bk-hero2-s">Grup olarak belirlediğiniz harcama hedeflerine ulaşın, Worldpuan ödülünü birlikte kazanın.</div>
+        </div>
+        <div class="bk-hero2-gift">🎁</div>
+      </div>
+
+      <button class="bk-feat" data-action="bk-view" data-id="${featured.id}">
+        <div class="bk-feat-top">
+          <span class="bk-feat-ic">${featured.icon}</span>
+          <div class="bk-feat-h"><div class="bk-feat-k">AKTİF HEDEF</div><div class="bk-feat-name">${featured.name}</div></div>
+          <span class="bk-feat-days">${I.calendar} ${featured.daysLeft} gün</span>
+        </div>
+        <div class="bk-stats3">
+          <div class="bk-stat"><div class="bk-stat-l">Hedef Tutar</div><div class="bk-stat-v">${bkTL(featured.target)}</div></div>
+          <div class="bk-stat"><div class="bk-stat-l">Mevcut Harcama</div><div class="bk-stat-v accent">${bkTL(featured.spent)}</div></div>
+          <div class="bk-stat"><div class="bk-stat-l">Kazanılacak Ödül</div><div class="bk-stat-v puan">${bkTL(bkReward(featured))}<span>Worldpuan</span></div></div>
+        </div>
+        <div class="bk-bar"><i style="width:${pct}%"></i></div>
+        <div class="bk-feat-row"><span class="bk-feat-pct">%${pct}</span><span>${bkTL(featured.target)}</span></div>
+        <div class="bk-feat-info">${I.info} ${featured.share === 'equal' ? 'Hedefe ulaşıldığında ödül tüm katılımcılar arasında eşit paylaştırılır.' : 'Ödül katkı oranına göre paylaştırılır.'}</div>
+        <div class="bk-feat-sec">Katılımcılar ve Katkıları</div>
+        <div class="bk-contrib-grid">${featured.members.map(m => `
+          <div class="bk-cc">${splAvatar(m.name, 'sm')}<div class="bk-cc-mid"><b>${bkFirstName(m.name)}${m.me ? ' (Sen)' : ''}</b><span>${bkTL(m.contrib)}</span></div></div>`).join('')}</div>
+      </button>
+
+      ${others.length ? `<div class="bk-sec-h"><span>Aktif Hedeflerin</span><button class="sp-link" data-action="toast" data-msg="Tümü prototipte aktif değil">Tümünü Gör ${I.chevR}</button></div>
+      <div class="bk-minis">${others.map(bkMiniCard).join('')}</div>` : ''}
+
+      <div class="bk-how">
+        <div class="bk-how-h">${I.spark} Nasıl çalışır?</div>
+        <div class="bk-how-step"><span>1</span> Bir harcama hedefi belirle ve detayları gir</div>
+        <div class="bk-how-step"><span>2</span> Grubunu oluştur, arkadaşlarını davet et</div>
+        <div class="bk-how-step"><span>3</span> Hedefe ulaşınca Worldpuan ödülünü paylaş</div>
+      </div>
+      <div class="sp-foot-note">${I.lock} Katkılar kart hareketlerinden otomatik toplanır; ödül World kampanyası kapsamındadır ve Ödüllerim'e aktarılır.</div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" data-action="bk-new">${I.plus} Yeni Hedef Oluştur</button>
+    </div>
+  </div>`;
+}
+function bkMiniCard(g) {
+  const pct = bkPct(g); const done = g.status === 'done';
+  return `<button class="bk-mini ${done ? 'done' : ''}" data-action="bk-view" data-id="${g.id}">
+    <div class="bk-mini-top"><span class="bk-mini-ic">${g.icon}</span><span class="bk-mini-badge ${done ? 'done' : ''}">${done ? I.check + ' Tamamlandı' : 'Aktif'}</span></div>
+    <div class="bk-mini-name">${g.name}</div>
+    <div class="bk-mini-figs"><span>${bkTL(g.target)}</span><span class="bk-mini-spent ${done ? 'done' : ''}">${bkTL(g.spent)}</span></div>
+    <div class="bk-bar sm ${done ? 'done' : ''}"><i style="width:${pct}%"></i></div>
+    <div class="bk-mini-foot">${done ? '<span class="bk-mini-shared">Ödül paylaştırıldı</span>' : `<span class="bk-mini-reward">Ödül: ${bkTL(bkReward(g))}</span>`}<span class="spl-create-chev">${I.chevR}</span></div>
+  </button>`;
+}
+
+/* -------------------- Yeni hedef oluştur (sade) -------------------- */
+function bkCaptureNewInputs() {
+  const nm = document.getElementById('bk-name-input');
+  if (nm) state.bk.name = nm.value;
+  const tg = document.getElementById('bk-target-input');
+  if (tg) { const v = parseFloat(String(tg.value).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')); if (v > 0) state.bk.target = Math.round(v); }
+}
+function BkNew() {
+  const d = state.bk;
+  const n = d.people.length;
+  const heads = n + 1;                         // katılımcılar + sen
+  const pool = Math.round(d.target * BK_RATE / 100);
+  const perEqual = heads ? Math.round(pool / heads) : 0;
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-title">Yeni Hedef Oluştur</div><div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="bk-new-sub">Grubunla bir harcama hedefi belirle, ödülü birlikte paylaş.</div>
+
+      <div class="sp-card">
+        <div class="bk-field"><label>Hedef adı</label><input id="bk-name-input" placeholder="Örn. Market Alışverişi" value="${d.name || ''}"></div>
+      </div>
+      <div class="sp-card">
+        <div class="bk-field"><label>Toplam hedef tutar</label><div class="bk-target-field"><input id="bk-target-input" inputmode="decimal" value="${d.target}"><span>TL</span></div></div>
+      </div>
+
+      <div class="spl-sec-lbl">KATILIMCILAR</div>
+      <div class="bk-chips">
+        <span class="bk-pchip you">${splAvatar('Selçuk İmre', 'sm')}<b>Sen</b></span>
+        ${d.people.map(p => `<span class="bk-pchip">${splAvatar(p.name, 'sm')}<b>${bkFirstName(p.name)}</b><button class="bk-pchip-x" data-action="bk-remove-person" data-id="${p.id}">✕</button></span>`).join('')}
+        <button class="bk-pchip add" data-action="bk-add-person"><span class="bk-pchip-plus">${I.plus}</span>Kişi Ekle</button>
+      </div>
+
+      <div class="spl-sec-lbl">ÖDÜL PAYLAŞIMI</div>
+      <div class="bk-seg">
+        <button class="bk-seg-b ${d.share === 'equal' ? 'on' : ''}" data-action="bk-share" data-val="equal"><b>Eşit paylaşım</b><span>Ödül herkese eşit</span></button>
+        <button class="bk-seg-b ${d.share === 'contrib' ? 'on' : ''}" data-action="bk-share" data-val="contrib"><b>Katkı oranına göre</b><span>Çok harcayan çok alır</span></button>
+      </div>
+
+      <div class="bk-preview">
+        <div class="bk-preview-gift">🎁</div>
+        <div class="bk-preview-mid">
+          <div class="bk-preview-l">Hedef tamamlanırsa ${d.share === 'equal' ? 'kişi başı' : 'ödül havuzu'}</div>
+          <div class="bk-preview-a">${d.share === 'equal' ? bkTL(perEqual) : bkTL(pool)} <span>Worldpuan</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" ${n ? '' : 'disabled'} data-action="bk-start">Hedefi Oluştur</button>
+    </div>
+  </div>`;
+}
+function bkAddPersonSheet() {
+  bkCaptureNewInputs();
+  const avail = SPLIT_CONTACTS.filter(c => !state.bk.people.some(p => p.id === c.id));
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-bar"><h3>Kişi ekle</h3><button class="sheet-x" data-action="close-sheet">${I.close}</button></div>
+    <div class="spl-choicelist">${avail.length ? avail.map(c => `<div class="spl-choice" data-action="bk-add-person-do" data-id="${c.id}"><span>${c.name}</span><span class="spl-create-chev">${I.plus}</span></div>`).join('') : '<div class="bk-hint-empty" style="margin:12px 4px">Eklenecek başka kişi yok.</div>'}</div>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+
+/* -------------------- İlerleme -------------------- */
+function BkTrack() {
+  const g = bkView();
+  const pct = bkPct(g);
+  const total = bkTotalContrib(g);
+  const reached = g.spent >= g.target;
+  const done = g.status === 'done';
+  const miles = [50, 80, 100];
+  return `
+  <div class="screen anim-right sp-screen">
+    <div class="nav-head sp-nav-accent">
+      <button class="icon-btn" data-action="nav-back">${I.back}</button>
+      <div class="nav-head-titles"><div class="nav-title">Birlikte Kazan</div><div class="nav-sub">${g.name}</div></div>
+      <div class="nav-spacer"></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="bk-stats3 card">
+        <div class="bk-stat"><div class="bk-stat-l">Hedef Tutar</div><div class="bk-stat-v">${bkTL(g.target)}</div></div>
+        <div class="bk-stat"><div class="bk-stat-l">Mevcut Harcama</div><div class="bk-stat-v accent">${bkTL(g.spent)}</div></div>
+        <div class="bk-stat"><div class="bk-stat-l">${done ? 'Kazanılan Ödül' : 'Kazanılacak Ödül'}</div><div class="bk-stat-v puan">${bkTL(bkReward(g))}<span>Worldpuan</span></div></div>
+      </div>
+
+      <div class="bk-hero">
+        <div class="bk-hero-pct">%${pct}</div>
+        <div class="bk-hero-sub">${reached ? 'Hedefe ulaşıldı! 🎉' : `Hedefe ${bkTL(bkRemain(g))} kaldı`}</div>
+        <div class="bk-bar big"><i style="width:${pct}%"></i>${miles.map(m => `<span class="bk-mile ${pct >= m ? 'on' : ''}" style="left:${m}%"></span>`).join('')}</div>
+        <div class="bk-hero-row"><span><b>${bkTL(g.spent)}</b> harcandı</span><span>Hedef ${bkTL(g.target)}</span></div>
+        ${done ? '' : `<div class="bk-hero-days">${I.calendar} ${g.daysLeft} gün kaldı · bu ay</div>`}
+      </div>
+
+      ${reached ? '' : `<div class="bk-nudge">${I.spark} Hedefe <b>${bkTL(bkRemain(g))}</b> kaldı — senin ${bkTL(Math.min(bkRemain(g), 1500))} harcaman grubu hedefe taşıyabilir.</div>`}
+
+      <div class="sp-card pad0">
+        <div class="sp-card-h">Katılımcılar ve Katkıları</div>
+        <div class="bk-contriblist">${g.members.slice().sort((a, b) => b.contrib - a.contrib).map(m => `
+          <div class="bk-contrib">
+            <div class="bk-contrib-l">${splAvatar(m.name, 'sm')}<div class="bk-contrib-mid"><b>${bkFirstName(m.name)}${m.me ? ' (Sen)' : ''}</b><span>${done ? 'Payı: ' + bkTL(bkShareFor(g, m)) + ' Worldpuan' : (g.share === 'equal' ? 'eşit pay' : 'katkı payı')}</span></div></div>
+            <div class="bk-contrib-r">
+              <div class="bk-contrib-a">${bkTL(m.contrib)}</div>
+              <div class="bk-contrib-bar"><i style="width:${total ? Math.round(m.contrib / total * 100) : 0}%"></i></div>
+            </div>
+          </div>`).join('')}</div>
+      </div>
+      <div class="sp-foot-note">${I.lock} Katkılar kart hareketlerinden otomatik güncellenir. Hedefe ulaşınca havuz ${g.share === 'equal' ? 'eşit' : 'katkıya göre'} paylaşılır.</div>
+    </div>
+    <div class="spl-footbar">
+      <button class="spl-cta" data-action="bk-claim">${done ? 'Ödül Dağılımını Gör' : (reached ? 'Ödülü Paylaştır' : 'Ödülü Paylaştır (demo)')}</button>
+    </div>
+  </div>`;
+}
+
+/* -------------------- Kutlama + dağıtım -------------------- */
+function bkAwardOnce(g) {
+  if (g._awarded || state.fayda.wallet.some(w => w.id === 'bk-' + g.id)) { g._awarded = true; g.claimed = true; return; }
+  g._awarded = true;
+  g.claimed = true;
+  const me = g.members.find(m => m.me) || g.members[0];
+  const share = bkShareFor(g, me);
+  state.fayda.wallet.unshift({ id: 'bk-' + g.id, label: 'Birlikte Kazan ödülü', meta: bkTL(share) + ' Worldpuan · ' + g.name, status: 'active' });
+}
+function BkWin() {
+  const g = bkView();
+  const rows = g.members.slice().sort((a, b) => bkShareFor(g, b) - bkShareFor(g, a));
+  return `
+  <div class="screen anim-right spl-success">
+    <div class="spl-suc-check">${I.checkBig}</div>
+    <div class="spl-suc-t">Hedefe ulaşıldı!</div>
+    <div class="spl-suc-s">${g.name} grubu ${bkTL(g.target)} hedefini tamamladı. ${bkTL(bkReward(g))} Worldpuan ödülü ${g.share === 'equal' ? 'eşit olarak' : 'katkı oranına göre'} paylaşıldı.</div>
+    <div class="sp-card">
+      <div class="bk-win-pool">🎁<div><div class="bk-win-pool-a">${bkTL(bkReward(g))} Worldpuan</div><div class="bk-win-pool-s">Toplam ödül havuzu</div></div></div>
+      <div class="bk-win-list">${rows.map(m => `
+        <div class="bk-win-row ${m.me ? 'me' : ''}">
+          <div class="bk-contrib-l">${splAvatar(m.name, 'sm')}<div class="bk-contrib-mid"><b>${bkFirstName(m.name)}${m.me ? ' (Sen)' : ''}</b><span>${g.share === 'contrib' ? bkTL(m.contrib) + ' katkı' : 'eşit pay'}</span></div></div>
+          <div class="bk-win-share">+${bkTL(bkShareFor(g, m))}</div>
+        </div>`).join('')}</div>
+    </div>
+    <div class="spl-suc-hint">${I.info} Payına düşen Worldpuan Ödüllerim'e aktarıldı; bir sonraki harcamanda kullanabilirsin.</div>
+    <div class="spl-suc-btns">
+      <button class="spl-cta ghost" data-action="bk-done">Bitti</button>
+      <button class="spl-cta" data-action="bk-to-wallet">Ödüllerime git</button>
+    </div>
+  </div>`;
+}
+
+/* -------------------- Etkileşimler -------------------- */
+function bkOpenNew() {
+  const d = state.bk;
+  d.name = ''; d.target = 30000; d.share = 'equal';
+  d.people = ['k8', 'k3', 'k9'].map(bkMkPerson).filter(Boolean);   // Ayşe, Mert, Ece
+  go('reward-goal-new');
+}
+function bkOpenGoal(id) { state.bk.viewId = id; go('reward-goal-track'); }
+function bkAddPerson(id) {
+  const c = splContact(id); if (!c) return;
+  if (!state.bk.people.some(p => p.id === id)) state.bk.people.push({ id: c.id, name: c.name });
+  closeSheet();
+  render();
+}
+function bkRemovePerson(id) {
+  bkCaptureNewInputs();
+  state.bk.people = state.bk.people.filter(p => p.id !== id);
+  render();
+}
+function bkStart() {
+  bkCaptureNewInputs();
+  const d = state.bk;
+  const members = [{ id: 'me', name: 'Selçuk İmre', contrib: 0, me: true }, ...d.people.map(p => ({ id: p.id, name: p.name, contrib: 0 }))];
+  const spent = Math.round(d.target * 0.55);
+  const n = members.length;
+  const base = Math.floor(spent / n);
+  members.forEach((m, i) => { m.contrib = base + (i === 0 ? spent - base * n : 0); });
+  const g = { id: 'g-' + Date.now(), name: d.name || 'Grup Hedefi', icon: '🎯', target: d.target, spent, daysLeft: 15, rate: BK_RATE, share: d.share, status: 'active', claimed: false, members };
+  bkGoals.unshift(g);
+  state.bk.viewId = g.id;
+  go('reward-goal-track');
+}
+function bkClaim() {
+  const g = bkView();
+  g.spent = g.target; g.status = 'done';
+  bkAwardOnce(g);
+  go('reward-goal-win');
+}
+
 function render() {
   let html = '';
   switch (state.screen) {
@@ -4158,6 +4993,17 @@ function render() {
     case 'limits': html = LimitsScreen(); break;
     case 'kid': html = KidScreen(); break;
     case 'card-detail': html = CardDetailScreen(); break;
+    case 'split': html = SplitHub(); break;
+    case 'split-pick': html = SplitPick(); break;
+    case 'split-amount': html = SplitAmount(); break;
+    case 'split-people': html = SplitPeople(); break;
+    case 'split-form': html = SplitForm(); break;
+    case 'split-success': html = SplitSuccess(); break;
+    case 'split-pay': html = SplitPay(); break;
+    case 'reward-goal': html = BkHub(); break;
+    case 'reward-goal-new': html = BkNew(); break;
+    case 'reward-goal-track': html = BkTrack(); break;
+    case 'reward-goal-win': html = BkWin(); break;
     default: html = PlaceholderScreen(state.placeholderTitle || 'Yakında'); break;
   }
   app.innerHTML = html;
@@ -4171,6 +5017,7 @@ function render() {
   if (state.screen === 'metal-apply') setupMetalApply();
   if (state.screen === 'metal-jar') setupMetalJar();
   if (state.screen === 'card-detail') setupDcvv();
+  if (state.screen === 'split-amount') setTimeout(() => { const i = document.getElementById('spl-amt-input'); i && i.focus(); }, 280);
 }
 
 /* İleri navigasyon — mevcut ekranı geri yığınına ekler (gerçek uygulama gibi) */
@@ -5368,10 +6215,53 @@ document.addEventListener('click', (e) => {
       const id = t.dataset.id;
       if (id === 'home') return goHome();
       if (id === 'world') { closeDrawer(); return go('fayda'); }   // Benim Dünyam → Fayda Yolculukları
+      if (id === 'transfer') { closeDrawer(); return gotoSection('split'); }   // Para Transferleri → Harcama Bölüştür / Ödeme İste
       // Diğer menüler placeholder
       state.placeholderTitle = t.dataset.label;
       return go('placeholder');
     }
+
+    // Harcama Bölüştür / Ödeme İste
+    case 'spl-tab': state.split.tab = t.dataset.tab; return render();
+    case 'spl-create': return splCreateSheet();
+    case 'spl-start': return splStart(t.dataset.mode);
+    case 'spl-picktab': state.split.pickTab = t.dataset.tab; return render();
+    case 'spl-pick-item': return splToggleItem(t.dataset.id);
+    case 'spl-pick-next': return go('split-people');
+    case 'spl-amount-next': return splAmountNext();
+    case 'spl-peopletab': state.split.peopleTab = t.dataset.tab; return render();
+    case 'spl-toggle-person': return splTogglePerson(t.dataset.id);
+    case 'spl-pick-group': return splPickGroup(t.dataset.id);
+    case 'spl-newcontact': return splMethodSheet();
+    case 'spl-method': return splMethodInput(t.dataset.m);
+    case 'spl-add-newcontact': return splAddNewContact(t.dataset.m);
+    case 'spl-people-next': return go('split-form');
+    case 'spl-toggle-myshare': splCaptureNote(); state.split.myShare = !state.split.myShare; return render();
+    case 'spl-toggle-partial': splCaptureNote(); state.split.partial = !state.split.partial; return render();
+    case 'spl-pick-acct': splCaptureNote(); return splChoiceSheet('Alıcı hesap', SPLIT_ACCTS.map(a => ({ val: a.id, label: a.name + ' · ' + a.iban, on: a.id === state.split.account })), 'spl-set-acct');
+    case 'spl-pick-purpose': splCaptureNote(); return splChoiceSheet('İşlem amacı', SPLIT_PURPOSES.map(p => ({ val: p, label: p, on: p === state.split.purpose })), 'spl-set-purpose');
+    case 'spl-pick-valid': splCaptureNote(); return splChoiceSheet('İstek geçerlilik süresi seç', SPLIT_VALIDS.map(v => ({ val: v, label: v, on: v === state.split.valid })), 'spl-set-valid');
+    case 'spl-pick-due': splCaptureNote(); return splChoiceSheet('Son ödeme süresi', SPLIT_DUES.map(v => ({ val: v, label: v, on: v === state.split.due })), 'spl-set-due');
+    case 'spl-set-acct': state.split.account = t.dataset.val; closeSheet(); return render();
+    case 'spl-set-purpose': state.split.purpose = t.dataset.val; closeSheet(); return render();
+    case 'spl-set-valid': state.split.valid = t.dataset.val; closeSheet(); return render();
+    case 'spl-set-due': state.split.due = t.dataset.val; closeSheet(); return render();
+    case 'spl-send': return splSend();
+    case 'spl-go-out': state.split.tab = 'out'; return gotoSection('split');
+    case 'spl-pay-open': state.split.payId = t.dataset.id; return go('split-pay');
+    case 'spl-pay-confirm': return splPayConfirm(t.dataset.id);
+
+    // Birlikte Kazan
+    case 'bk-new': return bkOpenNew();
+    case 'bk-view': return bkOpenGoal(t.dataset.id);
+    case 'bk-add-person': return bkAddPersonSheet();
+    case 'bk-add-person-do': return bkAddPerson(t.dataset.id);
+    case 'bk-remove-person': return bkRemovePerson(t.dataset.id);
+    case 'bk-share': bkCaptureNewInputs(); state.bk.share = t.dataset.val; return render();
+    case 'bk-start': return bkStart();
+    case 'bk-claim': return bkClaim();
+    case 'bk-to-wallet': return gotoSection('fayda-wallet');
+    case 'bk-done': return gotoSection('reward-goal');
 
     case 'set-theme': return setTheme(t.dataset.theme);
     case 'toggle-switch': return t.classList.toggle('on');
@@ -5393,7 +6283,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid'];
+const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid', 'split', 'split-pick', 'split-amount', 'split-people', 'split-form', 'split-pay', 'reward-goal', 'reward-goal-new', 'reward-goal-track', 'reward-goal-win'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -5461,6 +6351,29 @@ function routeTo(hash) {
     state.screen = h;
     return true;
   }
+  // Harcama Bölüştür derin-linkleri — seçim gerektiren ekranlar boş state ile açılırsa demo seçimi kur
+  if (h === 'split-pick') { state.split.mode = 'pick'; }
+  if (h === 'split-amount') { state.split.mode = 'amount'; }
+  if (h === 'split-people' && !state.split.people.length && !state.split.picked.length && !state.split.amount) {
+    state.split.mode = 'pick';
+    state.split.picked = [{ id: 'sub:youtube', name: 'YouTube Premium', sub: 'Bireysel', date: '01.07.2026', amount: 159.99 }];
+  }
+  if ((h === 'split-form') && !state.split.people.length) {
+    state.split.mode = state.split.picked.length ? 'pick' : (state.split.amount ? 'amount' : 'pick');
+    if (!state.split.picked.length && !state.split.amount) state.split.picked = [{ id: 'sub:youtube', name: 'YouTube Premium', sub: 'Bireysel', date: '01.07.2026', amount: 159.99 }];
+    state.split.people = [
+      { id: 'k2', name: 'Burak Ünal', bank: 'Papara' },
+      { id: 'k4', name: 'Zeynep Kaya', bank: 'İş Bankası' },
+    ];
+  }
+  if (h === 'split-pay' && !state.split.payId) { state.split.payId = splitIn[0] && splitIn[0].id; }
+  // Birlikte Kazan derin-linkleri
+  if (h === 'reward-goal-new' && !state.bk.people.length) {
+    state.bk.name = ''; state.bk.target = 30000; state.bk.share = 'equal';
+    state.bk.people = ['k8', 'k3', 'k9'].map(bkMkPerson).filter(Boolean);
+  }
+  if (h === 'reward-goal-track' && !bkById(state.bk.viewId)) state.bk.viewId = bkGoals[0].id;
+  if (h === 'reward-goal-win') { const g = bkView(); g.spent = g.target; g.status = 'done'; bkAwardOnce(g); }
   state.chatSeed = false;
   state.screen = h;
   return true;

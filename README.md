@@ -50,6 +50,16 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Ödül Yolu — yolculuk (level haritası; Limit demo 2/5) | `#fayda-journey` |
 | Ödül Yolu — tam ekran ödül seçimi (3 ödülden biri) | `#fayda-reward` |
 | Ödüllerim — kazanılmış/aktif ödüller | `#fayda-wallet` |
+| Harcama Bölüştür — hub (Gelen/Gönderilen istekler, istek oluştur) | `#split` |
+| Harcama Bölüştür — harcama seç (kart hareketi/fatura/abonelik, çoklu seçim) | `#split-pick` |
+| Harcama Bölüştür — tutar girerek istek | `#split-amount` |
+| Harcama Bölüştür — kişi seç (banka rozetli · IBAN/telefon/karekod/TCKN) | `#split-people` |
+| Harcama Bölüştür — form (payım var, kişi başı, süreler, kısmi ödeme) | `#split-form` |
+| Harcama Bölüştür — gelen isteği FAST ile öde (ödeyen taraf) | `#split-pay` |
+| Birlikte Kazan — hub (öne çıkan aktif hedef + çoklu mini hedef + nasıl çalışır) | `#reward-goal` |
+| Birlikte Kazan — yeni hedef (hedef adı, tutar, katılımcılar, eşit/katkı paylaşımı) | `#reward-goal-new` |
+| Birlikte Kazan — ilerleme (3 sütun stat, kolektif çubuk, üye katkıları, TL ödül) | `#reward-goal-track` |
+| Birlikte Kazan — kutlama (hedefe ulaşıldı, kişi başı dağıtım, Ödüllerim) | `#reward-goal-win` |
 | Arama | `#search` |
 | Ayarlar | `#settings` |
 | Bölümler hub'ı | `#sections` |
