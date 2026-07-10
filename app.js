@@ -13,7 +13,8 @@ const I = {
   refresh: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg>',
   user: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6v1H4z"/></svg>',
   calendar: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="12.5" height="12.5" rx="2"/><path d="M2.5 8.5h12.5M6 3v3M11.5 3v3"/><circle cx="6" cy="12" r=".7" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r=".7" fill="currentColor" stroke="none"/><path d="M13.5 11h7v10l-1.4-1-1.4 1-1.4-1-1.4 1V11z"/><path d="M15.3 14h3.4M15.3 16.5h3.4" stroke-width="1"/></svg>',
-  yklogo: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#0098cb"/><path d="M7 7l3.2 5v5M13.5 7l-3 4.6M14 16.5c1.6 0 2.8-1.2 2.8-2.8S15.6 11 14 11" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  // Yapı Kredi amblemi — ram-horns (koç boynuzu / lale). currentColor ile temaya uyar.
+  yklogo: '<svg width="28" height="15" viewBox="0 0 120 64" fill="none" stroke="currentColor" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M60 17 C 71 5, 92 7, 99 24 C 106 40, 95 53, 83 47 C 73 43, 74 32, 83 32 C 90 32, 90 41, 83 41"/><path d="M60 17 C 49 5, 28 7, 21 24 C 14 40, 25 53, 37 47 C 47 43, 46 32, 37 32 C 30 32, 30 41, 37 41"/></svg>',
   bell: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
   back: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   chevDown: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
@@ -50,7 +51,9 @@ const I = {
   pie: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 12 L12 3.5 A8.5 8.5 0 0 1 19.4 8.2 Z" fill="currentColor" stroke="none"/></svg>',
   // Harcamalarım — yükselen çubuk grafiği + taban çizgisi (indirilen app-icon'un tema-uyarlı hali)
   bars: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="11" width="3.2" height="7" rx="1.6"/><rect x="10.4" y="7.3" width="3.2" height="10.7" rx="1.6"/><rect x="16.8" y="3.8" width="3.2" height="14.2" rx="1.6"/><rect x="3.4" y="20" width="17.2" height="2.2" rx="1.1"/></svg>',
-  qr: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="8.5" height="8.5" rx="1.2"/><rect x="5" y="5" width="3.5" height="3.5" rx=".5" fill="currentColor" stroke="none"/><rect x="8.5" y="11.5" width="13" height="9" rx="1.5"/><circle cx="15" cy="16" r="2.1"/><path d="M11 11.5v9M19 11.5v9" stroke-width="1"/></svg>',
+  qr: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd"><path d="M3 3h7v7H3V3zm2 2v3h3V5H5z"/><path d="M14 3h7v7h-7V3zm2 2v3h3V5h-3z"/><path d="M3 14h7v7H3v-7zm2 2v3h3v-3H5z"/><path d="M12 12h2v2h-2zM16 12h2v2h-2zM20 12h1v2h-1zM14 14h2v2h-2zM18 14h2v2h-2zM12 16h2v2h-2zM16 16h2v2h-2zM20 16.5h1V18h-1zM14 18h2v2h-2zM18 18h2v2h-2zM12 20h2v1h-2zM20 20h1v1h-1z"/></svg>',
+  // Karekod tarama — scan çerçevesi (köşe braketleri) + içte QR modülleri (glow için)
+  qrScan: '<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><g stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17v-6a4 4 0 0 1 4-4h6"/><path d="M31 7h6a4 4 0 0 1 4 4v6"/><path d="M41 31v6a4 4 0 0 1-4 4h-6"/><path d="M17 41h-6a4 4 0 0 1-4-4v-6"/><rect x="15.4" y="15.4" width="7.4" height="7.4" rx="1.4"/><rect x="25.2" y="15.4" width="7.4" height="7.4" rx="1.4"/><rect x="15.4" y="25.2" width="7.4" height="7.4" rx="1.4"/></g><g fill="currentColor"><rect x="25.3" y="25.3" width="2.8" height="2.8" rx=".6"/><rect x="29.9" y="25.3" width="2.8" height="2.8" rx=".6"/><rect x="27.6" y="27.6" width="2.8" height="2.8" rx=".6"/><rect x="25.3" y="29.9" width="2.8" height="2.8" rx=".6"/><rect x="29.9" y="29.9" width="2.8" height="2.8" rx=".6"/></g></svg>',
   guide: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a2.5 2.5 0 1 0-2.5-2.9"/></svg>',
   ext: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>',
   sun: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>',
@@ -211,7 +214,7 @@ const CHIP_FLOWS = {
 /* Demo bölümleri — her biri kendi hash'iyle doğrudan açılır (bütün akışı tekrarlamadan) */
 const SECTIONS = [
   { hash: 'home',      icon: 'home',     t: 'Ana Ekran',           d: 'Kartlar, hızlı işlemler, asistan girişi' },
-  { hash: 'widgets',   icon: 'grid',     t: 'Widget Galerisi — tüm çeşitler', d: 'İşCep + N26 tarzı YK widget\'ları tek ekranda; kaydır, beğendiğini seç (karekodlu olanlar ödemeyi açar)' },
+  { hash: 'widgets',   icon: 'grid',     t: 'Widget Galerisi — tüm çeşitler', d: 'Yapı Kredi widget\'ları tek ekranda; kaydır, beğendiğini seç (karekodlu olanlar ödemeyi açar)' },
   { hash: 'springboard', icon: 'qr',     t: 'Karekod ile Öde — Ana ekran widget\'ı', d: 'Telefon ana ekranındaki YK widget\'ından tek dokunuşla TR Karekod okut, saniyeler içinde öde' },
   { hash: 'assistant', icon: 'spark',    t: 'Koçtaş Senaryosu — Tamamlandı', d: 'Robot süpürge sohbeti + öneriler (dolu görünüm)' },
   { hash: 'setur',     icon: 'sun',      t: 'Setur Senaryosu — Tamamlandı',  d: 'Otonom agent tatili buldu — sonucuyla dolu sohbet' },
@@ -5264,8 +5267,8 @@ function qrHome() { state.nav = []; state.qr.order = null; closeDrawer(); state.
    ========================================================================= */
 const WG_APPICON = 'assets/yk-app-icon.jpg';
 function wgLogo() { return `<img src="${WG_APPICON}" class="wgt-ico" alt="">`; }
-// N26 tarzı köşe YK amblemi (küçük)
-function wgMark() { return `<span class="wgt-mark">${I.yklogo}</span>`; }
+// Köşe YK amblemi — gerçek Yapı Kredi app ikonu (küçük rozet)
+function wgMark() { return `<img src="${WG_APPICON}" class="wgt-mark-ico" alt="Yapı Kredi">`; }
 function wgDot(n, a) { return `<div class="wg-dots">${Array.from({length:n}).map((_,i)=>`<span class="${i===a?'on':''}"></span>`).join('')}</div>`; }
 function wgCap(t, s) { return `<div class="wg-cap"><b>${t}</b><span>${s}</span></div>`; }
 
@@ -5274,28 +5277,20 @@ function WidgetGalleryScreen() {
   <div class="screen wg-screen anim-fade">
     <div class="wg-wall">
       <div class="wg-scroll">
-        <div class="wg-header">
-          <div class="wg-h-title">Widget Galerisi</div>
-          <div class="wg-h-sub">Hepsi Yapı Kredi temasında · beğendiğini seç. Karekodlu widget'lar dokununca ödemeyi açar.</div>
-        </div>
-
-        <!-- ============ İŞCEP TARZI ============ -->
-        <div class="wg-sec-label">İşCep tarzı · koyu kart + kısayol tile'ları</div>
-
         <!-- Karekod (orta) -->
         <div class="wg-item">
           <div class="wgt iscep wgt-md">
-            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Karekod</span><span class="wgt-pencil">${I.gear}</span></div>
+            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Karekod</span><span class="wgt-dots"><i></i><i></i><i></i></span></div>
             <button class="wgt-tile accent" data-action="qr-start"><span class="wgt-tile-ico">${I.qr}</span>Karekod ile Öde</button>
             <button class="wgt-tile" data-action="launch-app"><span class="wgt-tile-ico">${I.transfer}</span>Karekod ile Para Gönder / İste</button>
           </div>
-          ${wgCap('Karekod', 'Orta · İşCep tarzı')}
+          ${wgCap('Karekod', 'Orta boy')}
         </div>
 
         <!-- Kısayollarım (büyük, 4 ikon) -->
         <div class="wg-item">
           <div class="wgt iscep wgt-lg">
-            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Kısayollarım</span><span class="wgt-pencil">${I.gear}</span></div>
+            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Kısayollarım</span><span class="wgt-dots"><i></i><i></i><i></i></span></div>
             <div class="wgt-icontiles">
               <button class="wgt-icontile" data-action="qr-start"><span class="wgt-it-ico accent">${I.qr}</span><span>Karekod ile Öde</span></button>
               <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.transfer}</span><span>Para Gönder</span></button>
@@ -5303,50 +5298,39 @@ function WidgetGalleryScreen() {
               <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.pie}</span><span>Hesabım</span></button>
             </div>
           </div>
-          ${wgCap('Kısayollarım', 'Büyük · İşCep tarzı')}
+          ${wgCap('Kısayollarım', 'Büyük')}
         </div>
 
-        <!-- Kısayollar (orta, 2 ikon tile) -->
+        <!-- Karekod ile Öde aksiyon kartı (orta) -->
         <div class="wg-item">
-          <div class="wgt iscep wgt-md">
-            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Kısayollar</span><span class="wgt-pencil">${I.gear}</span></div>
-            <div class="wgt-icontiles two">
-              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.bank}</span><span>Para Çek</span></button>
-              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.bars}</span><span>Mobil Borsa</span></button>
+          <div class="wgt n26 wgt-md wgt-qrpay row" data-action="qr-start">
+            <span class="wgt-dots wgt-dots-tr"><i></i><i></i><i></i></span>
+            <div class="wgt-qrpay-scan"><span class="wgt-scan-ico lg">${I.qrScan}</span></div>
+            <div class="wgt-qrpay-txt">
+              <span class="wgt-brand"><img src="${WG_APPICON}" class="wgt-brand-ico" alt="">Yapı Kredi</span>
+              <div class="wgt-qrpay-t">Karekod ile Öde</div>
             </div>
           </div>
-          ${wgCap('Kısayollar', 'Orta · İşCep tarzı')}
-        </div>
-
-        <!-- ============ N26 TARZI ============ -->
-        <div class="wg-sec-label">N26 tarzı · renkli, görsel, tek amaçlı</div>
-
-        <!-- Karekod ile Öde aksiyon kartı (orta, gradient) -->
-        <div class="wg-item">
-          <div class="wgt n26 wgt-md wgt-action" data-action="qr-start">
-            <div class="wgt-action-top"><span class="wgt-action-t">Karekod ile Öde</span>${wgMark()}</div>
-            <div class="wgt-action-sub">Kasada saniyeler içinde</div>
-            <div class="wgt-action-arrow">${I.qr}<span class="wgt-arrow-circle">${I.chevR}</span></div>
-          </div>
-          ${wgCap('Karekod ile Öde', 'Orta · N26 tarzı')}
+          ${wgCap('Karekod ile Öde', 'Orta boy')}
         </div>
 
         <!-- Bakiye widget'ı (orta) -->
         <div class="wg-item">
           <div class="wgt n26 wgt-md wgt-bal" data-action="launch-app">
+            <span class="wgt-dots wgt-dots-tr"><i></i><i></i><i></i></span>
             <div class="wgt-bal-left">
               <div class="wgt-bal-lbl">Vadesiz TL Hesabım</div>
               <div class="wgt-bal-amt">${fmtTL2(USER.balance)}</div>
-              <div class="wgt-bal-card">${imgOrFallback(WORLDCARD_IMG, '💳', 'wgt-bal-cardimg')}${wgMark()}</div>
+              <div class="wgt-bal-card"><span class="wgt-bal-iban">TR•• •••• 3333</span>${wgMark()}</div>
             </div>
             <div class="wgt-bal-right">
               <div class="wgt-bal-rlbl">Son hareketler</div>
               <div class="wgt-tx"><span class="wgt-tx-ico">🛒</span><div class="wgt-tx-m"><b>Migros</b><small>Market</small></div><span class="wgt-tx-a neg">-${fmtTL2(240)}</span></div>
-              <div class="wgt-tx"><span class="wgt-tx-ico pos">${I.arrowUp || '↑'}</span><div class="wgt-tx-m"><b>Maaş</b><small>Gelen</small></div><span class="wgt-tx-a pos">+32.000,00</span></div>
+              <div class="wgt-tx"><span class="wgt-tx-ico pos">${I.arrowUp || '↑'}</span><div class="wgt-tx-m"><b>Maaş</b><small>Gelen</small></div><span class="wgt-tx-a pos">+${fmtTL2(MAAS)}</span></div>
               <div class="wgt-tx"><span class="wgt-tx-ico">SK</span><div class="wgt-tx-m"><b>Selin K.</b><small>FAST</small></div><span class="wgt-tx-a neg">-${fmtTL2(150)}</span></div>
             </div>
           </div>
-          ${wgCap('Bakiye', 'Orta · N26 tarzı')}
+          ${wgCap('Bakiye', 'Orta boy')}
         </div>
 
         <!-- Küçük ikili sıra: Worldpuan + Karekod -->
@@ -5355,36 +5339,22 @@ function WidgetGalleryScreen() {
             <div class="wgt n26 wgt-sm wgt-puan" data-action="launch-app">
               <div class="wgt-sm-top"><span>Worldpuan</span>${wgMark()}</div>
               <div class="wgt-sm-mid">
-                <div class="wgt-sm-lbl">Bu ay kazanılan</div>
-                <div class="wgt-sm-amt">+142</div>
+                <div class="wgt-sm-lbl">Puan bakiyem</div>
+                <div class="wgt-sm-amt">${USER.worldpuan.toLocaleString('tr-TR')}</div>
               </div>
             </div>
             ${wgCap('Worldpuan', 'Küçük')}
           </div>
           <div class="wg-item">
             <div class="wgt n26 wgt-sm wgt-qrsmall" data-action="qr-start">
-              <div class="wgt-sm-top"><span>Karekod</span>${wgMark()}</div>
-              <div class="wgt-qrsmall-ico">${I.qr}</div>
-              <div class="wgt-qrsmall-lbl">Öde</div>
+              <span class="wgt-sm-mark">${wgMark()}</span>
+              <div class="wgt-scan-ico sm">${I.qrScan}</div>
+              <div class="wgt-qrsmall-lbl">Karekod<br>ile Öde</div>
             </div>
             ${wgCap('Karekod', 'Küçük')}
           </div>
         </div>
 
-        <!-- Aylık bütçe (orta, donut) -->
-        <div class="wg-item">
-          <div class="wgt n26 wgt-md wgt-budget" data-action="launch-app">
-            <div class="wgt-budget-left">
-              <div class="wgt-budget-amt">${fmtTL2(4253)} <small>kaldı</small></div>
-              <div class="wgt-budget-sub">Aylık bütçe · 12 gün kaldı</div>
-              ${wgMark()}
-            </div>
-            <div class="wgt-donut" style="background:conic-gradient(var(--primary) 0% 62%, rgba(255,255,255,.14) 62% 100%)"><span>%62</span></div>
-          </div>
-          ${wgCap('Aylık Bütçe', 'Orta · N26 tarzı')}
-        </div>
-
-        <div class="wg-footnote">Beğendiğin widget'ları söyle, ana ekrana onları koyalım.</div>
       </div>
     </div>
   </div>`;
