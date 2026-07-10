@@ -405,6 +405,7 @@ const state = {
     gram: 0.5,            // mandate sabit gram (metal)
     rate: 10,             // statement ekstre yüzdesi
     cap: 500,             // statement aylık tavan (null = sınırsız)
+    salaryPct: 10,        // salary maaş yüzdesi
     agreed: false,        // talimat formu onayı
     plans: [],            // aktifleştirilmiş planlar (svSeedPlan çıktısı)
     view: null,           // yönet/hareketler ekranında görüntülenen plan id'si
@@ -5397,14 +5398,28 @@ function WidgetGalleryScreen() {
 
 // Başvuru tipleri (nasıl fonlanır) — mevcut motorların logolarını paylaşır
 const SV_FUND = {
-  roundup:   { id:'roundup',   name:'Harcamadan Yuvarla', short:'Harcama', logo: ruLogo, tag:'Her harcamada',
+  roundup:   { id:'roundup',   name:'Harcama Yuvarla',              short:'Harcama', logo: ruLogo,  tag:'Her harcamada',
     desc:'Her harcamayı 100 TL\'ye yuvarla' },
-  statement: { id:'statement', name:'Ekstreden Yüzde',    short:'Ekstre',  logo: suLogo, tag:'Her dönem',
+  statement: { id:'statement', name:'Ekstre Yuvarla',              short:'Ekstre',  logo: suLogo,  tag:'Her dönem',
     desc:'Ekstrenin belirlediğin %\'si ayrılsın' },
-  mandate:   { id:'mandate',   name:'Talimatlı Sabit',    short:'Talimat', logo: mbLogo, tag:'Her ay',
+  salary:    { id:'salary',    name:'Maaşımdan Transfer Et',       short:'Maaş',    logo: salLogo, tag:'Her maaş günü',
+    desc:'Maaşından her ay otomatik ayrılsın' },
+  mandate:   { id:'mandate',   name:'Talimatıma Göre Transfer Et', short:'Talimat', logo: mbLogo,  tag:'Her ay',
     desc:'Her ay sabit tutar ayrılsın' },
 };
-const SV_FUND_ORDER = ['roundup', 'statement', 'mandate'];
+const SV_FUND_ORDER = ['roundup', 'statement', 'salary', 'mandate'];
+const MAAS = 45000;                       // mock net aylık maaş (maaştan transfer hesaplaması)
+const SAL_PCT_PRESETS = [5, 10, 15, 20];  // maaş oranı çipleri
+// Maaştan transfer yöntemi logosu — banknot + ₺ (özellik logosu ailesiyle uyumlu)
+function salLogo(size) {
+  return `<svg class="ru-logo-svg" width="${size}" height="${size}" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <rect x="7" y="14" width="34" height="20" rx="4" fill="currentColor" opacity="0.16"/>
+    <rect x="7" y="14" width="34" height="20" rx="4" stroke="currentColor" stroke-width="2.6"/>
+    <circle cx="24" cy="24" r="6.3" fill="currentColor"/>
+    <text x="24" y="27.9" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff" font-family="Ubuntu, system-ui, sans-serif">₺</text>
+    <path d="M12 20h2.6M33.4 28H36" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>`;
+}
 
 // Birikim tipleri (ne biriktirilir) — accent: CSS renk sınıfı
 const SV_DEST = {
@@ -5454,6 +5469,7 @@ function svFmtMetal(g, code) { return g.toLocaleString('tr-TR', { maximumFractio
 function svMonthlyTL(cfg) {
   if (cfg.fund === 'roundup')   return 250;
   if (cfg.fund === 'statement') return Math.round(suAmount(SU_STATEMENT, cfg.rate, cfg.cap));
+  if (cfg.fund === 'salary')    return Math.round(MAAS * cfg.salaryPct / 100);
   if (cfg.dest === 'metal' && cfg.unit === 'gram') return Math.round(cfg.gram * MB_METALS[cfg.metalKind].price);
   return cfg.tryAmt;
 }
@@ -5513,7 +5529,7 @@ function BirikimHub() {
       </div>
 
       <div class="ru-sec sv-sec-tight">
-        <div class="ru-sec-h"><span class="ru-sec-n">1</span> Birikim Türü</div>
+        <div class="ru-sec-h"><span class="ru-sec-n">1</span> Birikimlerin nasıl değerlensin?</div>
         <div class="sv-fund-list">
           ${SV_DEST_ORDER.map(k => { const x = SV_DEST[k], on = s.dest === k;
             return `<button class="sv-fund ${on ? 'on' : ''}" data-action="sv-set-dest" data-val="${k}">
@@ -5546,15 +5562,17 @@ function BirikimHub() {
 /* =================== BAŞVURU — uyarlanabilir =================== */
 function svApplyTitle() {
   const dl = SV_DEST[state.sv.dest].name.toLowerCase();
-  return { roundup: `Harcadıkça ${dl} biriktir.`, statement: `Ekstrenle ${dl} biriktir.`, mandate: `Her ay düzenli ${dl} biriktir.` }[state.sv.fund];
+  return { roundup: `Harcadıkça ${dl} biriktir.`, statement: `Ekstrenle ${dl} biriktir.`, salary: `Maaşından ${dl} biriktir.`, mandate: `Her ay düzenli ${dl} biriktir.` }[state.sv.fund];
 }
 function svApplySub() {
   const s = state.sv;
   const destTxt = { account: 'birikim hesabında toplanır', metal: 'seçtiğin değerli madene dönüşür', fund: 'seçtiğin yatırım fonuna yatırılır', donation: 'seçtiğin kuruma bağışlanır' }[s.dest];
-  const fundTxt = { roundup: `Seçtiğin kartla her harcaman sonraki ${RU_UNIT} TL'ye tamamlanır; aradaki fark`, statement: `Kredi kartı ekstrenin belirlediğin %'si her kesim döneminde`, mandate: `Belirlediğin tutar her ay kartından çekilip` }[s.fund];
+  const fundTxt = { roundup: `Seçtiğin kartla her harcaman sonraki ${RU_UNIT} TL'ye tamamlanır; aradaki fark`, statement: `Kredi kartı ekstrenin belirlediğin %'si her kesim döneminde`, salary: `Maaşının belirlediğin %'si maaş gününde`, mandate: `Belirlediğin tutar her ay kartından çekilip` }[s.fund];
   return `${fundTxt} ${destTxt}.`;
 }
-function svFundSecTitle() { return { roundup: 'Yuvarlama Kuralı', statement: 'Ekstre Kuralı', mandate: 'Aylık Tutar' }[state.sv.fund]; }
+function svFundSecTitle() { return { roundup: 'Yuvarlama Kuralı', statement: 'Ekstre Kuralı', salary: 'Maaş Kuralı', mandate: 'Aylık Tutar' }[state.sv.fund]; }
+// Fon kaynağı etiketi (başvuru kaynağı) — maaşta hesap, ekstrede kredi kartı
+function svSourceLabel() { return { salary: 'Maaş Hesabı', statement: 'Kredi Kartı' }[state.sv.fund] || 'Kart'; }
 function svDestSecTitle() { return { account: 'Birikim Hesabı', metal: 'Maden Seçimi', fund: 'Fon Seçimi', donation: 'Bağış Kurumu' }[state.sv.dest]; }
 
 function BirikimApply() {
@@ -5576,11 +5594,11 @@ function BirikimApply() {
       </div>
 
       <div class="ru-sec">
-        <div class="ru-sec-h"><span class="ru-sec-n">1</span> ${s.fund === 'statement' ? 'Kredi Kartı' : 'Kart'} Seçimi</div>
+        <div class="ru-sec-h"><span class="ru-sec-n">1</span> ${svSourceLabel()} Seçimi</div>
         <div class="ru-select-field ${c ? 'filled' : 'empty'}" data-action="sv-open-cardpick">
           ${c
             ? `${ruCardArt(c)}<div class="ru-sf-mid"><div class="ru-sf-name">${c.name}</div><div class="ru-sf-sub">${c.num}</div></div><span class="ru-sf-tick">${I.check}</span>`
-            : `<span class="ru-sf-ico">${I.card}</span><span class="ru-sf-label">${s.fund === 'statement' ? 'Kredi kartı seçiniz' : 'Banka veya kredi kartı seçiniz'}</span>`}
+            : `<span class="ru-sf-ico">${s.fund === 'salary' ? I.bank : I.card}</span><span class="ru-sf-label">${s.fund === 'statement' ? 'Kredi kartı seçiniz' : s.fund === 'salary' ? 'Maaş hesabı seçiniz' : 'Banka veya kredi kartı seçiniz'}</span>`}
           <span class="ru-sf-chev">${I.chevR}</span>
         </div>
       </div>
@@ -5613,7 +5631,21 @@ function BirikimApply() {
 function svFundConfigHTML() {
   if (state.sv.fund === 'roundup')   return ruRuleBoxHTML();   // saf/sabit — yeniden kullanım
   if (state.sv.fund === 'statement') return svStatementRuleHTML();
+  if (state.sv.fund === 'salary')    return svSalaryRuleHTML();
   return svMandateRuleHTML();
+}
+function svSalaryChips() {
+  return `<div class="su-chips">${SAL_PCT_PRESETS.map(r => `<button class="su-chip ${state.sv.salaryPct === r ? 'on' : ''}" data-action="sv-salpct" data-val="${r}">%${r}</button>`).join('')}</div>`;
+}
+function svSalaryExampleHTML() {
+  const amt = Math.round(MAAS * state.sv.salaryPct / 100);
+  return `<div class="su-ex-card"><div class="su-ex-main"><span>Tahmini aylık birikim</span><b class="su-ex-amt">+${amt.toLocaleString('tr-TR')} TL</b></div>
+    <div class="su-ex-note">Maaşının %${state.sv.salaryPct}'i · ~${MAAS.toLocaleString('tr-TR')} TL net maaş üzerinden.</div></div>`;
+}
+function svSalaryRuleHTML() {
+  return `<div class="su-field"><div class="su-field-l">Maaşının ne kadarı ayrılsın?</div>${svSalaryChips()}</div>
+    <div id="sv-ex-slot">${svSalaryExampleHTML()}</div>
+    <div class="ru-rule-note">${I.info} Maaşın hesabına geçtiği gün belirlediğin oran otomatik olarak birikime aktarılır.</div>`;
 }
 function svRateChips() {
   return `<div class="su-chips">${SU_RATE_PRESETS.map(r => `<button class="su-chip ${state.sv.rate === r ? 'on' : ''}" data-action="sv-rate" data-val="${r}">%${r}</button>`).join('')}</div>`;
@@ -5722,6 +5754,7 @@ function svRuleLabel() {
   const s = state.sv;
   if (s.fund === 'roundup')   return `Sonraki ${RU_UNIT} TL'ye yuvarla`;
   if (s.fund === 'statement') return `Ekstrenin %${s.rate}'i${s.cap ? ` (en çok ${s.cap.toLocaleString('tr-TR')} TL)` : ''}`;
+  if (s.fund === 'salary')    return `Maaşının %${s.salaryPct}'i`;
   return (s.dest === 'metal' && s.unit === 'gram') ? `${s.gram.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${MB_METALS[s.metalKind].code}/ay` : `${s.tryAmt.toLocaleString('tr-TR')} TL/ay`;
 }
 function svDestDetailLabel() {
@@ -5741,7 +5774,7 @@ function svActivate() {
       <div class="ru-cf-row"><span>Ne biriktiriyorum</span><b>${d.name}${svDestDetailLabel()}</b></div>
       <div class="ru-cf-row"><span>Nasıl</span><b>${f.name}</b></div>
       <div class="ru-cf-row"><span>Kural</span><b>${svRuleLabel()}</b></div>
-      <div class="ru-cf-row"><span>Kart</span><b>${c.name} ${c.num.slice(-4)}</b></div>
+      <div class="ru-cf-row"><span>${svSourceLabel()}</span><b>${c.name} ${c.num.slice(-4)}</b></div>
       <div class="ru-cf-row"><span>Tahmini aylık</span><b class="est">~${svMonthlyTL(s).toLocaleString('tr-TR')} TL</b></div>
     </div>
     <button class="sheet-btn" id="sv-confirm-btn" data-action="sv-confirm">${I.shield} Onayla ve Aktifleştir</button>
@@ -5754,7 +5787,7 @@ function svConfirm() {
   btn.style.pointerEvents = 'none';
   setTimeout(() => {
     const s = state.sv;
-    const cfg = { dest: s.dest, fund: s.fund, card: s.card, account: s.account, metalKind: s.metalKind, fundKind: s.fundKind, cause: s.cause, unit: s.dest === 'metal' ? s.unit : 'try', tryAmt: s.tryAmt, gram: s.gram, rate: s.rate, cap: s.cap };
+    const cfg = { dest: s.dest, fund: s.fund, card: s.card, account: s.account, metalKind: s.metalKind, fundKind: s.fundKind, cause: s.cause, unit: s.dest === 'metal' ? s.unit : 'try', tryAmt: s.tryAmt, gram: s.gram, rate: s.rate, cap: s.cap, salaryPct: s.salaryPct };
     const plan = svSeedPlan(cfg);
     state.sv.plans.unshift(plan);
     state.sv.view = plan.id;
@@ -5780,12 +5813,12 @@ function BirikimManage() {
     </div>
     <div class="screen-scroll">
       ${svStatCard(p)}
-      <div class="ru-block"><div class="ru-block-h">Aylık ${p.fund === 'roundup' ? 'birikim' : p.fund === 'statement' ? 'aktarım' : 'alım'}</div>${svChart(p)}</div>
+      <div class="ru-block"><div class="ru-block-h">Aylık ${p.fund === 'roundup' ? 'birikim' : p.fund === 'statement' ? 'aktarım' : p.fund === 'salary' ? 'transfer' : (p.dest === 'metal' ? 'alım' : 'birikim')}</div>${svChart(p)}</div>
       <div class="ru-info-card">
         <div class="ru-info-row"><span class="ru-info-ico">${f.logo(20)}</span><span class="ru-info-k">Yöntem</span><span class="ru-info-v">${f.name}</span></div>
         <div class="ru-info-row"><span class="ru-info-ico">${I.target}</span><span class="ru-info-k">Kural</span><span class="ru-info-v">${svPlanRuleLabel(p)}</span></div>
         <div class="ru-info-row"><span class="ru-info-ico">${d.icon}</span><span class="ru-info-k">Hedef</span><span class="ru-info-v">${svDestTargetLabel(p)}</span></div>
-        <div class="ru-info-row"><span class="ru-info-ico">${I.card}</span><span class="ru-info-k">Kart</span><span class="ru-info-v">${c ? c.name + '<br><i>' + c.num + '</i>' : 'Seçilmedi'}</span></div>
+        <div class="ru-info-row"><span class="ru-info-ico">${p.fund === 'salary' ? I.bank : I.card}</span><span class="ru-info-k">${p.fund === 'salary' ? 'Maaş hesabı' : p.fund === 'statement' ? 'Kredi kartı' : 'Kart'}</span><span class="ru-info-v">${c ? c.name + '<br><i>' + c.num + '</i>' : 'Seçilmedi'}</span></div>
       </div>
       <div class="ru-txn-title">Son hareketler</div>
       <div class="ru-txns">${p.txns.slice(0, 3).map(t => svTxnRow(p, t)).join('')}</div>
@@ -5845,6 +5878,7 @@ function svChart(p) {
 function svPlanRuleLabel(p) {
   if (p.fund === 'roundup')   return `Sonraki ${RU_UNIT} TL'ye yuvarla`;
   if (p.fund === 'statement') return `Ekstrenin %${p.rate}'i${p.cap ? '<br><i>en çok ' + p.cap.toLocaleString('tr-TR') + ' TL/ay</i>' : ''}`;
+  if (p.fund === 'salary')    return `Maaşının %${p.salaryPct}'i`;
   return (p.dest === 'metal' && p.unit === 'gram') ? `${p.gram.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${svMetalM(p).code}/ay` : `${p.tryAmt.toLocaleString('tr-TR')} TL/ay`;
 }
 function svDestTargetLabel(p) {
@@ -5860,7 +5894,7 @@ function svTxnRow(p, t) {
       <div class="ru-txn-mid"><div class="ru-txn-m">${fmtTL(Math.round(t.tl))}</div><div class="ru-txn-s">~${fmtTL(t.price)}/${m.code}</div><div class="ru-txn-d">${t.date}</div></div>
       <span class="ru-txn-add">+${svFmtMetal(t.gram, m.code)}</span></div>`;
   }
-  const label = p.fund === 'statement' ? `${t.month.split(' ')[0]} ekstresi` : (p.dest === 'donation' ? SV_CAUSES[p.cause].name : 'Aylık birikim');
+  const label = p.fund === 'statement' ? `${t.month.split(' ')[0]} ekstresi` : p.fund === 'salary' ? 'Maaş transferi' : (p.dest === 'donation' ? SV_CAUSES[p.cause].name : 'Aylık birikim');
   const ico = p.dest === 'donation' ? `<span class="ru-txn-ico">${SV_CAUSES[p.cause].emoji}</span>`
             : p.fund === 'statement' ? `<span class="ru-txn-ico su-ico">${I.receipt}</span>`
             : `<span class="ru-txn-ico su-ico">${SV_FUND[p.fund].logo(18)}</span>`;
@@ -5904,8 +5938,12 @@ function svOpenMethodPick() {
 }
 function svPickMethod(k) { state.sv.fund = k; closeSheet(); render(); }
 function svOpenCardPick() {
-  const list = RU_CARDS.filter(c => state.sv.fund !== 'statement' || c.kind === 'Kredi Kartı');
-  sheetEl.innerHTML = `<div class="sheet-handle"></div><div class="ru-pick-t">Kart seçiniz</div>
+  const list = RU_CARDS.filter(c => {
+    if (state.sv.fund === 'statement') return c.kind === 'Kredi Kartı';
+    if (state.sv.fund === 'salary')    return c.kind === 'Banka Kartı';
+    return true;
+  });
+  sheetEl.innerHTML = `<div class="sheet-handle"></div><div class="ru-pick-t">${svSourceLabel()} seçiniz</div>
     ${list.map(c => { const on = state.sv.card === c.id;
       return `<div class="ru-pick-row ${on ? 'active' : ''}" data-action="sv-pick-card" data-val="${c.id}">${ruCardArt(c)}<div class="ru-pick-mid"><div class="ru-pick-n">${c.name}</div><div class="ru-pick-s">${c.kind} · ${c.detail}</div></div><span class="ru-pick-radio ${on ? 'on' : ''}">${on ? I.check : ''}</span></div>`; }).join('')}
     <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
@@ -5975,6 +6013,7 @@ function svStopConfirm() {
 function svSetDest(k) { state.sv.dest = k; if (k !== 'metal') state.sv.unit = 'try'; render(); }
 function svSetFund(k) { state.sv.fund = k; render(); }
 function svSetRate(r) { state.sv.rate = +r; render(); }
+function svSetSalPct(r) { state.sv.salaryPct = +r; render(); }
 function svSetUnit(u) { state.sv.unit = u; render(); }
 function svApply() { go('birikim-apply'); }
 function svOpen() { go('birikim'); }
@@ -7219,6 +7258,7 @@ document.addEventListener('click', (e) => {
     case 'sv-open-causepick': return svOpenCausePick();
     case 'sv-pick-cause': return svPickCause(t.dataset.val);
     case 'sv-rate': return svSetRate(t.dataset.val);
+    case 'sv-salpct': return svSetSalPct(t.dataset.val);
     case 'sv-unit': return svSetUnit(t.dataset.val);
     case 'sv-agree': return svToggleAgree(t);
     case 'sv-open-form': return svOpenForm();
@@ -7434,7 +7474,7 @@ function routeTo(hash) {
   }
   if (h === 'birikim-manage' || h === 'birikim-history') { // dolu birikim/geçmiş — plan yoksa demo plan kur
     if (!state.sv.plans.length) {
-      const plan = svSeedPlan({ dest: 'metal', fund: 'mandate', card: 'worldgold', account: 'sav', metalKind: 'gold', fundKind: 'para', cause: 'egitim', unit: 'try', tryAmt: 1000, gram: 0.5, rate: 10, cap: 500 });
+      const plan = svSeedPlan({ dest: 'metal', fund: 'mandate', card: 'worldgold', account: 'sav', metalKind: 'gold', fundKind: 'para', cause: 'egitim', unit: 'try', tryAmt: 1000, gram: 0.5, rate: 10, cap: 500, salaryPct: 10 });
       state.sv.plans.push(plan);
     }
     if (!state.sv.view || !state.sv.plans.find(p => p.id === state.sv.view)) state.sv.view = state.sv.plans[0].id;
