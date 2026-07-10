@@ -5399,7 +5399,7 @@ function WidgetGalleryScreen() {
 // Başvuru tipleri (nasıl fonlanır) — mevcut motorların logolarını paylaşır
 const SV_FUND = {
   roundup:   { id:'roundup',   name:'Harcama Yuvarla',              short:'Harcama', logo: ruLogo,  tag:'Her harcamada',
-    desc:'Her harcamayı 100 TL\'ye yuvarla' },
+    desc:'Her harcamanı belirlediğin tutara yuvarla' },
   statement: { id:'statement', name:'Ekstre Yuvarla',              short:'Ekstre',  logo: suLogo,  tag:'Her dönem',
     desc:'Ekstrenin belirlediğin %\'si ayrılsın' },
   salary:    { id:'salary',    name:'Maaşımdan Transfer Et',       short:'Maaş',    logo: salLogo, tag:'Her maaş günü',
