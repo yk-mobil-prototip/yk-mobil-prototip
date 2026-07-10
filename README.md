@@ -29,6 +29,8 @@ Telefonu açmadan, uygulamaya giriş yapmadan, ana ekrandaki widget'tan saniyele
 4. **Yapı Kredi Mobil ile Onayla** (biyometrik his) → **başarı**: Worldpuan kazanımı + dekont → **Ana Ekrana Dön** (`#qr-success`)
 - Uygulamanın kendi ödeme akışından bağımsız çalışır; widget'tan tıklanınca uygulamaya giriş adımı atlanır.
 
+**Widget Galerisi** (`#widgets`): Tüm YK widget çeşitlerini tek ana-ekran yüzeyinde kaydırarak gör. Hem **İşCep tarzı** (koyu kart + logo + kısayol tile'ları: Karekod, Kısayollarım, Kısayollar) hem **N26 tarzı** (renkli/görsel: Karekod ile Öde aksiyon kartı, Bakiye, Worldpuan, küçük Karekod, Aylık Bütçe donut). Hepsi Yapı Kredi temasında; karekodlu widget'lar dokununca ödeme akışını açar. Springboard'daki "Tüm widget çeşitlerini gör" ile de açılır.
+
 ## Bölümlere doğrudan erişim
 Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açılır ve gereken state hazır gelir.
 
@@ -45,6 +47,7 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Ödeme ekranı | `#payment` |
 | Ödeme başarılı | `#success` |
 | Sipariş takibi | `#tracking` |
+| Widget Galerisi — tüm çeşitler (İşCep + N26 tarzı, YK teması) | `#widgets` |
 | Karekod ile Öde — telefon ana ekranı + YK widget'ı | `#springboard` |
 | Karekod ile Öde — kamera/tarayıcı (otomatik okur) | `#qr-scan` |
 | Karekod ile Öde — tutar + ödeme yöntemi (okunan işyeri) | `#qr-pay` |

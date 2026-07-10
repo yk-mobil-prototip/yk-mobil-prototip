@@ -206,6 +206,7 @@ const CHIP_FLOWS = {
 /* Demo bölümleri — her biri kendi hash'iyle doğrudan açılır (bütün akışı tekrarlamadan) */
 const SECTIONS = [
   { hash: 'home',      icon: 'home',     t: 'Ana Ekran',           d: 'Kartlar, hızlı işlemler, asistan girişi' },
+  { hash: 'widgets',   icon: 'grid',     t: 'Widget Galerisi — tüm çeşitler', d: 'İşCep + N26 tarzı YK widget\'ları tek ekranda; kaydır, beğendiğini seç (karekodlu olanlar ödemeyi açar)' },
   { hash: 'springboard', icon: 'qr',     t: 'Karekod ile Öde — Ana ekran widget\'ı', d: 'Telefon ana ekranındaki YK widget\'ından tek dokunuşla TR Karekod okut, saniyeler içinde öde' },
   { hash: 'assistant', icon: 'spark',    t: 'Koçtaş Senaryosu — Tamamlandı', d: 'Robot süpürge sohbeti + öneriler (dolu görünüm)' },
   { hash: 'setur',     icon: 'sun',      t: 'Setur Senaryosu — Tamamlandı',  d: 'Otonom agent tatili buldu — sonucuyla dolu sohbet' },
@@ -5035,6 +5036,8 @@ function SpringboardScreen() {
         </div>
       </div>
 
+      <button class="sb-gallery-link" data-action="open-widgets">${I.grid} Tüm widget çeşitlerini gör ${I.chevR}</button>
+
       <div class="sb-grid">
         ${apps.map(a => `
           <div class="sb-app">
@@ -5204,11 +5207,146 @@ function QrSuccessScreen() {
 }
 function qrHome() { state.nav = []; state.qr.order = null; closeDrawer(); state.screen = 'springboard'; render(); }
 
+/* =========================================================================
+   Widget Galerisi — tüm YK widget çeşitleri tek bir ana-ekran yüzeyinde
+   Hem İşCep tarzı (koyu kart + logo + aksiyon tile'ları) hem N26 tarzı
+   (renkli, görsel, tek amaçlı) çeşitler. Kaydırarak hepsini gör, seç.
+   Karekodlu widget'lar QR ödeme akışını başlatır.
+   ========================================================================= */
+const WG_APPICON = 'assets/yk-app-icon.jpg';
+function wgLogo() { return `<img src="${WG_APPICON}" class="wgt-ico" alt="">`; }
+// N26 tarzı köşe YK amblemi (küçük)
+function wgMark() { return `<span class="wgt-mark">${I.yklogo}</span>`; }
+function wgDot(n, a) { return `<div class="wg-dots">${Array.from({length:n}).map((_,i)=>`<span class="${i===a?'on':''}"></span>`).join('')}</div>`; }
+function wgCap(t, s) { return `<div class="wg-cap"><b>${t}</b><span>${s}</span></div>`; }
+
+function WidgetGalleryScreen() {
+  return `
+  <div class="screen wg-screen anim-fade">
+    <div class="wg-wall">
+      <div class="wg-scroll">
+        <div class="wg-header">
+          <div class="wg-h-title">Widget Galerisi</div>
+          <div class="wg-h-sub">Hepsi Yapı Kredi temasında · beğendiğini seç. Karekodlu widget'lar dokununca ödemeyi açar.</div>
+        </div>
+
+        <!-- ============ İŞCEP TARZI ============ -->
+        <div class="wg-sec-label">İşCep tarzı · koyu kart + kısayol tile'ları</div>
+
+        <!-- Karekod (orta) -->
+        <div class="wg-item">
+          <div class="wgt iscep wgt-md">
+            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Karekod</span><span class="wgt-pencil">${I.gear}</span></div>
+            <button class="wgt-tile accent" data-action="qr-start"><span class="wgt-tile-ico">${I.qr}</span>Karekod ile Öde</button>
+            <button class="wgt-tile" data-action="launch-app"><span class="wgt-tile-ico">${I.transfer}</span>Karekod ile Para Gönder / İste</button>
+          </div>
+          ${wgCap('Karekod', 'Orta · İşCep tarzı')}
+        </div>
+
+        <!-- Kısayollarım (büyük, 4 ikon) -->
+        <div class="wg-item">
+          <div class="wgt iscep wgt-lg">
+            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Kısayollarım</span><span class="wgt-pencil">${I.gear}</span></div>
+            <div class="wgt-icontiles">
+              <button class="wgt-icontile" data-action="qr-start"><span class="wgt-it-ico accent">${I.qr}</span><span>Karekod ile Öde</span></button>
+              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.transfer}</span><span>Para Gönder</span></button>
+              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.wallet || I.card}</span><span>Para İste</span></button>
+              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.pie}</span><span>Hesabım</span></button>
+            </div>
+          </div>
+          ${wgCap('Kısayollarım', 'Büyük · İşCep tarzı')}
+        </div>
+
+        <!-- Kısayollar (orta, 2 ikon tile) -->
+        <div class="wg-item">
+          <div class="wgt iscep wgt-md">
+            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Kısayollar</span><span class="wgt-pencil">${I.gear}</span></div>
+            <div class="wgt-icontiles two">
+              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.bank}</span><span>Para Çek</span></button>
+              <button class="wgt-icontile" data-action="launch-app"><span class="wgt-it-ico">${I.bars}</span><span>Mobil Borsa</span></button>
+            </div>
+          </div>
+          ${wgCap('Kısayollar', 'Orta · İşCep tarzı')}
+        </div>
+
+        <!-- ============ N26 TARZI ============ -->
+        <div class="wg-sec-label">N26 tarzı · renkli, görsel, tek amaçlı</div>
+
+        <!-- Karekod ile Öde aksiyon kartı (orta, gradient) -->
+        <div class="wg-item">
+          <div class="wgt n26 wgt-md wgt-action" data-action="qr-start">
+            <div class="wgt-action-top"><span class="wgt-action-t">Karekod ile Öde</span>${wgMark()}</div>
+            <div class="wgt-action-sub">Kasada saniyeler içinde</div>
+            <div class="wgt-action-arrow">${I.qr}<span class="wgt-arrow-circle">${I.chevR}</span></div>
+          </div>
+          ${wgCap('Karekod ile Öde', 'Orta · N26 tarzı')}
+        </div>
+
+        <!-- Bakiye widget'ı (orta) -->
+        <div class="wg-item">
+          <div class="wgt n26 wgt-md wgt-bal" data-action="launch-app">
+            <div class="wgt-bal-left">
+              <div class="wgt-bal-lbl">Vadesiz TL Hesabım</div>
+              <div class="wgt-bal-amt">${fmtTL2(USER.balance)}</div>
+              <div class="wgt-bal-card">${imgOrFallback(WORLDCARD_IMG, '💳', 'wgt-bal-cardimg')}${wgMark()}</div>
+            </div>
+            <div class="wgt-bal-right">
+              <div class="wgt-bal-rlbl">Son hareketler</div>
+              <div class="wgt-tx"><span class="wgt-tx-ico">🛒</span><div class="wgt-tx-m"><b>Migros</b><small>Market</small></div><span class="wgt-tx-a neg">-${fmtTL2(240)}</span></div>
+              <div class="wgt-tx"><span class="wgt-tx-ico pos">${I.arrowUp || '↑'}</span><div class="wgt-tx-m"><b>Maaş</b><small>Gelen</small></div><span class="wgt-tx-a pos">+32.000,00</span></div>
+              <div class="wgt-tx"><span class="wgt-tx-ico">SK</span><div class="wgt-tx-m"><b>Selin K.</b><small>FAST</small></div><span class="wgt-tx-a neg">-${fmtTL2(150)}</span></div>
+            </div>
+          </div>
+          ${wgCap('Bakiye', 'Orta · N26 tarzı')}
+        </div>
+
+        <!-- Küçük ikili sıra: Worldpuan + Karekod -->
+        <div class="wg-row2">
+          <div class="wg-item">
+            <div class="wgt n26 wgt-sm wgt-puan" data-action="launch-app">
+              <div class="wgt-sm-top"><span>Worldpuan</span>${wgMark()}</div>
+              <div class="wgt-sm-mid">
+                <div class="wgt-sm-lbl">Bu ay kazanılan</div>
+                <div class="wgt-sm-amt">+142</div>
+              </div>
+            </div>
+            ${wgCap('Worldpuan', 'Küçük')}
+          </div>
+          <div class="wg-item">
+            <div class="wgt n26 wgt-sm wgt-qrsmall" data-action="qr-start">
+              <div class="wgt-sm-top"><span>Karekod</span>${wgMark()}</div>
+              <div class="wgt-qrsmall-ico">${I.qr}</div>
+              <div class="wgt-qrsmall-lbl">Öde</div>
+            </div>
+            ${wgCap('Karekod', 'Küçük')}
+          </div>
+        </div>
+
+        <!-- Aylık bütçe (orta, donut) -->
+        <div class="wg-item">
+          <div class="wgt n26 wgt-md wgt-budget" data-action="launch-app">
+            <div class="wgt-budget-left">
+              <div class="wgt-budget-amt">${fmtTL2(4253)} <small>kaldı</small></div>
+              <div class="wgt-budget-sub">Aylık bütçe · 12 gün kaldı</div>
+              ${wgMark()}
+            </div>
+            <div class="wgt-donut" style="background:conic-gradient(var(--primary) 0% 62%, rgba(255,255,255,.14) 62% 100%)"><span>%62</span></div>
+          </div>
+          ${wgCap('Aylık Bütçe', 'Orta · N26 tarzı')}
+        </div>
+
+        <div class="wg-footnote">Beğendiğin widget'ları söyle, ana ekrana onları koyalım.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function render() {
   let html = '';
   switch (state.screen) {
     case 'home': html = HomeScreen(); break;
     case 'springboard': html = SpringboardScreen(); break;
+    case 'widgets': html = WidgetGalleryScreen(); break;
     case 'qr-scan': html = QrScanScreen(); break;
     case 'qr-pay': html = QrPayScreen(); break;
     case 'qr-success': html = QrSuccessScreen(); break;
@@ -6333,6 +6471,7 @@ document.addEventListener('click', (e) => {
 
     // Karekod ile Öde — ana ekran widget'ı
     case 'qr-start': return qrStart();
+    case 'open-widgets': return go('widgets');
     case 'launch-app': return goHome();
     case 'qr-close': return navBack();
     case 'qr-method': return qrMethod(t.dataset.method);
@@ -6540,7 +6679,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'springboard', 'qr-scan', 'qr-pay', 'qr-success', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid', 'split', 'split-pick', 'split-amount', 'split-people', 'split-form', 'split-pay', 'reward-goal', 'reward-goal-new', 'reward-goal-track', 'reward-goal-win'];
+const ROUTES = ['home', 'springboard', 'widgets', 'qr-scan', 'qr-pay', 'qr-success', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid', 'split', 'split-pick', 'split-amount', 'split-people', 'split-form', 'split-pay', 'reward-goal', 'reward-goal-new', 'reward-goal-track', 'reward-goal-win'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
