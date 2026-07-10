@@ -3620,6 +3620,12 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
 .sv-fund.on .sv-fund-tick { background: var(--primary); border-color: var(--primary); }
 .sv-fund.on .sv-fund-tick svg { opacity: 1; }
 
+/* Transfer Et alt-seçimi — Maaşımdan / Talimatıma göre segmenti (satırın altında) */
+.sv-subseg { display: flex; gap: 6px; margin: -2px 0 2px 8px; padding: 4px; background: var(--card-2); border: 1px solid var(--border); border-radius: 11px; }
+.sv-subseg-b { flex: 1; border: none; background: transparent; color: var(--text-dim); font-family: inherit; font-size: 12.5px; font-weight: 700; padding: 8px; border-radius: 8px; cursor: pointer; transition: .15s; }
+.sv-subseg-b.on { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(0,152,203,.28); }
+.sv-subseg.apply { margin: 0 0 11px; }
+
 /* Hub — tek ekrana sığması için sıkı boşluklar */
 .sv-hub .ru-hero.sv-hero-tight { padding: 4px 0 0; }
 .sv-hero-tight .ru-hero-logo { padding: 9px; animation: none; }

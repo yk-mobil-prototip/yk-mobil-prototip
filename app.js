@@ -5408,6 +5408,9 @@ const SV_FUND = {
     desc:'Her ay sabit tutar ayrılsın' },
 };
 const SV_FUND_ORDER = ['roundup', 'statement', 'salary', 'mandate'];
+// Hub'da "Transfer Et" tek satır; seçilince altında Maaşımdan / Talimatıma göre alt-seçimi çıkar
+const SV_TRANSFER = { name: 'Transfer Et', short: 'Transfer', logo: salLogo, desc: 'Maaşından ya da talimatınla düzenli aktar' };
+function isTransfer(f) { return f === 'salary' || f === 'mandate'; }
 const MAAS = 45000;                       // mock net aylık maaş (maaştan transfer hesaplaması)
 const SAL_PCT_PRESETS = [5, 10, 15, 20];  // maaş oranı çipleri
 // Maaştan transfer yöntemi logosu — banknot + ₺ (özellik logosu ailesiyle uyumlu)
@@ -5543,12 +5546,17 @@ function BirikimHub() {
       <div class="ru-sec sv-sec-tight">
         <div class="ru-sec-h"><span class="ru-sec-n">2</span> Birikim Yöntemi</div>
         <div class="sv-fund-list">
-          ${SV_FUND_ORDER.map(k => { const x = SV_FUND[k], on = s.fund === k;
+          ${['roundup', 'statement'].map(k => { const x = SV_FUND[k], on = s.fund === k;
             return `<button class="sv-fund ${on ? 'on' : ''}" data-action="sv-set-fund" data-val="${k}">
               <span class="sv-fund-logo">${x.logo(22)}</span>
               <span class="sv-fund-mid"><span class="sv-fund-t">${x.name}</span><span class="sv-fund-s">${x.desc}</span></span>
               <span class="sv-fund-tick">${I.check}</span>
             </button>`; }).join('')}
+          <button class="sv-fund ${isTransfer(s.fund) ? 'on' : ''}" data-action="sv-set-fund" data-val="transfer">
+            <span class="sv-fund-logo">${SV_TRANSFER.logo(22)}</span>
+            <span class="sv-fund-mid"><span class="sv-fund-t">${SV_TRANSFER.name}</span><span class="sv-fund-s">${SV_TRANSFER.desc}</span></span>
+            <span class="sv-fund-tick">${I.check}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -5570,7 +5578,7 @@ function svApplySub() {
   const fundTxt = { roundup: `Seçtiğin kartla her harcaman sonraki ${RU_UNIT} TL'ye tamamlanır; aradaki fark`, statement: `Kredi kartı ekstrenin belirlediğin %'si her kesim döneminde`, salary: `Maaşının belirlediğin %'si maaş gününde`, mandate: `Belirlediğin tutar her ay kartından çekilip` }[s.fund];
   return `${fundTxt} ${destTxt}.`;
 }
-function svFundSecTitle() { return { roundup: 'Yuvarlama Kuralı', statement: 'Ekstre Kuralı', salary: 'Maaş Kuralı', mandate: 'Aylık Tutar' }[state.sv.fund]; }
+function svFundSecTitle() { return { roundup: 'Yuvarlama Kuralı', statement: 'Ekstre Kuralı', salary: 'Transfer Kuralı', mandate: 'Transfer Kuralı' }[state.sv.fund]; }
 // Fon kaynağı etiketi (başvuru kaynağı) — maaşta hesap, ekstrede kredi kartı
 function svSourceLabel() { return { salary: 'Maaş Hesabı', statement: 'Kredi Kartı' }[state.sv.fund] || 'Kart'; }
 function svDestSecTitle() { return { account: 'Birikim Hesabı', metal: 'Maden Seçimi', fund: 'Fon Seçimi', donation: 'Bağış Kurumu' }[state.sv.dest]; }
@@ -5631,8 +5639,14 @@ function BirikimApply() {
 function svFundConfigHTML() {
   if (state.sv.fund === 'roundup')   return ruRuleBoxHTML();   // saf/sabit — yeniden kullanım
   if (state.sv.fund === 'statement') return svStatementRuleHTML();
-  if (state.sv.fund === 'salary')    return svSalaryRuleHTML();
-  return svMandateRuleHTML();
+  // Transfer (salary | mandate) — üstte alt-seçim segmenti, altında ilgili kural
+  return svTransferSeg() + (state.sv.fund === 'salary' ? svSalaryRuleHTML() : svMandateRuleHTML());
+}
+function svTransferSeg() {
+  return `<div class="sv-subseg apply">
+    <button class="sv-subseg-b ${state.sv.fund === 'salary' ? 'on' : ''}" data-action="sv-set-fund" data-val="salary">Maaşımdan</button>
+    <button class="sv-subseg-b ${state.sv.fund === 'mandate' ? 'on' : ''}" data-action="sv-set-fund" data-val="mandate">Talimatıma göre</button>
+  </div>`;
 }
 function svSalaryChips() {
   return `<div class="su-chips">${SAL_PCT_PRESETS.map(r => `<button class="su-chip ${state.sv.salaryPct === r ? 'on' : ''}" data-action="sv-salpct" data-val="${r}">%${r}</button>`).join('')}</div>`;
@@ -6011,7 +6025,11 @@ function svStopConfirm() {
 
 /* -- hub/plan giriş aksiyonları -- */
 function svSetDest(k) { state.sv.dest = k; if (k !== 'metal') state.sv.unit = 'try'; render(); }
-function svSetFund(k) { state.sv.fund = k; render(); }
+function svSetFund(k) {
+  if (k === 'transfer') { if (!isTransfer(state.sv.fund)) state.sv.fund = 'salary'; }
+  else state.sv.fund = k;
+  render();
+}
 function svSetRate(r) { state.sv.rate = +r; render(); }
 function svSetSalPct(r) { state.sv.salaryPct = +r; render(); }
 function svSetUnit(u) { state.sv.unit = u; render(); }
