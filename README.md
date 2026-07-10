@@ -21,6 +21,14 @@
 5. **Duraklat / Devam Ettir** ve onaylı **Durdur** akışları
 6. Entegrasyon: Yuvarla Biriktir aktifken World Pay ile ödeme yapınca fark kumbaraya düşer ve başarı ekranında görünür
 
+## Karekod ile Öde (ana ekran widget'ı)
+Telefonu açmadan, uygulamaya giriş yapmadan, ana ekrandaki widget'tan saniyeler içinde ödeme.
+1. **Telefon ana ekranı** (springboard) — duvar kağıdı, app ikonları ve dock üstünde **Yapı Kredi widget'ı** (`#springboard`)
+2. Widget'taki **Karekod ile Öde** butonuna dokun → **kamera/tarayıcı** açılır, TR Karekod otomatik okunur (`#qr-scan`)
+3. Okunan işyeri (**Koçtaş · Bahçeşehir AVM**) + tutar gelir → **Worldcard** / Vadesiz TL Hesabı seç → **Öde** (`#qr-pay`)
+4. **Yapı Kredi Mobil ile Onayla** (biyometrik his) → **başarı**: Worldpuan kazanımı + dekont → **Ana Ekrana Dön** (`#qr-success`)
+- Uygulamanın kendi ödeme akışından bağımsız çalışır; widget'tan tıklanınca uygulamaya giriş adımı atlanır.
+
 ## Bölümlere doğrudan erişim
 Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açılır ve gereken state hazır gelir.
 
@@ -37,6 +45,10 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 | Ödeme ekranı | `#payment` |
 | Ödeme başarılı | `#success` |
 | Sipariş takibi | `#tracking` |
+| Karekod ile Öde — telefon ana ekranı + YK widget'ı | `#springboard` |
+| Karekod ile Öde — kamera/tarayıcı (otomatik okur) | `#qr-scan` |
+| Karekod ile Öde — tutar + ödeme yöntemi (okunan işyeri) | `#qr-pay` |
+| Karekod ile Öde — ödeme başarılı (Worldpuan + dekont) | `#qr-success` |
 | Yuvarla & Biriktir — başvuru (kart, kural 10/50/100, talimat onayı) | `#roundup` |
 | Yuvarla & Biriktir — kumbara (grafik, hedef, duraklat/durdur) | `#roundup-jar` |
 | Yuvarla & Biriktir — tüm hareketler (aya göre gruplu) | `#roundup-history` |

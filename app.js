@@ -206,6 +206,7 @@ const CHIP_FLOWS = {
 /* Demo bölümleri — her biri kendi hash'iyle doğrudan açılır (bütün akışı tekrarlamadan) */
 const SECTIONS = [
   { hash: 'home',      icon: 'home',     t: 'Ana Ekran',           d: 'Kartlar, hızlı işlemler, asistan girişi' },
+  { hash: 'springboard', icon: 'qr',     t: 'Karekod ile Öde — Ana ekran widget\'ı', d: 'Telefon ana ekranındaki YK widget\'ından tek dokunuşla TR Karekod okut, saniyeler içinde öde' },
   { hash: 'assistant', icon: 'spark',    t: 'Koçtaş Senaryosu — Tamamlandı', d: 'Robot süpürge sohbeti + öneriler (dolu görünüm)' },
   { hash: 'setur',     icon: 'sun',      t: 'Setur Senaryosu — Tamamlandı',  d: 'Otonom agent tatili buldu — sonucuyla dolu sohbet' },
   { hash: 'chat',      icon: 'guide',    t: 'Asistan — Boştan',    d: 'Sohbeti baştan, animasyonlu dene' },
@@ -265,6 +266,8 @@ const state = {
   preInfoOk: false,          // Ön Bilgilendirme Formu onayı
   contractOk: false,         // Mesafeli Satış Sözleşmesi onayı
   usePuan: false,            // Worldpuan ile kısmi ödeme
+  // Karekod ile Öde — ana ekran widget'ı (kendi bağımsız akışı)
+  qr: { merchant: null, method: 'worldcard', order: null },
   nav: [],                   // geri (back) yığını — gerçek uygulama gibi geri davranışı
   theme: localStorage.getItem('ykm-theme') || 'dark',
   // Dinamik Güvenlik Kodu (dinamik CVV) — 5 dk geçerli, üretilince öncekini geçersiz kılar
@@ -4959,10 +4962,256 @@ function bkClaim() {
   go('reward-goal-win');
 }
 
+/* =========================================================================
+   Karekod ile Öde — Ana ekran widget'ı (springboard)
+   Telefon ana ekranındaki YK widget'ından tek dokunuşla TR Karekod okut,
+   uygulamayı açmadan saniyeler içinde öde. Ürün-tabanlı ödeme akışından
+   bağımsız, kendi state'i (state.qr) ile çalışır.
+   ========================================================================= */
+const QR_MERCHANT = {
+  name: 'Koçtaş', branch: 'Bahçeşehir AVM',
+  amount: 1249.90, logo: 'assets/koctas.png', emoji: '🛠️',
+};
+function qrPuan() { return Math.max(1, Math.round(QR_MERCHANT.amount / 100)); }
+// Basit ama gerçekçi bir TR Karekod görseli (deterministik desen)
+function qrPattern(size) {
+  const N = 21, cell = size / N;
+  let rects = '';
+  const finder = (ox, oy) => {
+    rects += `<rect x="${ox*cell}" y="${oy*cell}" width="${7*cell}" height="${7*cell}" fill="#000"/>`;
+    rects += `<rect x="${(ox+1)*cell}" y="${(oy+1)*cell}" width="${5*cell}" height="${5*cell}" fill="#fff"/>`;
+    rects += `<rect x="${(ox+2)*cell}" y="${(oy+2)*cell}" width="${3*cell}" height="${3*cell}" fill="#000"/>`;
+  };
+  let seed = 7;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed >> 8) & 1; };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const inFinder = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
+    if (inFinder) continue;
+    if (rnd()) rects += `<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}" fill="#000"/>`;
+  }
+  finder(0, 0); finder(14, 0); finder(0, 14);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><rect width="${size}" height="${size}" fill="#fff"/>${rects}</svg>`;
+}
+function qrSeed() {
+  if (!state.qr.method) state.qr.method = 'worldcard';
+  state.qr.merchant = { ...QR_MERCHANT };
+}
+function qrStart() { qrSeed(); go('qr-scan'); }
+
+/* Telefon ana ekranı (springboard) — duvar kağıdı, YK widget'ı, app ikonları, dock */
+function SpringboardScreen() {
+  const apps = [
+    { e: '📷', n: 'Kamera', bg: 'linear-gradient(135deg,#3a3a3c,#1c1c1e)' },
+    { e: '💬', n: 'Mesajlar', bg: 'linear-gradient(135deg,#3bd15f,#22a544)' },
+    { e: '📅', n: 'Takvim', bg: 'linear-gradient(135deg,#ffffff,#ececec)' },
+    { e: '🗺️', n: 'Haritalar', bg: 'linear-gradient(135deg,#8ee08e,#4fb04f)' },
+    { e: '🌤️', n: 'Hava', bg: 'linear-gradient(135deg,#3aa0ff,#1667d6)' },
+    { e: '🎵', n: 'Müzik', bg: 'linear-gradient(135deg,#fb5c74,#e0224f)' },
+    { e: '📸', n: 'Fotoğraf', bg: 'linear-gradient(135deg,#ffffff,#ececec)' },
+    { e: '⚙️', n: 'Ayarlar', bg: 'linear-gradient(135deg,#c9ccd2,#8a8f98)' },
+  ];
+  return `
+  <div class="screen sb-screen anim-fade">
+    <div class="sb-wall">
+      <div class="sb-clockblock">
+        <div class="sb-clock-date">Cuma, 10 Temmuz</div>
+        <div class="sb-clock-time">09:41</div>
+      </div>
+
+      <div class="sb-widget" data-action="qr-start">
+        <div class="sb-w-head">
+          <img src="assets/yk-app-icon.jpg" class="sb-w-ico" alt="">
+          <div class="sb-w-titles"><div class="sb-w-title">Yapı Kredi</div><div class="sb-w-sub">Worldcard · **** 3333</div></div>
+          <span class="sb-w-widgetlbl">Widget</span>
+        </div>
+        <button class="sb-w-qr" data-action="qr-start">
+          <span class="sb-w-qr-ico">${I.qr}</span>
+          <span class="sb-w-qr-txt"><b>Karekod ile Öde</b><small>Kasada saniyeler içinde</small></span>
+          <span class="sb-w-qr-chev">${I.chevR}</span>
+        </button>
+        <div class="sb-w-row">
+          <button class="sb-w-mini" data-action="launch-app"><span class="sb-w-mini-ico">${I.transfer}</span>Para Gönder</button>
+          <button class="sb-w-mini" data-action="launch-app"><span class="sb-w-mini-ico">${I.pie}</span>Hesabım</button>
+        </div>
+      </div>
+
+      <div class="sb-grid">
+        ${apps.map(a => `
+          <div class="sb-app">
+            <div class="sb-app-ico" style="background:${a.bg}">${a.e}</div>
+            <span class="sb-app-lbl">${a.n}</span>
+          </div>`).join('')}
+        <div class="sb-app" data-action="launch-app">
+          <div class="sb-app-ico sb-app-yk"><img src="assets/yk-app-icon.jpg" alt=""></div>
+          <span class="sb-app-lbl">Yapı Kredi</span>
+        </div>
+      </div>
+
+      <div class="sb-dock">
+        <div class="sb-app dock"><div class="sb-app-ico" style="background:linear-gradient(135deg,#4a90e2,#1667d6)">🧭</div></div>
+        <div class="sb-app dock"><div class="sb-app-ico" style="background:linear-gradient(135deg,#3bd15f,#22a544)">📞</div></div>
+        <div class="sb-app dock"><div class="sb-app-ico" style="background:linear-gradient(135deg,#5ac8fa,#0a84ff)">✉️</div></div>
+        <div class="sb-app dock" data-action="launch-app"><div class="sb-app-ico sb-app-yk"><img src="assets/yk-app-icon.jpg" alt=""></div></div>
+      </div>
+      <div class="sb-homebar" data-action="launch-app"></div>
+    </div>
+  </div>`;
+}
+
+/* QR tarayıcı — kamera görünümü, çerçeve + tarama çizgisi; ~1,7 sn sonra otomatik okur */
+function QrScanScreen() {
+  return `
+  <div class="screen qr-scan anim-fade">
+    <div class="qr-cam-top">
+      <button class="qr-x" data-action="qr-close" aria-label="Kapat">✕</button>
+      <div class="qr-cam-title">Karekod ile Öde</div>
+      <span class="qr-flash" data-action="toast" data-msg="Flaş prototipte aktif değil">🔦</span>
+    </div>
+    <div class="qr-view">
+      <div class="qr-code-inview">${qrPattern(150)}</div>
+      <div class="qr-frame">
+        <span class="qc tl"></span><span class="qc tr"></span><span class="qc bl"></span><span class="qc br"></span>
+        <div class="qr-laser"></div>
+      </div>
+      <div class="qr-hint" id="qr-hint">TR Karekod'u çerçeveye getir</div>
+    </div>
+    <div class="qr-cam-foot">
+      <div class="qr-foot-tab active">Karekod Okut</div>
+      <div class="qr-foot-tab" data-action="toast" data-msg="Karekodumu Göster prototipte aktif değil">Karekodumu Göster</div>
+    </div>
+  </div>`;
+}
+function setupQrScan() {
+  clearTimeout(state._qrTimer);
+  state._qrTimer = setTimeout(() => {
+    if (state.screen !== 'qr-scan') return;
+    const frame = document.querySelector('.qr-frame');
+    const hint = document.getElementById('qr-hint');
+    if (frame) frame.classList.add('locked');
+    if (hint) { hint.textContent = '✓ Karekod okundu'; hint.classList.add('ok'); }
+    setTimeout(() => { if (state.screen === 'qr-scan') { state.screen = 'qr-pay'; render(); } }, 640);
+  }, 1700);
+}
+
+/* Okunan karekod → tutar + ödeme yöntemi + Öde */
+function QrPayScreen() {
+  const m = state.qr.merchant || QR_MERCHANT;
+  const wc = state.qr.method === 'worldcard';
+  return `
+  <div class="screen anim-right">
+    <div class="nav-head">
+      <button class="icon-btn" data-action="qr-close">${I.back}</button>
+      <div class="nav-title">Karekod ile Öde</div>
+    </div>
+    <div class="screen-scroll">
+      <div class="qr-merchant">
+        <div class="qr-m-logo">${imgOrFallback(m.logo, m.emoji, 'qr-m-img')}</div>
+        <div class="qr-m-name">${m.name}<span>${m.branch}</span></div>
+        <div class="qr-m-tag">${I.check} TR Karekod · World üye iş yeri</div>
+      </div>
+
+      <div class="qr-amt-box">
+        <div class="qr-amt-lbl">Ödenecek tutar</div>
+        <div class="qr-amt">${fmtTL2(m.amount)}</div>
+        <div class="qr-amt-sub">İşyeri karekodundan geldi · tutar değiştirilemez</div>
+      </div>
+
+      <div class="pay-section-title">Ödeme Yöntemi</div>
+      <div class="method ${wc ? 'selected' : ''}" data-action="qr-method" data-method="worldcard">
+        <div class="m-ico card-ico">${imgOrFallback(WORLDCARD_IMG, '💳', 'm-cardimg')}</div>
+        <div><div class="m-name">Worldcard ile öde</div><div class="m-sub">**** 3333 · Tek çekim · Worldpuan kazan</div></div>
+        <div class="m-check">${I.check}</div>
+      </div>
+      <div class="method ${!wc ? 'selected' : ''}" data-action="qr-method" data-method="bank">
+        <div class="m-ico tl-ico"><img src="assets/tl-white.png" class="tl-img" alt="₺" onerror="this.outerHTML='<span class=\\'tl-glyph\\'>₺</span>'"></div>
+        <div><div class="m-name">Vadesiz TL Hesabım'dan öde</div><div class="m-sub">Banka kartı · 12345678 · Anında</div></div>
+        <div class="m-check">${I.check}</div>
+      </div>
+
+      ${wc ? `<div class="qr-puan-hint">${I.star} Bu ödemeden yaklaşık <b>${qrPuan()} Worldpuan</b> kazanacaksın</div>` : ''}
+    </div>
+
+    <div class="pay-foot">
+      <button class="pay-btn" data-action="qr-pay-open"><span>Öde</span><span class="div"></span><span>${fmtTL2(m.amount)}</span></button>
+      <div class="secure-note">${I.lock} FAST · 256-bit güvenli ödeme</div>
+    </div>
+  </div>`;
+}
+function qrMethod(m) { state.qr.method = m; render(); }
+function openQrConfirm() {
+  const m = state.qr.merchant || QR_MERCHANT;
+  const methodLbl = state.qr.method === 'bank' ? 'Vadesiz TL Hesabım · Anında' : 'Worldcard **** 3333 · Tek çekim';
+  sheetEl.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-amount-label">Ödenecek tutar</div>
+    <div class="sheet-amount">${fmtTL2(m.amount)}</div>
+    <div class="sheet-pay-row"><span>${m.name} · ${m.branch}</span><span class="spr-r">${methodLbl}</span></div>
+    <button class="sheet-btn" id="qr-approve-btn" data-action="qr-approve">${I.faceid || I.shield} Yapı Kredi Mobil ile Onayla</button>
+    <button class="sheet-btn ghost" data-action="close-sheet">Vazgeç</button>`;
+  sheetEl.classList.add('open');
+  sheetScrimEl.classList.add('open');
+}
+function qrApprove() {
+  const btn = document.getElementById('qr-approve-btn');
+  if (btn) { btn.innerHTML = `<span class="spinner"></span> Ödeme Onaylanıyor…`; btn.style.pointerEvents = 'none'; }
+  const m = state.qr.merchant || QR_MERCHANT;
+  state.qr.order = {
+    no: 'FAST' + String(Math.floor(100000000 + Math.random() * 900000000)),
+    date: new Date(), bank: state.qr.method === 'bank',
+  };
+  setTimeout(() => { closeSheet(); setTimeout(() => go('qr-success'), 250); }, 1500);
+}
+
+/* Karekod ödeme başarılı — Worldpuan + dekont, sonra telefon ana ekranına dön */
+function QrSuccessScreen() {
+  const m = state.qr.merchant || QR_MERCHANT;
+  const o = state.qr.order || { no: 'FAST' + String(Math.floor(100000000 + Math.random() * 900000000)), date: new Date(), bank: false };
+  const dateStr = orderDateStr(o.date);
+  const earn = o.bank ? 0 : qrPuan();
+  return `
+  <div class="screen anim-fade">
+    <div class="screen-scroll">
+      <div class="success">
+        <div class="success-check"><div class="ring">${I.checkBig}</div></div>
+        <h2>Ödemen Başarıyla Gerçekleşti</h2>
+        <div class="succ-date">${dateStr}</div>
+        <div class="amt">${fmtTL2(m.amount)}</div>
+        <div class="prod">${m.name} · ${m.branch}</div>
+
+        ${earn ? `
+        <div class="puan-card">
+          <div class="pc-logo"><img src="assets/world.webp" alt="World" onerror="this.outerHTML='🎉'"></div>
+          <div>
+            <div class="pc-val">+${earn} Worldpuan</div>
+            <div class="pc-lbl">hesabına eklendi · Toplam: ${(USER.worldpuan + earn).toLocaleString('tr-TR')} Worldpuan</div>
+          </div>
+        </div>` : ''}
+
+        <div class="receipt">
+          <div class="r-row"><span class="r-l">İşlem No</span><span class="r-r">${o.no}</span></div>
+          <div class="r-row"><span class="r-l">İş Yeri</span><span class="r-r">${m.name} · TR Karekod</span></div>
+          <div class="r-row"><span class="r-l">Ödeme Yöntemi</span><span class="r-r">${o.bank ? 'Vadesiz TL Hesabım · 12345678' : 'Worldcard **** 3333'}</span></div>
+          <div class="r-row"><span class="r-l">Kanal</span><span class="r-r">Ana ekran widget'ı · FAST</span></div>
+          <div class="r-row"><span class="r-l">Tutar</span><span class="r-r">${fmtTL2(m.amount)}</span></div>
+        </div>
+
+        <div class="success-actions">
+          <button class="btn-outline" data-action="qr-home">Ana Ekrana Dön</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function qrHome() { state.nav = []; state.qr.order = null; closeDrawer(); state.screen = 'springboard'; render(); }
+
 function render() {
   let html = '';
   switch (state.screen) {
     case 'home': html = HomeScreen(); break;
+    case 'springboard': html = SpringboardScreen(); break;
+    case 'qr-scan': html = QrScanScreen(); break;
+    case 'qr-pay': html = QrPayScreen(); break;
+    case 'qr-success': html = QrSuccessScreen(); break;
     case 'search': html = SearchScreen(); break;
     case 'chat': html = ChatScreen(); break;
     case 'payment': html = PaymentScreen(); break;
@@ -5008,6 +5257,7 @@ function render() {
 
   // Ekrana özel kurulum
   if (state.screen === 'search') setupSearch();
+  if (state.screen === 'qr-scan') setupQrScan();
   if (state.screen === 'chat') setupChat();
   if (state.screen === 'roundup-jar') setupJar();
   if (state.screen === 'spendup-apply') setupSpendupApply();
@@ -6081,6 +6331,15 @@ document.addEventListener('click', (e) => {
     case 'approve': return approvePayment();
     case 'close-sheet': return closeSheet();
 
+    // Karekod ile Öde — ana ekran widget'ı
+    case 'qr-start': return qrStart();
+    case 'launch-app': return goHome();
+    case 'qr-close': return navBack();
+    case 'qr-method': return qrMethod(t.dataset.method);
+    case 'qr-pay-open': return openQrConfirm();
+    case 'qr-approve': return qrApprove();
+    case 'qr-home': return qrHome();
+
     // Yuvarla Biriktir
     case 'ru-open': return go(state.roundup.active ? 'roundup-jar' : 'roundup-apply');
     case 'ru-agree': return ruToggleAgree(t);
@@ -6281,7 +6540,7 @@ function updateClock() {
    Her bölümün kendi hash linki var: #home #assistant #setur #chat #payment
    #success #tracking #search #settings #sections
    Link açıldığında ekran gereken state ile hazır gelir (akışı tekrarlamadan). */
-const ROUTES = ['home', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid', 'split', 'split-pick', 'split-amount', 'split-people', 'split-form', 'split-pay', 'reward-goal', 'reward-goal-new', 'reward-goal-track', 'reward-goal-win'];
+const ROUTES = ['home', 'springboard', 'qr-scan', 'qr-pay', 'qr-success', 'search', 'chat', 'assistant', 'setur', 'payment', 'success', 'tracking', 'settings', 'sections', 'roundup', 'roundup-apply', 'roundup-jar', 'roundup-history', 'spendup', 'spendup-apply', 'spendup-jar', 'spendup-history', 'metal', 'metal-apply', 'metal-jar', 'metal-history', 'fayda', 'fayda-journey', 'fayda-reward', 'fayda-wallet', 'insights', 'insights-category', 'insights-cats', 'limits', 'kid', 'split', 'split-pick', 'split-amount', 'split-people', 'split-form', 'split-pay', 'reward-goal', 'reward-goal-new', 'reward-goal-track', 'reward-goal-win'];
 function routeTo(hash) {
   const h = (hash || '').replace('#', '') || 'home';
   if (!ROUTES.includes(h)) return false;
@@ -6294,6 +6553,8 @@ function routeTo(hash) {
     state.payMethod = null; state.installment = 'single';
     state.preInfoOk = false; state.contractOk = false; state.usePuan = false;
   }
+  // Karekod ile Öde derin-linkleri — işyeri seçili değilse demo işyerini kur
+  if (['qr-scan', 'qr-pay', 'qr-success'].includes(h)) qrSeed();
   if (h === 'assistant') {            // Koçtaş sohbetini dolu göster
     state.chatStarted = true;
     state.chatSeed = true;
