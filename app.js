@@ -5524,7 +5524,7 @@ function BirikimHub() {
     <div class="screen-scroll ru-form sv-hub">
       <div class="ru-hero sv-hero-tight">
         <div class="ru-hero-logo ru-logo">${ruLogo(42)}</div>
-        <h1 class="ru-hero-title">Birikim planını oluştur</h1>
+        <h1 class="ru-hero-title">Hesabının birikim planını oluştur</h1>
         <p class="ru-hero-sub">Birikim türünü ve yöntemini seç.</p>
       </div>
 
