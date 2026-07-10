@@ -3597,3 +3597,42 @@ body[data-theme="light"] .hotel-rating { color: #d99800; }
   content: ''; position: absolute; inset: 12px; border-radius: 50%; background: #16181e;
 }
 .wgt-donut span { position: relative; z-index: 1; font-size: 14px; font-weight: 800; }
+
+/* =====================================================================
+   BİRİKİM (birleşik) — tek özellik: 4 birikim tipi × 3 başvuru tipi
+   Tümü standart YK teması (mavi/lacivert); ekstra renk/logo yok.
+   ===================================================================== */
+/* Birikim türü + yöntemi — kompakt yatay satır seçenekleri (tek ekrana sığar) */
+.sv-fund-list { display: flex; flex-direction: column; gap: 7px; }
+.sv-fund {
+  position: relative; display: flex; align-items: center; gap: 11px; text-align: left;
+  padding: 9px 12px; border-radius: 13px; border: 1.5px solid var(--border);
+  background: var(--card); cursor: pointer; font-family: inherit; transition: .16s;
+}
+.sv-fund-logo { display: inline-flex; align-items: center; justify-content: center; width: 26px; color: var(--primary); flex-shrink: 0; }
+.sv-fund-logo svg { width: 22px; height: 22px; }
+.sv-fund-mid { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sv-fund-t { font-size: 13.5px; font-weight: 800; color: var(--text); }
+.sv-fund-s { font-size: 11px; line-height: 1.3; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sv-fund-tick { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+.sv-fund-tick svg { width: 12px; height: 12px; opacity: 0; }
+.sv-fund.on { border-color: var(--primary); background: rgba(0,152,203,.06); }
+.sv-fund.on .sv-fund-tick { background: var(--primary); border-color: var(--primary); }
+.sv-fund.on .sv-fund-tick svg { opacity: 1; }
+
+/* Hub — tek ekrana sığması için sıkı boşluklar */
+.sv-hub .ru-hero.sv-hero-tight { padding: 4px 0 0; }
+.sv-hero-tight .ru-hero-logo { padding: 9px; animation: none; }
+.sv-hero-tight .ru-hero-title { margin: 8px 0 3px; font-size: 18px; }
+.sv-hero-tight .ru-hero-sub { font-size: 12.5px; }
+.sv-hub .ru-sec.sv-sec-tight { margin-top: 13px; }
+.sv-hub .ru-sec-h { margin-bottom: 7px; }
+
+/* Bağış kurumu emojisi (seçim alanı + sheet) — nötr rozet */
+.sv-cause-emoji { min-width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 21px; background: var(--bg-lower); flex-shrink: 0; }
+
+/* Ana ekran plan kartı — standart mavi ikon rozeti */
+.ru-home-card .sv-home-ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--primary); color: #fff; }
+.ru-home-card .sv-home-ico svg { width: 19px; height: 19px; }
+.ru-home-card.promo.sv-new { background: var(--card); border-style: dashed; }
+.sv-new-plus { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: rgba(0,152,203,.10); color: var(--primary); }
