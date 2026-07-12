@@ -71,6 +71,7 @@ const I = {
   pause: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.4"/><rect x="14" y="5" width="4" height="14" rx="1.4"/></svg>',
   play: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 8 5.5z"/></svg>',
   heart: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.6 1.7 5 5 5c2 0 3.2 1.2 4 2.3C9.8 6.2 11 5 13 5c3.3 0 4.6 3.6 3 6.8-2.5 4.6-10 9.2-10 9.2z" transform="translate(1 0)"/></svg>',
+  cashout: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v.01M18 14.5v.01"/></svg>',
   // Kıymetli maden — üst üste altın külçesi (yamuk)
   ingot: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M2.5 18 6 11h12l3.5 7z"/><path d="M6.4 11 8.2 7.2h7.6L17.6 11"/></svg>',
   // Bağış — avuçta kalp (yardım)
@@ -2886,14 +2887,16 @@ function FaydaJourney() {
       </div>
       ${faydaMapHTML(b)}
     </div>
-    <div class="screen-cta">
-      ${earned
-        ? `<button class="btn-primary" data-action="fy-wallet">Ödüllerime git</button>`
-        : completed
-          ? `<button class="btn-primary" data-action="fy-reward">🎁 Ödülünü seç</button>`
-          : `<button class="btn-ghost" data-action="fy-change">Başka ödül seç</button>`}
-    </div>
+    <div class="screen-cta">${faydaCTAHTML(earned, completed)}</div>
   </div>`;
+}
+// Yolculuk CTA'sı — hem tam render hem kısmi güncelleme aynı kaynağı kullansın
+function faydaCTAHTML(earned, completed) {
+  return earned
+    ? `<button class="btn-primary" data-action="fy-wallet">Ödüllerime git</button>`
+    : completed
+      ? `<button class="btn-primary" data-action="fy-reward">🎁 Ödülünü seç</button>`
+      : `<button class="btn-ghost" data-action="fy-change">Başka ödül seç</button>`;
 }
 // Dikey ödül yolu — büyük düğümler, bağlantı yolu, aktif level nabız + inline CTA, sonda ödül
 function faydaMapHTML(b) {
@@ -2976,8 +2979,42 @@ function faydaStep(bId, i) {
   p[i] = Math.min(goal, p[i] + (lv.step || goal));
   const doneNow = p[i] >= goal;
   if (doneNow && lv.final) return faydaUnlock(bId);
-  render();
-  setTimeout(() => toast(doneNow ? 'Level tamamlandı ✓' : `Eklendi · ${faydaLevelProg(bId, i)}`), 120);
+  faydaSyncJourney(bId, i, doneNow);
+  toast(doneNow ? 'Level tamamlandı ✓' : `Eklendi · ${faydaLevelProg(bId, i)}`);
+}
+// Kısmi güncelleme — tüm ekranı yeniden çizmeden (titreme/scroll sıçraması yok) sadece
+// değişen HUD + aktif level'ı tazeler. structureChanged=false ise yalnızca sayaç barı akar.
+function faydaSyncJourney(bId, i, structureChanged) {
+  const scr = document.querySelector('.fy-journey');
+  const map = scr && scr.querySelector('.fy-map');
+  if (state.screen !== 'fayda-journey' || !map) return render();   // ekran değiştiyse güvenli yol
+  const b = faydaBenefit(bId);
+  const done = faydaDoneCount(bId), total = faydaTotal(bId), pct = Math.round(done / total * 100);
+  const completed = faydaCompleted(bId), earned = faydaInWallet(bId);
+
+  // HUD — öğeler korunur, width transition'ı akıcı çalışır
+  const fill = scr.querySelector('.fy-hud-fill'); if (fill) fill.style.width = pct + '%';
+  const hudLv = scr.querySelector('.fy-hud-lv'); if (hudLv) hudLv.textContent = completed ? 'Yol tamamlandı 🎉' : `Level ${Math.min(done + 1, total)} / ${total}`;
+  const hudPct = scr.querySelector('.fy-hud-pct'); if (hudPct) hudPct.textContent = pct + '%';
+
+  if (!structureChanged) {
+    // Sadece sayaç ilerledi: aktif level'ın barını yerinde güncelle → akıcı dolum
+    const row = map.querySelector('.fy-mrow.active');
+    const lv = faydaLevels(bId)[i];
+    if (row) {
+      const lvFill = row.querySelector('.fy-lv-fill');
+      if (lvFill) lvFill.style.width = Math.round(faydaProg(bId)[i] / faydaGoal(lv) * 100) + '%';
+      const ct = row.querySelector('.fy-lv-ct'); if (ct) ct.textContent = faydaLevelProg(bId, i);
+    }
+    return;
+  }
+
+  // Yapı değişti (level tamamlandı, sıradaki açıldı): sadece haritayı tazele — ekran kabuğu kalır
+  const tmp = document.createElement('div');
+  tmp.innerHTML = faydaMapHTML(b);
+  map.replaceWith(tmp.firstElementChild);
+  const cta = scr.parentElement && scr.parentElement.querySelector('.screen-cta');
+  if (cta) cta.innerHTML = faydaCTAHTML(earned, completed);
 }
 // Seçim gerektiren level (kategori/hedef) — bottom sheet'te chip seçimi
 function faydaOpenLevel(bId, i) {
@@ -2995,9 +3032,10 @@ function faydaOpenLevel(bId, i) {
 }
 function faydaPickOption(bId, i, opt) {
   state.fayda.choice[bId] = opt;
-  if (i === faydaFirstOpen(bId)) faydaProg(bId)[i] = faydaGoal(faydaLevels(bId)[i]);   // aktifse level'ı tamamla
+  const completes = i === faydaFirstOpen(bId);
+  if (completes) faydaProg(bId)[i] = faydaGoal(faydaLevels(bId)[i]);   // aktifse level'ı tamamla
   closeSheet();
-  render();
+  faydaSyncJourney(bId, i, completes);
   setTimeout(() => toast('Seçildi ✓'), 150);
 }
 // Yol tamamlandı → tam ekran ödül seçim ekranına git (3 ödülden biri)
@@ -5314,23 +5352,29 @@ function WidgetGalleryScreen() {
           ${wgCap('Karekod ile Öde', 'Orta boy')}
         </div>
 
-        <!-- Bakiye widget'ı (orta) -->
+        <!-- Döviz & Altın (orta) — kişisel veri yok, piyasa görünümü -->
         <div class="wg-item">
-          <div class="wgt n26 wgt-md wgt-bal" data-action="launch-app">
+          <div class="wgt n26 wgt-md wgt-rates" data-action="launch-app">
+            <div class="wgt-head">${wgLogo()}<span class="wgt-title">Döviz & Altın</span><span class="wgt-dots"><i></i><i></i><i></i></span></div>
+            <div class="wgt-rate"><span class="wgt-rate-ico">$</span><span class="wgt-rate-k">Dolar</span><span class="wgt-rate-v">40,2140</span><span class="wgt-rate-c up">${I.trendUp} %0,3</span></div>
+            <div class="wgt-rate"><span class="wgt-rate-ico">€</span><span class="wgt-rate-k">Euro</span><span class="wgt-rate-v">43,5580</span><span class="wgt-rate-c up">${I.trendUp} %0,2</span></div>
+            <div class="wgt-rate"><span class="wgt-rate-ico gold">XAU</span><span class="wgt-rate-k">Gram Altın</span><span class="wgt-rate-v">6.850,00</span><span class="wgt-rate-c down">${I.trendUp} %0,4</span></div>
+          </div>
+          ${wgCap('Döviz & Altın', 'Orta boy')}
+        </div>
+
+        <!-- Kartsız ATM / QR ile Para Çek (orta) — aksiyon, kişisel veri yok -->
+        <div class="wg-item">
+          <div class="wgt n26 wgt-md wgt-atm" data-action="launch-app">
             <span class="wgt-dots wgt-dots-tr"><i></i><i></i><i></i></span>
-            <div class="wgt-bal-left">
-              <div class="wgt-bal-lbl">Vadesiz TL Hesabım</div>
-              <div class="wgt-bal-amt">${fmtTL2(USER.balance)}</div>
-              <div class="wgt-bal-card"><span class="wgt-bal-iban">TR•• •••• 3333</span>${wgMark()}</div>
-            </div>
-            <div class="wgt-bal-right">
-              <div class="wgt-bal-rlbl">Son hareketler</div>
-              <div class="wgt-tx"><span class="wgt-tx-ico">🛒</span><div class="wgt-tx-m"><b>Migros</b><small>Market</small></div><span class="wgt-tx-a neg">-${fmtTL2(240)}</span></div>
-              <div class="wgt-tx"><span class="wgt-tx-ico pos">${I.arrowUp || '↑'}</span><div class="wgt-tx-m"><b>Maaş</b><small>Gelen</small></div><span class="wgt-tx-a pos">+${fmtTL2(MAAS)}</span></div>
-              <div class="wgt-tx"><span class="wgt-tx-ico">SK</span><div class="wgt-tx-m"><b>Selin K.</b><small>FAST</small></div><span class="wgt-tx-a neg">-${fmtTL2(150)}</span></div>
+            <div class="wgt-atm-ico">${I.cashout}</div>
+            <div class="wgt-atm-txt">
+              <span class="wgt-brand"><img src="${WG_APPICON}" class="wgt-brand-ico" alt="">Yapı Kredi</span>
+              <div class="wgt-qrpay-t">QR ile Para Çek</div>
+              <div class="wgt-atm-sub">Kartsız — ATM'de karekod okut</div>
             </div>
           </div>
-          ${wgCap('Bakiye', 'Orta boy')}
+          ${wgCap('Kartsız ATM', 'Orta boy')}
         </div>
 
         <!-- Küçük ikili sıra: Worldpuan + Karekod -->
