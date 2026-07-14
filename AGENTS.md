@@ -106,6 +106,13 @@ mantıksız veya zayıf kısımları uygulamadan önce kullanıcıya söyle ve d
 - **Dosya yönetimi:** uygulamada kullanılacak görsel `app/assets/` içine, saklamaya değer tasarım
   referansı `docs/referans/` içine konur. Sohbete yapıştırılan tek seferlik konsept görselleri
   repoya eklenmez; kök dizinde başıboş görsel dosyası bırakılmaz.
+- **Kişisel veri:** Kullanıcının paylaştığı görsellerde ve metinlerde (özellikle gerçek uygulama
+  ekran görüntülerinde) istemeden gerçek kişisel bilgiler bulunabilir: ad soyad, hesap no, IBAN,
+  kart numarası, bakiye, telefon, TCKN, adres. Bu bilgiler prototipe olduğu gibi aktarılmaz;
+  mevcut mock verilerle (`app.js` içindeki kullanıcı, hesap ve kart verileri) veya yeni üretilen
+  mock değerlerle değiştirilir. Görsel yalnızca yerleşim ve format referansı olarak kullanılır.
+  Görseldeki kişisel veri akılda tutulup uygulamanın başka ekranlarında, kodda, commit mesajında
+  veya belgelerde kullanılmaz. Kişisel veri tespit edilip mock'landığında kullanıcıya kısaca söylenir.
 
 ## Çalışma kuralları
 

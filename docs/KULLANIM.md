@@ -25,6 +25,9 @@ Bilinmesi gerekenler:
 - Uygulamada kullanılacak görseller (ürün, logo vb.) `app/assets/` içine girer;
   saklamaya değer tasarım referansları `docs/referans/` içine girer; tek seferlik konsept
   görsellerini repoya eklemeye gerek yok, sohbete yapıştırmak yeterli.
+- Gerçek ekran görüntüsü paylaşırken içinde kişisel bilgiler (ad, bakiye, IBAN, kart no vb.)
+  kalabilir; mümkünse gizle. Kalsa bile agent bu bilgileri prototipe almaz, mock verilerle
+  değiştirir ve başka yerde kullanmaz.
 - Yeni bölüm eklenince agent bu dosyadaki hash tablosunu da günceller; demo linkini oradan alabilirsin.
 
 ## Prototipi açma
