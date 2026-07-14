@@ -82,6 +82,20 @@ Not: Uzun listeli veya animasyonlu ekranlarda tam `render()` yerine kısmi DOM g
 - **Ödeme:** taksit varsayılanı Tek Çekim; kullanıcı değiştirebilir. Onayda Face ID "başarılı" simülasyonu.
 - Yeni görsel gerekirse kullanıcıdan istenir (indirip `app/assets/` içine atar).
 
+## Kullanıcıdan gelen girdiler (AI üretimi görsel ve akışlar)
+
+Kullanıcı yeni özellik çalışırken başka AI araçlarıyla (ChatGPT, Gemini vb.) hazırlanmış
+UX/UI görselleri veya akış metinleri paylaşabilir. Bu girdilerle çalışma kuralları:
+
+- **AI üretimi görsel = konsept referansı.** Yerleşimi ve fikri al; renk, font ve bileşen dilini
+  birebir kopyalama — gerçek YK temasına uyarla (yukarıdaki tasarım kuralları geçerli).
+- **Gerçek uygulama ekran görüntüsü > AI konsepti.** İkisi çelişirse gerçek uygulama kazanır.
+- **Akış metinleri** (adımlar, ekranlar, durumlar) gereksinim olarak ele alınır; eksik kalan
+  durumlar (hata, boş durum, geri dönüş) sorulur veya mevcut ekranlardaki kalıplara göre tamamlanır.
+- **Dosya yönetimi:** uygulamada kullanılacak görsel `app/assets/` içine, saklamaya değer tasarım
+  referansı `docs/referans/` içine konur. Sohbete yapıştırılan tek seferlik konsept görselleri
+  repoya eklenmez; kök dizinde başıboş görsel dosyası bırakılmaz.
+
 ## Çalışma kuralları
 
 - **Test:** `app/baslat.command` (veya `app/` içinde `python3 -m http.server 8080`) ile aç;

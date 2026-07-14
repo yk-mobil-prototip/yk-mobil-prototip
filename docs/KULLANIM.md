@@ -3,6 +3,29 @@
 Bu belge, prototipi **kullanacak / demo yapacak** kişiler içindir.
 Kod üzerinde çalışacaksan (insan ya da AI agent) önce kökteki [AGENTS.md](../AGENTS.md) dosyasını oku.
 
+## Yeni özellik geliştirme — agent ile çalışma
+
+Prototipe yeni özellik, ekran veya akış eklemek için repo içinde Claude Code (agent) çalıştırılır.
+Agent'ı beslemenin yolları:
+
+- **Sözlü tarif:** Eklenecek özelliği ve akışı düz cümlelerle anlat; agent gerisini
+  [AGENTS.md](../AGENTS.md) kurallarına göre yapar.
+- **Başka AI'larla hazırlık:** ChatGPT, Gemini gibi araçlarla UX/UI görselleri (ekran taslağı,
+  widget konsepti) üretip agent'a verebilirsin. Görseli sohbete yapıştırman yeterli.
+  Aynı şekilde bir özelliğin akışını (adımlar, ekranlar, durumlar) başka bir AI ile çalışıp
+  çıkan metni agent'a girdi olarak verebilirsin.
+- **Gerçek uygulama ekran görüntüsü:** Görsel birebirlik için en güçlü referans budur;
+  gerçek Yapı Kredi Mobil ekran görüntüsü at, agent ona göre yapar.
+
+Bilinmesi gerekenler:
+
+- AI üretimi görseller **konsept referansıdır**: agent bunları birebir kopyalamaz, gerçek
+  Yapı Kredi temasına (renk, font, bileşen diline) uyarlar.
+- Uygulamada kullanılacak görseller (ürün, logo vb.) `app/assets/` içine girer;
+  saklamaya değer tasarım referansları `docs/referans/` içine girer; tek seferlik konsept
+  görsellerini repoya eklemeye gerek yok, sohbete yapıştırmak yeterli.
+- Yeni bölüm eklenince agent bu dosyadaki hash tablosunu da günceller; demo linkini oradan alabilirsin.
+
 ## Prototipi açma
 
 | Yöntem | Nasıl |
