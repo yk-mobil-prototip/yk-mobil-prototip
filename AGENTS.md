@@ -120,8 +120,11 @@ mantıksız veya zayıf kısımları uygulamadan önce kullanıcıya söyle ve d
   ekranlara `#etiket` hash linkleriyle doğrudan giderek kontrol et. Build, lint ve test framework'ü yoktur.
 - **Yayın:** her `main` push'unda `.github/workflows/pages.yml`, `app/` klasörünü GitHub Pages'e yayınlar.
   Canlı adres: https://yk-mobil-prototip.github.io/yk-mobil-prototip/
-  Workflow yayından önce `app.js` sözdizimini kontrol eder; hata varsa yayınlamaz ve canlı demo
-  son sağlam halinde kalır (Actions sekmesinde kırmızı çarpı görürsün — commit'i düzeltip tekrar push'la).
+  Workflow yayından önce iki teknik kontrol yapar: `app.js` geçerli JavaScript mi (`node --check`,
+  yani sözdizimi hatası var mı) ve `index.html` ile `styles.css` yerinde mi. Bu kontroller geçmezse
+  yayınlamaz, canlı demo son sağlam halinde kalır (Actions sekmesinde kırmızı çarpı — düzeltip tekrar push'la).
+  Dikkat: bu yalnızca "uygulama hiç açılmıyor" durumunu yakalar; mantık ve görünüm hataları yayına girer.
+  Bu yüzden asıl güvence push'tan önce lokalde test etmektir (yukarıdaki Test kuralı).
 - **Branch düzeni:** herkes doğrudan `main` üzerinde çalışır; ayrı branch/PR düzeni kullanılmıyor.
   `main`'de force push ve silme repo kuralıyla kapalıdır — geçmiş her zaman korunur.
 - **Geri alma:** bir commit sorun çıkarırsa `git revert <commit>` ile geri al ve push'la;
