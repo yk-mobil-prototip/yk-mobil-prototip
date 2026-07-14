@@ -8,8 +8,8 @@ Kod üzerinde çalışacaksan (insan ya da AI agent) önce kökteki [AGENTS.md](
 | Yöntem | Nasıl |
 |---|---|
 | **Canlı link** | https://bselcukimre.github.io/yk-app-prototip/ |
-| **Bilgisayarda lokal** | `baslat.command` dosyasına çift tıkla (ilk seferde: sağ tık → Aç) → http://localhost:8080 |
-| **Telefonda** | `baslat.command` çalışırken, aynı Wi-Fi'daki telefondan terminalde yazan `http://<IP>:8080` adresini aç. Tam ekran için Safari'de Paylaş → Ana Ekrana Ekle |
+| **Bilgisayarda lokal** | `app/baslat.command` dosyasına çift tıkla (ilk seferde: sağ tık → Aç) → http://localhost:8080 |
+| **Telefonda** | `app/baslat.command` çalışırken, aynı Wi-Fi'daki telefondan terminalde yazan `http://<IP>:8080` adresini aç. Tam ekran için Safari'de Paylaş → Ana Ekrana Ekle |
 
 > Derleme/kurulum yok: proje statik HTML/CSS/JS'dir, herhangi bir HTTP sunucusuyla açılır.
 

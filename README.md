@@ -1,36 +1,26 @@
 # Yapı Kredi Mobil — Prototip
 
-Gerçek Yapı Kredi Mobil uygulamasının birebir kopyası üzerine kurulu, yeni özellik fikirlerini
-gerçek uygulama hissiyle demo etmek için yapılmış **statik HTML/CSS/JS prototipi**.
-Backend, gerçek veri ve build süreci yoktur.
+Yapı Kredi Mobil uygulamasının statik HTML/CSS/JS prototipi.
+Yeni özellik fikirleri gerçek uygulama görünümüyle demo edilir.
+Backend, gerçek veri ve kurulum yoktur.
 
-## Hızlı başlangıç
+## Çalıştırma
 
 - **Canlı:** https://bselcukimre.github.io/yk-app-prototip/
-- **Lokal:** `baslat.command`'a çift tıkla → bilgisayarda http://localhost:8080 açılır.
-  Telefondan açmak için terminalde gösterilen `http://<bilgisayarın-IP'si>:8080` adresini kullan (telefon ve bilgisayar aynı Wi-Fi'da olmalı).
-- Herhangi bir bölüme doğrudan gitmek için hash linkleri kullan, örn. `.../#widgets`, `.../#qr-pay`
+- **Lokal:** `app/baslat.command` dosyasına çift tıkla → http://localhost:8080
+- **Telefonda:** lokal sunucu çalışırken terminalde gösterilen `http://<IP>:8080` adresini aç (aynı Wi-Fi)
+
+Bir bölüme doğrudan gitmek için adresin sonuna etiket ekle, örnek: `/#widgets`
+Tüm etiketler: [docs/KULLANIM.md](docs/KULLANIM.md)
+
+## Klasörler
+
+| Klasör | İçerik |
+|---|---|
+| [app/](app/) | Uygulama: `index.html`, `app.js`, `styles.css`, `assets/`, `baslat.command` |
+| [docs/](docs/) | Kullanım kılavuzu ve tasarım referans görselleri |
 
 ## Belgeler
 
-| Belge | Kim için |
-|---|---|
-| [docs/KULLANIM.md](docs/KULLANIM.md) | Prototipi kullanacak / demo yapacak kişiler — akışlar ve tüm bölüm linkleri |
-| [AGENTS.md](AGENTS.md) | Kod üzerinde çalışacak geliştiriciler ve AI agent'lar — mimari, tasarım kuralları, çalışma kuralları |
-
-## İçerik (özet)
-
-Alışveriş Asistanı (AI chat + World Pay ödeme), Setur otonom senaryosu, Karekod ile Öde
-(ana ekran widget'ı), Widget Galerisi, Birikim hub'ı (Yuvarla / Ekstreden / Maden),
-Ödül Yolu, Harcama Bölüştür, Birlikte Kazan, Dinamik CVV, abonelikler, harcama analizi ve daha fazlası.
-Tam liste ve linkler: [docs/KULLANIM.md](docs/KULLANIM.md)
-
-## Dosyalar
-
-```
-index.html    iskelet + telefon çerçevesi + durum çubuğu
-app.js        ekranlar, navigasyon, chat ve ödeme akışları
-styles.css    tüm stiller (koyu/açık tema)
-assets/       ürün, kart ve logo görselleri
-docs/         kullanım kılavuzu + tasarım referans görselleri
-```
+- [docs/KULLANIM.md](docs/KULLANIM.md) — prototipi kullanma ve demo yapma
+- [AGENTS.md](AGENTS.md) — kod üzerinde çalışma (geliştirici ve AI agent)
