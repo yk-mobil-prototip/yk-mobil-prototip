@@ -31,7 +31,7 @@ Bilinmesi gerekenler:
 
 | Yöntem | Nasıl |
 |---|---|
-| **Canlı link** | https://bselcukimre.github.io/yk-app-prototip/ |
+| **Canlı link** | https://yk-mobil-prototip.github.io/yk-mobil-prototip/ |
 | **Bilgisayarda lokal** | `app/baslat.command` dosyasına çift tıkla (ilk seferde: sağ tık → Aç) → http://localhost:8080 |
 | **Telefonda** | `app/baslat.command` çalışırken, aynı Wi-Fi'daki telefondan terminalde yazan `http://<IP>:8080` adresini aç. Tam ekran için Safari'de Paylaş → Ana Ekrana Ekle |
 
@@ -56,7 +56,7 @@ Her bölüm, akışı baştan tekrarlamadan kendi hash linkiyle doğrudan açıl
 İki şekilde erişilir:
 - **Uygulama içinden:** soldaki menü → Bölümler
 - **Bağlantıyla:** adresin sonuna aşağıdaki etiketlerden birini ekle
-  (örnek: `https://bselcukimre.github.io/yk-app-prototip/#tracking`)
+  (örnek: `https://yk-mobil-prototip.github.io/yk-mobil-prototip/#tracking`)
 
 | Bölüm | Link |
 |---|---|

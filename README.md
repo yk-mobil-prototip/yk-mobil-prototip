@@ -6,7 +6,7 @@ Backend, gerçek veri ve kurulum yoktur.
 
 ## Çalıştırma
 
-- **Canlı:** https://bselcukimre.github.io/yk-app-prototip/
+- **Canlı:** https://yk-mobil-prototip.github.io/yk-mobil-prototip/
 - **Lokal:** `app/baslat.command` dosyasına çift tıkla → http://localhost:8080
 - **Telefonda:** lokal sunucu çalışırken terminalde gösterilen `http://<IP>:8080` adresini aç (aynı Wi-Fi)
 

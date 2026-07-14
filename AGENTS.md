@@ -6,6 +6,14 @@ demo etmek. Backend, gerçek veri ve build süreci yoktur.
 
 Prototipi sadece kullanacaksan: [docs/KULLANIM.md](docs/KULLANIM.md)
 
+## Repolar
+
+- **Ekip reposu (asıl çalışma):** https://github.com/yk-mobil-prototip/yk-mobil-prototip
+  Ekip tüm commit ve push'larını buraya yapar. Canlı demo da bu repodan yayınlanır.
+- **Kişisel repo:** https://github.com/bselcukimre/yk-app-prototip
+  Repo sahibinin (bselcukimre) kişisel kopyasıdır; ekip üyeleri buraya dokunmaz.
+  Sahibinin makinesinde `origin` kişisel repoya, `ekip` ekip reposuna gider; değişiklikler ikisine de push'lanır.
+
 ## Klasör yapısı
 
 ```
@@ -107,6 +115,6 @@ mantıksız veya zayıf kısımları uygulamadan önce kullanıcıya söyle ve d
 - **Test:** `app/baslat.command` (veya `app/` içinde `python3 -m http.server 8080`) ile aç;
   ekranlara `#etiket` hash linkleriyle doğrudan giderek kontrol et. Build, lint ve test framework'ü yoktur.
 - **Yayın:** her `main` push'unda `.github/workflows/pages.yml`, `app/` klasörünü GitHub Pages'e yayınlar.
-  Canlı adres: https://bselcukimre.github.io/yk-app-prototip/
+  Canlı adres: https://yk-mobil-prototip.github.io/yk-mobil-prototip/
 - **`yayin/` senkronu:** `app/` içindeki dosyalar değişince aynılarını `yayin/` klasörüne kopyala
   (`cp -R app/. yayin/` benzeri). `yayin/` gitignore'dadır, sadece lokal yayın kopyasıdır.
