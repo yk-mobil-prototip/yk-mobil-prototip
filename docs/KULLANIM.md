@@ -19,8 +19,9 @@ Agent'ı beslemenin yolları:
 
 Bilinmesi gerekenler:
 
-- AI üretimi görseller **konsept referansıdır**: agent bunları birebir kopyalamaz, gerçek
-  Yapı Kredi temasına (renk, font, bileşen diline) uyarlar.
+- AI üretimi görseller ve akış önerileri **fikir dokümanıdır, şartname değildir**: agent bunları
+  doğru kabul edip birebir uygulamaz; repo kuralları ve gerçek Yapı Kredi temasıyla (renk, font,
+  bileşen dili) karşılaştırıp değerlendirir, uyumsuz bulduğu kısımları söyleyip daha iyisini önerir.
 - Uygulamada kullanılacak görseller (ürün, logo vb.) `app/assets/` içine girer;
   saklamaya değer tasarım referansları `docs/referans/` içine girer; tek seferlik konsept
   görsellerini repoya eklemeye gerek yok, sohbete yapıştırmak yeterli.

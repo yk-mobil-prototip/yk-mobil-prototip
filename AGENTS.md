@@ -85,13 +85,19 @@ Not: Uzun listeli veya animasyonlu ekranlarda tam `render()` yerine kısmi DOM g
 ## Kullanıcıdan gelen girdiler (AI üretimi görsel ve akışlar)
 
 Kullanıcı yeni özellik çalışırken başka AI araçlarıyla (ChatGPT, Gemini vb.) hazırlanmış
-UX/UI görselleri veya akış metinleri paylaşabilir. Bu girdilerle çalışma kuralları:
+UX/UI görselleri veya akış metinleri paylaşabilir.
+
+**Temel ilke:** Başka AI'lardan gelen içerik doğruluk kaynağı değildir; fikir üretmeye yardımcı
+dokümandır. Doğru kabul edip birebir uygulama. Kendi değerlendirmeni yap: bu repodaki tasarım
+kurallarıyla, gerçek YK uygulamasının kalıplarıyla ve mevcut ekranlarla karşılaştır; uyumsuz,
+mantıksız veya zayıf kısımları uygulamadan önce kullanıcıya söyle ve daha iyisini öner.
 
 - **AI üretimi görsel = konsept referansı.** Yerleşimi ve fikri al; renk, font ve bileşen dilini
   birebir kopyalama — gerçek YK temasına uyarla (yukarıdaki tasarım kuralları geçerli).
 - **Gerçek uygulama ekran görüntüsü > AI konsepti.** İkisi çelişirse gerçek uygulama kazanır.
-- **Akış metinleri** (adımlar, ekranlar, durumlar) gereksinim olarak ele alınır; eksik kalan
-  durumlar (hata, boş durum, geri dönüş) sorulur veya mevcut ekranlardaki kalıplara göre tamamlanır.
+- **Akış metinleri** (adımlar, ekranlar, durumlar) öneri taslağıdır, şartname değildir.
+  İyi fikirlerini al, eksiklerini (hata, boş durum, geri dönüş) mevcut ekranlardaki kalıplara göre
+  tamamla; kararsız kaldığın noktayı kullanıcıya sor.
 - **Dosya yönetimi:** uygulamada kullanılacak görsel `app/assets/` içine, saklamaya değer tasarım
   referansı `docs/referans/` içine konur. Sohbete yapıştırılan tek seferlik konsept görselleri
   repoya eklenmez; kök dizinde başıboş görsel dosyası bırakılmaz.
