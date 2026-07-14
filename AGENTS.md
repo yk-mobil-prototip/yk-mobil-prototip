@@ -6,13 +6,10 @@ demo etmek. Backend, gerçek veri ve build süreci yoktur.
 
 Prototipi sadece kullanacaksan: [docs/KULLANIM.md](docs/KULLANIM.md)
 
-## Repolar
+## Repo
 
-- **Ekip reposu (asıl çalışma):** https://github.com/yk-mobil-prototip/yk-mobil-prototip
-  Ekip tüm commit ve push'larını buraya yapar. Canlı demo da bu repodan yayınlanır.
-- **Kişisel repo:** https://github.com/bselcukimre/yk-app-prototip
-  Repo sahibinin (bselcukimre) kişisel kopyasıdır; ekip üyeleri buraya dokunmaz.
-  Sahibinin makinesinde `origin` kişisel repoya, `ekip` ekip reposuna gider; değişiklikler ikisine de push'lanır.
+Çalışma reposu: https://github.com/yk-mobil-prototip/yk-mobil-prototip
+Tüm commit ve push'lar buraya yapılır; canlı demo da bu repodan yayınlanır.
 
 ## Klasör yapısı
 
