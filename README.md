@@ -7,7 +7,8 @@ Backend, gerçek veri ve build süreci yoktur.
 ## Hızlı başlangıç
 
 - **Canlı:** https://bselcukimre.github.io/yk-app-prototip/
-- **Lokal:** `baslat.command`'a çift tıkla → http://localhost:8080 (telefondan da aynı Wi-Fi'da açılır)
+- **Lokal:** `baslat.command`'a çift tıkla → bilgisayarda http://localhost:8080 açılır.
+  Telefondan açmak için terminalde gösterilen `http://<bilgisayarın-IP'si>:8080` adresini kullan (telefon ve bilgisayar aynı Wi-Fi'da olmalı).
 - Herhangi bir bölüme doğrudan gitmek için hash linkleri kullan, örn. `.../#widgets`, `.../#qr-pay`
 
 ## Belgeler
