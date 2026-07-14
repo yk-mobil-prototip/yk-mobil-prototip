@@ -120,5 +120,12 @@ mantıksız veya zayıf kısımları uygulamadan önce kullanıcıya söyle ve d
   ekranlara `#etiket` hash linkleriyle doğrudan giderek kontrol et. Build, lint ve test framework'ü yoktur.
 - **Yayın:** her `main` push'unda `.github/workflows/pages.yml`, `app/` klasörünü GitHub Pages'e yayınlar.
   Canlı adres: https://yk-mobil-prototip.github.io/yk-mobil-prototip/
+  Workflow yayından önce `app.js` sözdizimini kontrol eder; hata varsa yayınlamaz ve canlı demo
+  son sağlam halinde kalır (Actions sekmesinde kırmızı çarpı görürsün — commit'i düzeltip tekrar push'la).
+- **Branch düzeni:** herkes doğrudan `main` üzerinde çalışır; ayrı branch/PR düzeni kullanılmıyor.
+  `main`'de force push ve silme repo kuralıyla kapalıdır — geçmiş her zaman korunur.
+- **Geri alma:** bir commit sorun çıkarırsa `git revert <commit>` ile geri al ve push'la;
+  canlı demo otomatik eski haline döner. Push'lanmış hiçbir şey kaybolmaz, her commit'e dönülebilir.
+  Agent'a "şu commit'i / son değişikliği geri al" demek de yeterlidir.
 - **`yayin/` senkronu:** `app/` içindeki dosyalar değişince aynılarını `yayin/` klasörüne kopyala
   (`cp -R app/. yayin/` benzeri). `yayin/` gitignore'dadır, sadece lokal yayın kopyasıdır.
